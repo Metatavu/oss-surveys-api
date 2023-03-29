@@ -62,7 +62,7 @@ abstract class AbstractApi {
     }
 
     /**
-     * Constructs no content response
+     * Constructs accepted response
      *
      * @param entity payload
      * @return response

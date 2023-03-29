@@ -6,7 +6,7 @@ plugins {
     id("io.quarkus")
     id("org.openapi.generator") version "6.4.0"
     jacoco
-    id("com.github.nbaztec.coveralls-jacoco") version "1.2.14"
+    id("com.github.nbaztec.coveralls-jacoco") version "1.2.15"
 }
 
 repositories {
