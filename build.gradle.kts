@@ -111,7 +111,7 @@ tasks.test {
         excludeClassLoaders = listOf("*QuarkusClassLoader*")
         setDestinationFile(layout.buildDirectory.file("jacoco-quarkus.exec").get().asFile)
     }
-    jacocoTestReport.enabled = false
+    tasks.jacocoTestReport.enabled = false
 }
 
 tasks.named("compileKotlin") {
