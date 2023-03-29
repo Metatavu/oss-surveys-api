@@ -105,6 +105,14 @@ coverallsJacoco {
     reportPath = "build/jacoco-report/jacoco.xml"
 }
 
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+    configure<JacocoTaskExtension> {
+        excludeClassLoaders = listOf("*QuarkusClassLoader*")
+        setDestinationFile(layout.buildDirectory.file("jacoco-quarkus.exec").get().asFile)
+    }
+}
+
 tasks.named("compileKotlin") {
     dependsOn(generateApiSpec)
 }
