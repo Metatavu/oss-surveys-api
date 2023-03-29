@@ -1,12 +1,13 @@
-package fi.metatavu.example.api.test.functional
+package fi.metatavu.oss.api.test.functional
 
-import fi.metatavu.example.api.test.functional.auth.TestBuilderAuthentication
 import fi.metatavu.jaxrs.test.functional.builder.AbstractAccessTokenTestBuilder
 import fi.metatavu.jaxrs.test.functional.builder.AbstractTestBuilder
 import fi.metatavu.jaxrs.test.functional.builder.auth.*
+import fi.metatavu.oss.api.test.functional.auth.TestBuilderAuthentication
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import java.io.IOException
 import java.net.URL
+import kotlin.jvm.Throws
 
 /**
  * Abstract test builder class
@@ -29,9 +30,9 @@ class TestBuilder(private val config: Map<String, String>): AbstractAccessTokenT
     }
 
     /**
-     * Returns authentication resource authenticated as admin
+     * Returns authentication resource authenticated as manager
      */
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     private fun createManager(): TestBuilderAuthentication {
         val authServerUrl = config.getValue("quarkus.oidc.auth-server-url").substringBeforeLast("/").substringBeforeLast("/")
         val realm = getKeycloakRealm()
@@ -43,9 +44,9 @@ class TestBuilder(private val config: Map<String, String>): AbstractAccessTokenT
 
 
     /**
-     * Returns authentication resource authenticated as admin
+     * Returns authentication resource authenticated as consumer
      */
-    @kotlin.jvm.Throws(IOException::class)
+    @Throws(IOException::class)
     private fun createConsumer(): TestBuilderAuthentication {
         val authServerUrl = config.getValue("quarkus.oidc.auth-server-url").substringBeforeLast("/").substringBeforeLast("/")
         val realm = getKeycloakRealm()

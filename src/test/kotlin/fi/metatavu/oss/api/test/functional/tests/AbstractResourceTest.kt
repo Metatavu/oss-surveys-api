@@ -1,6 +1,5 @@
-package fi.metatavu.example.api.test.functional.tests
+package fi.metatavu.oss.api.test.functional.tests
 
-import fi.metatavu.example.api.test.functional.TestBuilder
 import io.quarkus.test.common.DevServicesContext
 import io.quarkus.test.junit.QuarkusTest
 import org.eclipse.microprofile.config.ConfigProvider
@@ -18,8 +17,8 @@ abstract class AbstractResourceTest {
      *
      * @return new test builder
      */
-    protected fun createTestBuilder(): TestBuilder {
-        return TestBuilder(getConfig())
+    protected fun createTestBuilder(): fi.metatavu.oss.api.test.functional.TestBuilder {
+        return fi.metatavu.oss.api.test.functional.TestBuilder(getConfig())
     }
 
     /**

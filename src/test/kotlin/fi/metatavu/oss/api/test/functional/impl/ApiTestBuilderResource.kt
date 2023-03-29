@@ -1,6 +1,6 @@
-package fi.metatavu.example.api.test.functional.impl
+package fi.metatavu.oss.api.test.functional.impl
 
-import fi.metatavu.example.api.test.functional.TestBuilder
+import fi.metatavu.oss.api.test.functional.TestBuilder
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.infrastructure.ClientException
 import fi.metatavu.oss.test.client.infrastructure.ServerException
@@ -14,7 +14,7 @@ import org.junit.Assert
 abstract class ApiTestBuilderResource<T, A>(
     testBuilder: TestBuilder,
     private val apiClient: ApiClient
-):fi.metatavu.jaxrs.test.functional.builder.AbstractAccessTokenApiTestBuilderResource<T, A, ApiClient>(testBuilder) {
+) : fi.metatavu.jaxrs.test.functional.builder.AbstractAccessTokenApiTestBuilderResource<T, A, ApiClient>(testBuilder) {
 
     /**
      * Returns API client
