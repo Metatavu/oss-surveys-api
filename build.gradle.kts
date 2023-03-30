@@ -5,8 +5,6 @@ plugins {
     kotlin("plugin.allopen") version "1.7.21"
     id("io.quarkus")
     id("org.openapi.generator") version "6.4.0"
-    jacoco
-    id("com.github.nbaztec.coveralls-jacoco") version "1.2.15"
 }
 
 repositories {
@@ -98,18 +96,6 @@ val generateApiClient = tasks.register("generateApiClient",GenerateTask::class){
     this.configOptions.put("dateLibrary", "string")
     this.configOptions.put("collectionType", "array")
     this.configOptions.put("serializationLibrary", "jackson")
-}
-
-coverallsJacoco {
-    reportPath = "build/jacoco-report/jacoco.xml"
-}
-
-tasks.test {
-    finalizedBy(tasks.jacocoTestReport)
-    configure<JacocoTaskExtension> {
-        excludeClassLoaders = listOf("*QuarkusClassLoader*")
-        setDestinationFile(layout.buildDirectory.file("jacoco-quarkus.exec").get().asFile)
-    }
 }
 
 tasks.named("compileKotlin") {
