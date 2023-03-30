@@ -72,6 +72,10 @@ coverallsJacoco {
     reportPath = "build/jacoco-report/jacoco.xml"
 }
 
+tasks.named("coverallsJacoco") {
+    dependsOn(tasks.jacocoTestReport)
+}
+
 tasks.test {
     finalizedBy(tasks.jacocoTestReport)
     configure<JacocoTaskExtension> {
