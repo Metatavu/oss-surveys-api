@@ -13,7 +13,6 @@ import javax.ws.rs.core.Response
 @RequestScoped
 class SystemApiImpl: SystemApi, AbstractApi()  {
 
-    @Produces("application/json")
     override suspend fun ping(): Response {
         return createOk("pong")
     }
