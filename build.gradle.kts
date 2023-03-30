@@ -5,8 +5,6 @@ plugins {
     kotlin("plugin.allopen") version "1.7.21"
     id("io.quarkus")
     id("org.openapi.generator") version "6.4.0"
-    jacoco
-    id("com.github.nbaztec.coveralls-jacoco") version "1.2.15"
 }
 
 repositories {
@@ -42,7 +40,6 @@ dependencies {
     testImplementation("org.testcontainers:mysql")
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
-    testImplementation("io.quarkus:quarkus-jacoco")
 }
 
 group = "fi.metatavu.oss"
