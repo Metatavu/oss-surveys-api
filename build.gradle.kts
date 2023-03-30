@@ -42,7 +42,6 @@ dependencies {
     testImplementation("org.testcontainers:mysql")
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
-    testImplementation("io.quarkus:quarkus-jacoco")
 }
 
 group = "fi.metatavu.oss"

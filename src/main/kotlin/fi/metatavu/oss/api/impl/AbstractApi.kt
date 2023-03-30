@@ -51,6 +51,21 @@ abstract class AbstractApi {
     }
 
     /**
+     * Constructs ok response with total count header
+     *
+     * @param entity payload
+     * @return response
+     */
+    protected fun createOk(entity: Any?, count: Long): Response {
+        return Response
+            .status(Response.Status.OK)
+            .entity(entity)
+            .header("Total-Count", count.toString())
+            .header("Access-Control-Expose-Headers", "Total-Count")
+            .build()
+    }
+
+    /**
      * Constructs ok response
      *
      * @return response
@@ -166,6 +181,16 @@ abstract class AbstractApi {
     }
 
     /**
+     * Creates not found response with given parameters
+     *
+     * @param target target of the find method
+     * @param id ID of the target
+     */
+    protected fun createNotFoundWithMessage(target: String, id: UUID): Response {
+        return createNotFound("$target with ID $id could not be found")
+    }
+
+    /**
      * Constructs an error response
      *
      * @param status status code
@@ -190,6 +215,8 @@ abstract class AbstractApi {
         const val UNAUTHORIZED = "Unauthorized"
         const val FORBIDDEN = "Forbidden"
         const val MISSING_REQUEST_BODY = "Missing request body"
+
+        const val SURVEY = "Survey"
     }
 
 }

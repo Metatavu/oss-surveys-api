@@ -1,4 +1,4 @@
-package fi.metatavu.oss.api.persistence.repository
+package fi.metatavu.oss.api.impl.abstracts
 
 import io.quarkus.hibernate.reactive.panache.PanacheQuery
 import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase
