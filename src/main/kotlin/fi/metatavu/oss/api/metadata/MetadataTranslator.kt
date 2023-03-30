@@ -1,7 +1,6 @@
 package fi.metatavu.oss.api.metadata
 
 import fi.metatavu.oss.api.impl.translate.AbstractTranslator
-import fi.metatavu.plastep.api.metadata.DBMetadata
 import javax.enterprise.context.ApplicationScoped
 
 /**

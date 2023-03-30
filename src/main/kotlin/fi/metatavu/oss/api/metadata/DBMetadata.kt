@@ -1,4 +1,4 @@
-package fi.metatavu.plastep.api.metadata
+package fi.metatavu.oss.api.metadata
 
 import java.time.OffsetDateTime
 import java.util.*

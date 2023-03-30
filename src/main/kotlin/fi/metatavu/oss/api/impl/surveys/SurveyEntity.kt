@@ -1,6 +1,6 @@
 package fi.metatavu.oss.api.impl.surveys
 
-import fi.metatavu.plastep.api.metadata.DBMetadata
+import fi.metatavu.oss.api.metadata.DBMetadata
 import java.util.*
 import javax.persistence.Column
 import javax.persistence.Entity
