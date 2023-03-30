@@ -5,6 +5,8 @@ plugins {
     kotlin("plugin.allopen") version "1.7.21"
     id("io.quarkus")
     id("org.openapi.generator") version "6.4.0"
+    jacoco
+    id("com.github.nbaztec.coveralls-jacoco") version "1.2.14"
 }
 
 repositories {
@@ -40,6 +42,7 @@ dependencies {
     testImplementation("org.testcontainers:mysql")
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
+    testImplementation("io.quarkus:quarkus-jacoco")
 }
 
 group = "fi.metatavu.oss"
@@ -63,6 +66,22 @@ allOpen {
     annotation("javax.enterprise.context.RequestScoped")
     annotation("io.quarkus.test.junit.QuarkusTest")
     annotation("javax.persistence.Entity")
+}
+
+coverallsJacoco {
+    reportPath = "build/jacoco-report/jacoco.xml"
+}
+
+tasks.named("coverallsJacoco") {
+    dependsOn(tasks.jacocoTestReport)
+}
+
+tasks.test {
+    finalizedBy(tasks.jacocoTestReport)
+    configure<JacocoTaskExtension> {
+        excludeClassLoaders = listOf("*QuarkusClassLoader*")
+        setDestinationFile(layout.buildDirectory.file("jacoco-quarkus.exec").get().asFile)
+    }
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
