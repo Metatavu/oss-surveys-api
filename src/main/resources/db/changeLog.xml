@@ -10,7 +10,7 @@
             <column name="id" type="binary(16)">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
-            <column name="title" type="varchar(255)">
+            <column name="title" type="varchar(191)">
                 <constraints nullable="false"/>
             </column>
             <column name="creatorid" type="binary(16)">
