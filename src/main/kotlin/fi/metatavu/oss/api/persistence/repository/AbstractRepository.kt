@@ -4,6 +4,9 @@ import io.quarkus.hibernate.reactive.panache.PanacheQuery
 import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase
 import io.smallrye.mutiny.Uni
 
+/**
+ * Abstract repository with additional methods for listing the entities
+ */
 abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id> {
 
     /**
