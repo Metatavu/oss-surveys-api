@@ -42,7 +42,6 @@ class TestBuilder(private val config: Map<String, String>): AbstractAccessTokenT
         return TestBuilderAuthentication(this, KeycloakAccessTokenProvider(authServerUrl, realm, clientId, username, password, null))
     }
 
-
     /**
      * Returns authentication resource authenticated as consumer
      */
