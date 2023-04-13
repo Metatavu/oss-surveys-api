@@ -116,6 +116,7 @@ val generateApiClient = tasks.register("generateApiClient",GenerateTask::class){
     this.configOptions.put("dateLibrary", "string")
     this.configOptions.put("collectionType", "array")
     this.configOptions.put("serializationLibrary", "jackson")
+    this.configOptions.put("enumPropertyNaming", "UPPERCASE")
 }
 
 tasks.named("compileKotlin") {

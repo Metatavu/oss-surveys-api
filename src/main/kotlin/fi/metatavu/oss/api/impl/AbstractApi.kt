@@ -264,7 +264,8 @@ abstract class AbstractApi {
         const val MISSING_REQUEST_BODY = "Missing request body"
 
         const val SURVEY = "Survey"
-        const val DEVICEREQUEST = "Device Request"
+        const val DEVICE_REQUEST = "Device Request"
+        const val DEVICE = "Device"
 
         const val deviceKeyHeader = "X-DEVICE-KEY"
     }

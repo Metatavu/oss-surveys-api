@@ -1,6 +1,6 @@
 package fi.metatavu.oss.api.impl.devices
 
-import fi.metatavu.oss.api.impl.devices.requests.DeviceRequestEntity
+import fi.metatavu.oss.api.impl.requests.DeviceRequestEntity
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.awaitSuspending
@@ -50,5 +50,25 @@ class DeviceController {
      */
     suspend fun getDeviceKey(id: UUID): ByteArray {
         return deviceRepository.findById(id).awaitSuspending().deviceKey
+    }
+
+    /**
+     * Finds a Device
+     *
+     * @param id id
+     * @return uni with found device
+     */
+    fun findDevice(id: UUID): Uni<DeviceEntity?> {
+        return deviceRepository.findById(id)
+    }
+
+    /**
+     * Deletes a Device
+     *
+     * @param device device
+     */
+    @ReactiveTransactional
+    fun deleteDevice(device: DeviceEntity): Uni<Void> {
+        return deviceRepository.delete(device)
     }
 }

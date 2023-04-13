@@ -1,4 +1,4 @@
-package fi.metatavu.oss.api.impl.devices.requests
+package fi.metatavu.oss.api.impl.requests
 
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.model.DeviceApprovalStatus
