@@ -7,7 +7,14 @@ import fi.metatavu.oss.api.impl.devices.DeviceController
 import fi.metatavu.oss.api.model.DeviceApprovalStatus
 import fi.metatavu.oss.api.model.DeviceKey
 import fi.metatavu.oss.api.model.DeviceRequest
-import io.smallrye.mutiny.coroutines.awaitSuspending
+import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
+import io.smallrye.mutiny.Uni
+import io.smallrye.mutiny.coroutines.asUni
+import io.vertx.core.Vertx
+import io.vertx.kotlin.coroutines.dispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
 import java.util.*
 import javax.annotation.security.RolesAllowed
 import javax.enterprise.context.RequestScoped
@@ -15,6 +22,8 @@ import javax.inject.Inject
 import javax.ws.rs.core.Response
 
 @RequestScoped
+@Suppress ("unused")
+@OptIn(ExperimentalCoroutinesApi::class)
 class DeviceRequestsApiImpl: fi.metatavu.oss.api.spec.DeviceRequestsApi, AbstractApi() {
 
     @Inject
@@ -29,70 +38,73 @@ class DeviceRequestsApiImpl: fi.metatavu.oss.api.spec.DeviceRequestsApi, Abstrac
     @Inject
     lateinit var deviceRequestTranslator: DeviceRequestTranslator
 
-    override suspend fun createDeviceRequest(serialNumber: String): Response {
-        val existingDeviceRequest = deviceRequestController.findDeviceRequest(serialNumber = serialNumber).awaitSuspending()
+    @Inject
+    lateinit var vertx: Vertx
+    @ReactiveTransactional
+    override fun createDeviceRequest(serialNumber: String): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        val existingDeviceRequest = deviceRequestController.findDeviceRequest(serialNumber = serialNumber)
 
         if (existingDeviceRequest != null) {
-            return createBadRequest("Duplicate serial number")
+            return@async createBadRequest("Duplicate serial number")
         }
 
         val createdDeviceRequest = deviceRequestController
             .createDeviceRequest(serialNumber = serialNumber)
-            .awaitSuspending()
 
-        return createCreated(deviceRequestTranslator.translate(createdDeviceRequest))
-    }
+        createCreated(deviceRequestTranslator.translate(createdDeviceRequest))
+    }.asUni()
 
+    @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
-    override suspend fun deleteDeviceRequest(requestId: UUID): Response {
+    override fun deleteDeviceRequest(requestId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val foundDeviceRequest = deviceRequestController
-            .findDeviceRequest(id = requestId)
-            .awaitSuspending() ?: return createNotFound(DEVICE_REQUEST)
+            .findDeviceRequest(id = requestId) ?: return@async createNotFound(DEVICE_REQUEST)
 
-        deviceRequestController.deleteDeviceRequest(deviceRequest = foundDeviceRequest).awaitSuspending()
+        deviceRequestController.deleteDeviceRequest(deviceRequest = foundDeviceRequest)
 
-        return createNoContent()
-    }
+        createNoContent()
+    }.asUni()
 
-    override suspend fun getDeviceKey(requestId: UUID): Response {
+    @ReactiveTransactional
+    override fun getDeviceKey(requestId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val foundDeviceRequest = deviceRequestController
-            .findDeviceRequest(id = requestId)
-            .awaitSuspending() ?: return createNotFound(DEVICE_REQUEST)
+            .findDeviceRequest(id = requestId) ?: return@async createNotFound(DEVICE_REQUEST)
 
         if (foundDeviceRequest.approvalStatus == DeviceApprovalStatus.APPROVED) {
             val keypair = cryptoController.generateRsaKeyPair()
-                ?: return createInternalServerError("Couldn't create keypair")
+                ?: return@async createInternalServerError("Couldn't create keypair")
 
             deviceController.createDevice(
                 deviceRequest = foundDeviceRequest,
                 deviceKey = keypair.public,
                 userId = foundDeviceRequest.lastModifierId!!
-            ).awaitSuspending()
+            )
 
             deviceRequestController.deleteDeviceRequest(
                 deviceRequest = foundDeviceRequest
-            ).awaitSuspending()
+            )
 
-            return createOk(DeviceKey(
+            return@async createOk(DeviceKey(
                     key = cryptoController.getPrivateKeyBase64(keypair.private)
             ))
         }
 
-        return createForbidden(FORBIDDEN)
-    }
+        createForbidden(FORBIDDEN)
+    }.asUni()
 
+    @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
-    override suspend fun updateDeviceRequest(requestId: UUID, deviceRequest: DeviceRequest): Response {
-        val userId = loggedUserId ?: return createUnauthorized(UNAUTHORIZED)
-        val foundDeviceRequest = deviceRequestController.findDeviceRequest(id = requestId).awaitSuspending()
-            ?: return createNotFound(DEVICE_REQUEST)
+    override fun updateDeviceRequest(requestId: UUID, deviceRequest: DeviceRequest): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        val userId = loggedUserId ?: return@async createUnauthorized(UNAUTHORIZED)
+        val foundDeviceRequest = deviceRequestController.findDeviceRequest(id = requestId)
+            ?: return@async  createNotFound(DEVICE_REQUEST)
 
         val updatedDeviceRequest = deviceRequestController.updateDeviceRequest(
             foundDeviceRequest = foundDeviceRequest,
             updatedDeviceRequest =  deviceRequest,
             userId = userId
-        ).awaitSuspending()
+        )
 
-        return createOk(deviceRequestTranslator.translate(updatedDeviceRequest))
-    }
+        createOk(deviceRequestTranslator.translate(updatedDeviceRequest))
+    }.asUni()
 }
