@@ -1,5 +1,7 @@
 package fi.metatavu.oss.api.impl
 
+import fi.metatavu.oss.api.impl.crypto.CryptoController
+import fi.metatavu.oss.api.impl.devices.DeviceController
 import fi.metatavu.oss.api.model.Error
 import org.eclipse.microprofile.jwt.JsonWebToken
 import java.util.*
@@ -8,6 +10,7 @@ import javax.inject.Inject
 import javax.ws.rs.core.Context
 import javax.ws.rs.core.Response
 import javax.ws.rs.core.SecurityContext
+import javax.ws.rs.core.HttpHeaders
 
 /**
  * Abstract base class for all API services
@@ -18,10 +21,19 @@ import javax.ws.rs.core.SecurityContext
 abstract class AbstractApi {
 
     @Inject
+    private lateinit var cryptoController: CryptoController
+
+    @Inject
+    private lateinit var deviceController: DeviceController
+
+    @Inject
     private lateinit var jsonWebToken: JsonWebToken
 
     @Context
     private lateinit var securityContext: SecurityContext
+
+    @Context
+    lateinit var httpHeaders: HttpHeaders
 
     /**
      * Returns logged user id
@@ -36,6 +48,29 @@ abstract class AbstractApi {
 
             return null
         }
+
+    /**
+     * Checks whether incoming request from Device has authorized device key as a header
+     *
+     * @param deviceId device id
+     * @return whether device key is authorized
+     */
+    protected suspend fun isAuthorizedDevice(deviceId: UUID): Boolean {
+        val token = httpHeaders.requestHeaders[deviceKeyHeader]?.first() ?: return false
+        val privateKey = cryptoController.loadPrivateKeyBase64(token) ?: return false
+        val deviceKey = deviceController.getDeviceKey(deviceId)
+        val publicKey = cryptoController.loadPublicKey(deviceKey) ?: return false
+        val challenge = cryptoController.signUUID(
+            privateKey = privateKey,
+            id = deviceId
+        ) ?: return false
+
+        return cryptoController.verifyUUID(
+            publicKey = publicKey,
+            signature = challenge,
+            id = deviceId
+        )
+    }
 
     /**
      * Constructs ok response
@@ -73,6 +108,18 @@ abstract class AbstractApi {
     protected fun createOk(): Response {
         return Response
             .status(Response.Status.OK)
+            .build()
+    }
+
+    /**
+     * Constructs created response
+     *
+     * @return response
+     */
+    protected fun createCreated(entity: Any?): Response {
+        return Response
+            .status(Response.Status.CREATED)
+            .entity(entity)
             .build()
     }
 
@@ -217,6 +264,10 @@ abstract class AbstractApi {
         const val MISSING_REQUEST_BODY = "Missing request body"
 
         const val SURVEY = "Survey"
+        const val DEVICE_REQUEST = "Device Request"
+        const val DEVICE = "Device"
+
+        const val deviceKeyHeader = "X-DEVICE-KEY"
     }
 
 }
