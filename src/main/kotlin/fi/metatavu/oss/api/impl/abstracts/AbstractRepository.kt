@@ -65,4 +65,23 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
         } else
             Pair(query.list<Entity>().awaitSuspending(), count)
     }
+
+    /**
+     * Persists suspending
+     *
+     * @param entity entity
+     * @return persisted entity
+     */
+    open suspend fun persistSuspending(entity: Entity): Entity {
+        return persist(entity).awaitSuspending()
+    }
+
+    /**
+     * Deletes suspending
+     *
+     * @param entity entity
+     */
+    open suspend fun deleteSuspending(entity: Entity) {
+        delete(entity).awaitSuspending()
+    }
 }

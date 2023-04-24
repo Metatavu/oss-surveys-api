@@ -73,4 +73,12 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="survey_status" author="Ville Juutila">
+        <addColumn tableName="survey">
+            <column name="status" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

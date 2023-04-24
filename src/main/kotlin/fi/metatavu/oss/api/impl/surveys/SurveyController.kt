@@ -1,5 +1,6 @@
 package fi.metatavu.oss.api.impl.surveys
 
+import fi.metatavu.oss.api.model.SurveyStatus
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
@@ -19,9 +20,22 @@ class SurveyController {
      *
      * @param firstResult first result
      * @param maxResults max results
+     * @param status status
      * @return uni with list of surveys and count
      */
-    suspend fun listSurveys(firstResult: Int?, maxResults: Int?): Pair<List<SurveyEntity>, Long> {
+    suspend fun listSurveys(
+        firstResult: Int?,
+        maxResults: Int?,
+        status: SurveyStatus?
+    ): Pair<List<SurveyEntity>, Long> {
+        if (status != null) {
+            return surveyRepository.applyPagingToQuery(
+                query = surveyRepository.find("status = ?1", status),
+                page = firstResult,
+                pageSize = maxResults,
+            )
+        }
+
         return surveyRepository.listAllWithPaging(firstResult, maxResults)
     }
 
@@ -47,7 +61,7 @@ class SurveyController {
      * @return uni with void
      */
     suspend fun deleteSurvey(surveyEntity: SurveyEntity) {
-        surveyRepository.delete(surveyEntity).awaitSuspending()
+        surveyRepository.deleteSuspending(surveyEntity)
     }
 
     /**
@@ -63,7 +77,12 @@ class SurveyController {
         newRestSurvey: fi.metatavu.oss.api.model.Survey,
         userId: UUID
     ): SurveyEntity {
-        return surveyRepository.update(surveyEntityToUpdate, newRestSurvey.title, userId)
+        return surveyRepository.update(
+            survey = surveyEntityToUpdate,
+            title = newRestSurvey.title,
+            status  = newRestSurvey.status ?: SurveyStatus.DRAFT,
+            lastModifierId = userId
+        )
     }
 
     /**

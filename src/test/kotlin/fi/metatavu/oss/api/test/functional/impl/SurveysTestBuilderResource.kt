@@ -7,6 +7,7 @@ import fi.metatavu.oss.test.client.apis.SurveysApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.infrastructure.ClientException
 import fi.metatavu.oss.test.client.models.Survey
+import fi.metatavu.oss.test.client.models.SurveyStatus
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import java.util.*
@@ -33,13 +34,21 @@ class SurveysTestBuilderResource(
         return addClosable(created)
     }
 
-    fun createDefault(): Survey? {
+    fun createDefault(): Survey {
         val created = api.createSurvey(Survey(title = "default survey"))
         return addClosable(created)
     }
 
-    fun list(firstResult: Int?, maxResults: Int?): Array<Survey> {
-        return api.listSurveys(firstResult = firstResult, maxResults = maxResults)
+    fun list(
+        firstResult: Int?,
+        maxResults: Int?,
+        status: SurveyStatus?
+    ): Array<Survey> {
+        return api.listSurveys(
+            firstResult = firstResult,
+            maxResults = maxResults,
+            status = status
+        )
     }
 
     fun find(surveyId: UUID): Survey {

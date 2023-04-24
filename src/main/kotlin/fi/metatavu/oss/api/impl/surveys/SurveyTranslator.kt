@@ -18,6 +18,7 @@ class SurveyTranslator: AbstractTranslator<SurveyEntity, fi.metatavu.oss.api.mod
         return fi.metatavu.oss.api.model.Survey(
             id = entity.id,
             title = entity.title,
+            status = entity.status,
             metadata = metadataTranslator.translate(entity)
         )
     }

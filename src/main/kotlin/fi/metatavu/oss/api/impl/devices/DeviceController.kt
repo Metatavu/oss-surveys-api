@@ -36,7 +36,7 @@ class DeviceController {
         newDevice.creatorId = userId
         newDevice.lastModifierId = userId
 
-        return deviceRepository.create(device = newDevice).awaitSuspending()
+        return deviceRepository.create(device = newDevice)
     }
 
     /**
@@ -65,6 +65,6 @@ class DeviceController {
      * @param device device
      */
     suspend fun deleteDevice(device: DeviceEntity) {
-        deviceRepository.delete(device).awaitSuspending()
+        deviceRepository.deleteSuspending(device)
     }
 }
