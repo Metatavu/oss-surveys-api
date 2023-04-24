@@ -1,6 +1,7 @@
 package fi.metatavu.oss.api.impl.devices
 
 import fi.metatavu.oss.api.impl.requests.DeviceRequestEntity
+import fi.metatavu.oss.api.model.DeviceStatus
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.security.PublicKey
 import java.util.*
@@ -33,6 +34,7 @@ class DeviceController {
         newDevice.id = deviceRequest.id
         newDevice.serialNumber = deviceRequest.serialNumber
         newDevice.deviceKey = deviceKey.encoded
+        newDevice.deviceStatus = DeviceStatus.OFFLINE
         newDevice.creatorId = userId
         newDevice.lastModifierId = userId
 
@@ -66,5 +68,19 @@ class DeviceController {
      */
     suspend fun deleteDevice(device: DeviceEntity) {
         deviceRepository.deleteSuspending(device)
+    }
+
+    /**
+     * Lists devices
+     *
+     * @param firstResult first result
+     * @param maxResults max results
+     * @return list of devices and count
+     */
+    suspend fun listDevices(firstResult: Int?, maxResults: Int?): Pair<List<DeviceEntity>, Long> {
+        return deviceRepository.listAllWithPaging(
+            page = firstResult,
+            pageSize = maxResults
+        )
     }
 }

@@ -16,7 +16,7 @@ class DeviceRequestRepository: AbstractRepository<DeviceRequestEntity, UUID>() {
      * Creates a Device Request
      *
      * @param serialNumber serial number
-     * @return uni with created device request
+     * @return created device request
      */
     suspend fun create(serialNumber: String): DeviceRequestEntity {
         val deviceRequestEntity = DeviceRequestEntity()
@@ -31,7 +31,7 @@ class DeviceRequestRepository: AbstractRepository<DeviceRequestEntity, UUID>() {
      * Finds a Device Request by serial number
      *
      * @param serialNumber serial number
-     * @return uni with found device request
+     * @return found device request
      */
     suspend fun findBySerialNumber(serialNumber: String): DeviceRequestEntity? {
         return find("serialnumber = ?1", serialNumber).firstResult<DeviceRequestEntity?>().awaitSuspending()
@@ -41,7 +41,7 @@ class DeviceRequestRepository: AbstractRepository<DeviceRequestEntity, UUID>() {
      * Updates a Device Request
      *
      * @param deviceRequest device request
-     * @return uni with updated device request
+     * @return updated device request
      */
     suspend fun update(deviceRequest: DeviceRequestEntity): DeviceRequestEntity {
         return persistSuspending(deviceRequest)

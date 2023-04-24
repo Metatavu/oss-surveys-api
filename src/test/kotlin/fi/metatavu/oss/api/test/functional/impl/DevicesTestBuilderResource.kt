@@ -18,6 +18,7 @@ class DevicesTestBuilderResource(
 ) : ApiTestBuilderResource<Device, ApiClient>(testBuilder, apiClient) {
     override fun clean(t: Device?) {
         api.deleteDevice(t!!.id!!)
+
     }
 
     override fun getApi(): DevicesApi {
@@ -34,5 +35,9 @@ class DevicesTestBuilderResource(
 
             closable.id!! == deviceId
         }
+    }
+
+    fun list(): Array<Device> {
+        return api.listDevices()
     }
 }
