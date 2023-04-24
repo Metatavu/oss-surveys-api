@@ -84,7 +84,7 @@ class DeviceRequestsApiImpl: fi.metatavu.oss.api.spec.DeviceRequestsApi, Abstrac
                 deviceRequest = foundDeviceRequest
             )
 
-            createOk(DeviceKey(
+            return@async createOk(DeviceKey(
                     key = cryptoController.getPrivateKeyBase64(keypair.private)
             ))
         }
