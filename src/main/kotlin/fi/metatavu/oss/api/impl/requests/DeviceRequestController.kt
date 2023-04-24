@@ -1,8 +1,7 @@
 package fi.metatavu.oss.api.impl.requests
 
 import fi.metatavu.oss.api.model.DeviceRequest
-import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
-import io.smallrye.mutiny.Uni
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -22,9 +21,8 @@ class DeviceRequestController {
      * @param serialNumber serial number
      * @return uni with created device request
      */
-    @ReactiveTransactional
-    fun createDeviceRequest(serialNumber: String): Uni<DeviceRequestEntity> {
-        return deviceRequestRepository.create(serialNumber = serialNumber)
+    suspend fun createDeviceRequest(serialNumber: String): DeviceRequestEntity {
+        return deviceRequestRepository.create(serialNumber = serialNumber).awaitSuspending()
     }
 
     /**
@@ -33,8 +31,8 @@ class DeviceRequestController {
      * @param id id
      * @return uni with found device request
      */
-    fun findDeviceRequest(id: UUID): Uni<DeviceRequestEntity?> {
-        return deviceRequestRepository.findById(id)
+    suspend fun findDeviceRequest(id: UUID): DeviceRequestEntity? {
+        return deviceRequestRepository.findById(id).awaitSuspending()
     }
 
     /**
@@ -43,8 +41,8 @@ class DeviceRequestController {
      * @param serialNumber serial number
      * @return uni with found device request
      */
-    fun findDeviceRequest(serialNumber: String): Uni<DeviceRequestEntity?> {
-        return deviceRequestRepository.findBySerialNumber(serialNumber = serialNumber)
+    suspend fun findDeviceRequest(serialNumber: String): DeviceRequestEntity? {
+        return deviceRequestRepository.findBySerialNumber(serialNumber = serialNumber).awaitSuspending()
     }
 
     /**
@@ -52,9 +50,8 @@ class DeviceRequestController {
      *
      * @param deviceRequest device request
      */
-    @ReactiveTransactional
-    fun deleteDeviceRequest(deviceRequest: DeviceRequestEntity): Uni<Void> {
-        return deviceRequestRepository.delete(deviceRequest)
+    suspend fun deleteDeviceRequest(deviceRequest: DeviceRequestEntity) {
+        deviceRequestRepository.delete(deviceRequest).awaitSuspending()
     }
 
     /**
@@ -65,16 +62,15 @@ class DeviceRequestController {
      * @param userId user id
      * @return uni with updated device request
      */
-    @ReactiveTransactional
-    fun updateDeviceRequest(
+    suspend fun updateDeviceRequest(
         foundDeviceRequest: DeviceRequestEntity,
         updatedDeviceRequest: DeviceRequest,
         userId: UUID
-    ): Uni<DeviceRequestEntity> {
+    ): DeviceRequestEntity {
         foundDeviceRequest.id = foundDeviceRequest.id
         foundDeviceRequest.approvalStatus = updatedDeviceRequest.approvalStatus!!
         foundDeviceRequest.lastModifierId = userId
 
-        return deviceRequestRepository.update(deviceRequest = foundDeviceRequest)
+        return deviceRequestRepository.update(deviceRequest = foundDeviceRequest).awaitSuspending()
     }
 }

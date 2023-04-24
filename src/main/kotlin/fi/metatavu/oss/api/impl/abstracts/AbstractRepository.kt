@@ -2,7 +2,7 @@ package fi.metatavu.oss.api.impl.abstracts
 
 import io.quarkus.hibernate.reactive.panache.PanacheQuery
 import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase
-import io.smallrye.mutiny.Uni
+import io.smallrye.mutiny.coroutines.awaitSuspending
 
 /**
  * Abstract repository with additional methods for listing the entities
@@ -16,12 +16,14 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
      * @param pageSize page size
      * @return entities
      */
-    open fun listAllWithPaging(page: Int? = null, pageSize: Int? = null): Pair<Uni<List<Entity>>, Uni<Long>> {
-        val count = findAll().count()
+    open suspend fun listAllWithPaging(page: Int? = null, pageSize: Int? = null): Pair<List<Entity>, Long> {
+        val count = findAll().count().awaitSuspending()
+
         return if (page != null && pageSize != null) {
-            Pair(findAll().page<Entity>(page, pageSize).list(), count)
-        } else
-            Pair(listAll(), count)
+            Pair(findAll().page<Entity>(page, pageSize).list<Entity>().awaitSuspending(), count)
+        } else {
+            Pair(listAll().awaitSuspending(), count)
+        }
     }
 
     /**
@@ -32,16 +34,16 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
      * @param pageSize page size
      * @return MutableList<Entity>?
      */
-    open fun applyPagingToQuery(
+    open suspend fun applyPagingToQuery(
         query: PanacheQuery<Entity>,
         page: Int?,
         pageSize: Int?
-    ): Pair<Uni<List<Entity>>, Uni<Long>> {
-        val count = query.count()
+    ): Pair<List<Entity>, Long> {
+        val count = query.count().awaitSuspending()
         return if (page != null && pageSize != null) {
-            Pair(query.page<Entity>(page, pageSize).list(), count)
+            Pair(query.page<Entity>(page, pageSize).list<Entity>().awaitSuspending(), count)
         } else
-            Pair(query.list(), count)
+            Pair(query.list<Entity>().awaitSuspending(), count)
     }
 
     /**
@@ -52,15 +54,15 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
      * @param lastIndex last index
      * @return entities
      */
-    open fun applyRangeToQuery(
+    open suspend fun applyRangeToQuery(
         query: PanacheQuery<Entity>,
         firstIndex: Int?,
         lastIndex: Int?
-    ): Pair<Uni<List<Entity>>, Uni<Long>> {
-        val count = query.count()
+    ): Pair<List<Entity>, Long> {
+        val count = query.count().awaitSuspending()
         return if (firstIndex != null && lastIndex != null) {
-            Pair(query.range<Entity>(firstIndex, lastIndex).list(), count)
+            Pair(query.range<Entity>(firstIndex, lastIndex).list<Entity>().awaitSuspending(), count)
         } else
-            Pair(query.list(), count)
+            Pair(query.list<Entity>().awaitSuspending(), count)
     }
 }

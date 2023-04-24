@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "1.7.21"
     kotlin("plugin.allopen") version "1.7.21"
     id("io.quarkus")
-    id("org.openapi.generator") version "6.4.0"
+    id("org.openapi.generator") version "6.6.0-kotlin-jaxrs-mutiny-rc1"
     jacoco
     id("com.github.nbaztec.coveralls-jacoco") version "1.2.14"
 }
@@ -34,6 +34,9 @@ dependencies {
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
     implementation("io.quarkus:quarkus-arc")
+    implementation("io.vertx:vertx-core")
+    implementation("io.vertx:vertx-lang-kotlin")
+    implementation("io.vertx:vertx-lang-kotlin-coroutines")
     implementation("org.apache.commons:commons-lang3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
@@ -101,7 +104,7 @@ val generateApiSpec = tasks.register("generateApiSpec",GenerateTask::class){
     this.configOptions.put("dateLibrary", "java8")
     this.configOptions.put("enumPropertyNaming", "UPPERCASE")
     this.configOptions.put("interfaceOnly", "true")
-    this.configOptions.put("useCoroutines", "true")
+    this.configOptions.put("useMutiny", "true")
     this.configOptions.put("returnResponse", "true")
     this.configOptions.put("useSwaggerAnnotations", "false")
     this.configOptions.put("additionalModelTypeAnnotations", "@io.quarkus.runtime.annotations.RegisterForReflection")

@@ -1,8 +1,6 @@
 package fi.metatavu.oss.api.impl.devices
 
 import fi.metatavu.oss.api.impl.requests.DeviceRequestEntity
-import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
-import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.security.PublicKey
 import java.util.*
@@ -26,12 +24,11 @@ class DeviceController {
      * @param userId user id
      * @return uni with created device
      */
-    @ReactiveTransactional
-    fun createDevice(
+    suspend fun createDevice(
         deviceRequest: DeviceRequestEntity,
         deviceKey: PublicKey,
         userId: UUID
-    ): Uni<DeviceEntity> {
+    ): DeviceEntity {
         val newDevice = DeviceEntity()
         newDevice.id = deviceRequest.id
         newDevice.serialNumber = deviceRequest.serialNumber
@@ -39,7 +36,7 @@ class DeviceController {
         newDevice.creatorId = userId
         newDevice.lastModifierId = userId
 
-        return deviceRepository.create(device = newDevice)
+        return deviceRepository.create(device = newDevice).awaitSuspending()
     }
 
     /**
@@ -58,8 +55,8 @@ class DeviceController {
      * @param id id
      * @return uni with found device
      */
-    fun findDevice(id: UUID): Uni<DeviceEntity?> {
-        return deviceRepository.findById(id)
+    suspend fun findDevice(id: UUID): DeviceEntity? {
+        return deviceRepository.findById(id).awaitSuspending()
     }
 
     /**
@@ -67,8 +64,7 @@ class DeviceController {
      *
      * @param device device
      */
-    @ReactiveTransactional
-    fun deleteDevice(device: DeviceEntity): Uni<Void> {
-        return deviceRepository.delete(device)
+    suspend fun deleteDevice(device: DeviceEntity) {
+        deviceRepository.delete(device).awaitSuspending()
     }
 }
