@@ -1,6 +1,8 @@
 package fi.metatavu.oss.api.impl
 
+import fi.metatavu.oss.api.impl.realtime.mqtt.DeviceStatus
 import fi.metatavu.oss.api.impl.realtime.mqtt.MqttClient
+import fi.metatavu.oss.api.impl.realtime.mqtt.ReactiveStatusProducer
 import fi.metatavu.oss.api.spec.SystemApi
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.asUni
@@ -29,8 +31,12 @@ class SystemApiImpl: SystemApi, AbstractApi()  {
     @Inject
     lateinit var mqttClient: MqttClient
 
+    @Inject
+    lateinit var reactiveStatusProducer: ReactiveStatusProducer
+
     override fun ping(): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
-        mqttClient.publish("oss/staging/1234/surveys/create", "{\"status\":false}")
+        // mqttClient.publish("oss/staging/1234/surveys/create", "{\"status\":false}")
+        reactiveStatusProducer.sendStatusMessage(DeviceStatus(false))
         createOk("pong")
     }.asUni()
 
