@@ -40,6 +40,8 @@ dependencies {
     implementation("org.apache.commons:commons-lang3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    implementation("io.vertx:vertx-mqtt")
+
     testImplementation("com.squareup.okhttp3:okhttp")
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
     testImplementation("org.testcontainers:testcontainers")
@@ -47,6 +49,7 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.quarkus:quarkus-jacoco")
+    testImplementation("org.testcontainers:hivemq")
 }
 
 group = "fi.metatavu.oss"

@@ -1,5 +1,6 @@
 package fi.metatavu.oss.api.impl
 
+import fi.metatavu.oss.api.impl.realtime.mqtt.MqttClient
 import fi.metatavu.oss.api.spec.SystemApi
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.asUni
@@ -25,7 +26,11 @@ class SystemApiImpl: SystemApi, AbstractApi()  {
     @Inject
     lateinit var vertx: Vertx
 
+    @Inject
+    lateinit var mqttClient: MqttClient
+
     override fun ping(): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        mqttClient.publish("oss/staging/1234/surveys/create", "{\"status\":false}")
         createOk("pong")
     }.asUni()
 

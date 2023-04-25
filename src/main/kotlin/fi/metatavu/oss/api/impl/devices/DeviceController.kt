@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 
 /**
- * Controller class for devices (transactions should start here)
+ * Controller class for devices
  */
 @ApplicationScoped
 class DeviceController {
@@ -23,7 +23,7 @@ class DeviceController {
      * @param deviceRequest device request
      * @param deviceKey device key
      * @param userId user id
-     * @return uni with created device
+     * @return created device
      */
     suspend fun createDevice(
         deviceRequest: DeviceRequestEntity,
@@ -55,10 +55,20 @@ class DeviceController {
      * Finds a Device
      *
      * @param id id
-     * @return uni with found device
+     * @return found device
      */
     suspend fun findDevice(id: UUID): DeviceEntity? {
         return deviceRepository.findById(id).awaitSuspending()
+    }
+
+    /**
+     * Finds a Device by serial number
+     *
+     * @param serialNumber serial number
+     * @return found device
+     */
+    suspend fun findDevice(serialNumber: String): DeviceEntity? {
+        return deviceRepository.findBySerialNumber(serialNumber)
     }
 
     /**
@@ -82,5 +92,15 @@ class DeviceController {
             page = firstResult,
             pageSize = maxResults
         )
+    }
+
+    /**
+     * Updates Devices status
+     *
+     * @param device device to update
+     * @param status status
+     */
+    suspend fun updateDeviceStatus(device: DeviceEntity, status: DeviceStatus) {
+        deviceRepository.updateDeviceStatus(device, status)
     }
 }
