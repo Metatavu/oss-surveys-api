@@ -45,10 +45,16 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
     @RolesAllowed(UserRole.MANAGER.name)
     override fun createDeviceSurvey(deviceId: UUID, deviceSurvey: DeviceSurvey): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val userId = loggedUserId ?: return@async createUnauthorized(UNAUTHORIZED)
+
         deviceController.findDevice(deviceId) ?: return@async createNotFoundWithMessage(
             target = DEVICE,
             id = deviceId
         )
+
+        if (deviceId != deviceSurvey.deviceId) {
+            return@async createBadRequest("Device id in path and body do not match")
+        }
+
         val foundSurvey = surveyController.findSurvey(deviceSurvey.surveyId) ?: return@async createBadRequest("Survey not found")
 
         if (foundSurvey.status != SurveyStatus.APPROVED) {
@@ -84,6 +90,10 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
             .findDeviceSurvey(deviceSurveyId)
             ?: return@async createBadRequest("Device survey not found")
 
+        if (deviceId != foundDeviceSurvey.device.id) {
+            return@async createBadRequest("Device id in path and body do not match")
+        }
+
         deviceSurveyController.deleteDeviceSurvey(foundDeviceSurvey)
 
         createNoContent()
@@ -97,6 +107,10 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
                 id = deviceId
             )
         val foundDeviceSurvey = deviceSurveyController.findDeviceSurvey(deviceSurveyId) ?: return@async createNotFound("Device survey not found")
+
+        if (deviceId != foundDeviceSurvey.device.id) {
+            return@async createBadRequest("Device id in path and body do not match")
+        }
 
         createOk(deviceSurveyTranslator.translate(foundDeviceSurvey))
     }.asUni()
@@ -125,6 +139,10 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
         val foundDeviceSurvey = deviceSurveyController
             .findDeviceSurvey(deviceSurveyId)
             ?: return@async createBadRequest("Device survey not found")
+
+        if (deviceId != deviceSurvey.deviceId) {
+            return@async createBadRequest("Device id in path and body do not match")
+        }
 
         if (deviceSurvey.status == DeviceSurveyStatus.SCHEDULED && !deviceSurveyController.validateScheduledDeviceSurvey(deviceSurvey)) {
             return@async createBadRequest("Device survey schedule is not valid")

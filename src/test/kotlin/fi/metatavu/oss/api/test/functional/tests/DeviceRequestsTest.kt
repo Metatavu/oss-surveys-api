@@ -138,4 +138,14 @@ class DeviceRequestsTest: AbstractResourceTest() {
             )
         }
     }
+
+    @Test
+    fun testUpdateDeviceRequestFail() {
+        createTestBuilder().use { testBuilder ->
+            testBuilder.manager.deviceRequests.assertUpdateFail(
+                requestId = UUID.randomUUID(),
+                expectedStatusCode = 404
+            )
+        }
+    }
 }

@@ -216,6 +216,39 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
     }
 
     @Test
+    fun testUpdateDeviceSurveyFail() {
+        createTestBuilder().use { testBuilder ->
+            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+            val createdSurvey = testBuilder.manager.surveys.createDefault()
+            testBuilder.manager.surveys.update(
+                surveyId = createdSurvey.id!!,
+                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
+            )
+            val deviceSurveyToCreate = DeviceSurvey(
+                surveyId = createdSurvey.id,
+                deviceId = deviceId,
+                status = DeviceSurveyStatus.PUBLISHED
+            )
+            testBuilder.manager.deviceSurveys.create(
+                deviceId = deviceId,
+                deviceSurvey = deviceSurveyToCreate
+            )
+            testBuilder.manager.deviceSurveys.assertUpdateFail(
+                expectedStatusCode = 400,
+                deviceId = deviceId,
+                deviceSurveyId = UUID.randomUUID(),
+                deviceSurvey = deviceSurveyToCreate
+            )
+            testBuilder.manager.deviceSurveys.assertUpdateFail(
+                expectedStatusCode = 400,
+                deviceId = deviceId,
+                deviceSurveyId = UUID.randomUUID(),
+                deviceSurvey = deviceSurveyToCreate.copy(deviceId = UUID.randomUUID())
+            )
+        }
+    }
+
+    @Test
     fun testInvalidScheduledDeviceSurvey() {
         createTestBuilder().use { testBuilder ->
             val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
@@ -252,7 +285,10 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             testBuilder.manager.deviceSurveys.assertCreateFail(
                 expectedStatusCode = 400,
                 deviceId = deviceId,
-                deviceSurvey = deviceSurveyToCreate.copy(publishStartTime = OffsetDateTime.now().minusDays(1).toString())
+                deviceSurvey = deviceSurveyToCreate.copy(
+                    publishStartTime = OffsetDateTime.now().minusDays(1).toString(),
+                    publishEndTime = OffsetDateTime.now().plusDays(1).toString()
+                )
             )
             /// publishEndTime is before publishStartTime
             testBuilder.manager.deviceSurveys.assertCreateFail(
@@ -261,6 +297,21 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 deviceSurvey = deviceSurveyToCreate.copy(
                     publishStartTime = OffsetDateTime.now().plusDays(1).toString(),
                     publishEndTime = OffsetDateTime.now().toString()
+                )
+            )
+
+            // Create Device Survey and try to update it with invalid schedule
+            val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
+                deviceId = deviceId,
+                deviceSurvey = deviceSurveyToCreate.copy(status = DeviceSurveyStatus.PUBLISHED)
+            )
+
+            testBuilder.manager.deviceSurveys.assertUpdateFail(
+                expectedStatusCode = 400,
+                deviceId = deviceId,
+                deviceSurveyId = createdDeviceSurvey.id!!,
+                deviceSurvey = createdDeviceSurvey.copy(
+                    status = DeviceSurveyStatus.SCHEDULED
                 )
             )
         }
@@ -328,6 +379,12 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 expectedStatusCode = 400,
                 deviceId = deviceId,
                 deviceSurvey = deviceSurveyToCreate.copy(surveyId = UUID.randomUUID())
+            )
+            // Device id in path doesn't match
+            testBuilder.manager.deviceSurveys.assertCreateFail(
+                expectedStatusCode = 400,
+                deviceId = deviceId,
+                deviceSurvey = deviceSurveyToCreate.copy(deviceId = UUID.randomUUID())
             )
         }
     }
