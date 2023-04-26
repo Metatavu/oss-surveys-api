@@ -4,6 +4,8 @@ import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DeviceSurveyStatus
+import io.quarkus.panache.common.Parameters
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.time.OffsetDateTime
 import java.util.UUID
 import javax.enterprise.context.ApplicationScoped
@@ -68,5 +70,37 @@ class DeviceSurveyRepository: AbstractRepository<DeviceSurveyEntity, UUID>() {
         deviceSurveyEntity.lastModifierId = userId
 
         return persistSuspending(deviceSurveyEntity)
+    }
+
+    /**
+     * Changes status of Device Survey
+     *
+     * @param deviceSurvey device survey
+     * @param status status
+     * @param publishStartTime publication start time
+     * @param publishEndTime publication end time
+     */
+    suspend fun updateStatus(
+        deviceSurvey: DeviceSurveyEntity,
+        status: DeviceSurveyStatus,
+        publishStartTime: OffsetDateTime?,
+        publishEndTime: OffsetDateTime?
+    ): DeviceSurveyEntity {
+        deviceSurvey.status = status
+        deviceSurvey.publishStartTime = publishStartTime
+        deviceSurvey.publishEndTime = publishEndTime
+
+        return persistSuspending(deviceSurvey)
+    }
+
+    /**
+     * Lists Device Surveys with given query string and parameters
+     *
+     * @param queryString query string
+     * @param parameters parameters
+     * @return found device surveys
+     */
+    suspend fun listDeviceSurveysWithParameters(queryString: String, parameters: Parameters): List<DeviceSurveyEntity> {
+        return find(queryString, parameters).list<DeviceSurveyEntity>().awaitSuspending()
     }
 }

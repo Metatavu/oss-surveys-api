@@ -1,6 +1,7 @@
 /* package fi.metatavu.oss.api.test.functional.mqtt
 
 import org.eclipse.microprofile.config.ConfigProvider
+import org.eclipse.paho.client.mqttv3.MqttClient
 import java.util.*
 
 /**
@@ -14,6 +15,7 @@ class TestMqttClient: AutoCloseable {
      * Constructor. Connects to MQTT server
      */
     init {
+        val client = MqttClient("", )
         MqttConnection.connect(MqttSettings(
             publisherId = UUID.randomUUID().toString(),
             serverUrl = ConfigProvider.getConfig().getValue("mqtt.server.url", String::class.java),

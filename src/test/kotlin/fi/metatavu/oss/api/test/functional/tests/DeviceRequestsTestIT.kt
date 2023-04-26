@@ -14,7 +14,7 @@ import java.util.*
  */
 @QuarkusTest
 @TestProfile(LocalTestProfile::class)
-class DeviceRequestsTest: AbstractResourceTest() {
+class DeviceRequestsTestIT: AbstractResourceTest() {
 
     @Test
     fun testCreateDeviceRequest() {
