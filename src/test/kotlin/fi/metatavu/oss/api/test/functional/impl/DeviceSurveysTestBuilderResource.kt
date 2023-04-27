@@ -20,6 +20,8 @@ class DeviceSurveysTestBuilderResource(
     apiClient: ApiClient
 ): ApiTestBuilderResource<DeviceSurvey, ApiClient>(testBuilder, apiClient) {
 
+    private var deviceKey: String? = null
+
     override fun clean(t: DeviceSurvey?) {
         api.deleteDeviceSurvey(
             deviceId =  t!!.deviceId,
@@ -29,7 +31,19 @@ class DeviceSurveysTestBuilderResource(
 
     override fun getApi(): DeviceSurveysApi {
         ApiClient.accessToken = accessTokenProvider?.accessToken
+        if (!deviceKey.isNullOrBlank()) {
+            ApiClient.apiKey["X-DEVICE-KEY"] = deviceKey!!
+        }
         return DeviceSurveysApi(ApiTestSettings.apiBasePath)
+    }
+
+    /**
+     * Sets the clients device key
+     *
+     * @param newDeviceKey device key
+     */
+    fun setDeviceKey(newDeviceKey: String?) {
+        deviceKey = newDeviceKey
     }
 
 
@@ -39,20 +53,17 @@ class DeviceSurveysTestBuilderResource(
      * @param deviceId device id
      * @param firstResult first result
      * @param maxResults max results
-     * @param deviceKey device key
      * @return list of device surveys
      */
     fun list(
         deviceId: UUID,
         firstResult: Int?,
-        maxResults: Int?,
-        deviceKey: String
+        maxResults: Int?
     ): Array<DeviceSurvey> {
         return api.listDeviceSurveys(
             deviceId = deviceId,
             firstResult = firstResult,
             maxResults = maxResults,
-            X_DEVICE_KEY = deviceKey
         )
     }
 
@@ -129,14 +140,10 @@ class DeviceSurveysTestBuilderResource(
      *
      * @param expectedStatusCode expected status code
      * @param deviceId device id
-     * @param deviceKey device key
      */
-    fun assertListFail(expectedStatusCode: Int, deviceId: UUID, deviceKey: String) {
+    fun assertListFail(expectedStatusCode: Int, deviceId: UUID) {
         try {
-            api.listDeviceSurveys(
-                deviceId = deviceId,
-                X_DEVICE_KEY = deviceKey
-            )
+            api.listDeviceSurveys(deviceId = deviceId)
             fail("Listing device surveys should have failed")
         } catch (e: ClientException) {
             assertClientExceptionStatus(expectedStatusCode, e)

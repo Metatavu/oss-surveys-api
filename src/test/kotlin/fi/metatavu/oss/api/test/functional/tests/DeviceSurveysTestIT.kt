@@ -59,8 +59,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
     @Test
     fun testListDeviceSurveys() {
         createTestBuilder().use { testBuilder ->
-            val (deviceId, deviceKey) = testBuilder.manager.deviceSurveys.setupTestDevice()
-            val (deviceId2, deviceKey2) = testBuilder.manager.deviceSurveys.setupTestDevice("321")
+            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+            val (deviceId2) = testBuilder.manager.deviceSurveys.setupTestDevice("321")
             val createdSurveys = mutableListOf<Survey>()
 
             val createdSurveyDevice2 = testBuilder.manager.surveys.create(
@@ -104,14 +104,12 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
             val deviceSurveys = testBuilder.manager.deviceSurveys.list(
                 deviceId = deviceId,
-                deviceKey = deviceKey,
                 firstResult = null,
                 maxResults = null
             )
 
             val device2Surveys = testBuilder.manager.deviceSurveys.list(
                 deviceId = deviceId2,
-                deviceKey = deviceKey2,
                 firstResult = null,
                 maxResults = null
             )
@@ -123,15 +121,18 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 assertNotNull(createdSurveys.find { survey -> survey.id == it.surveyId })
             }
 
-            // permissions
-            testBuilder.manager.deviceSurveys.assertListFail(401, deviceId, "invalid-key")
+            // Permissions
+            testBuilder.consumer.deviceSurveys.assertListFail(403, deviceId)
+            testBuilder.notvalid.deviceSurveys.assertListFail(401, deviceId)
+            testBuilder.empty.deviceSurveys.assertListFail(401, deviceId)
         }
     }
 
     @Test
     fun testFindDeviceSurvey() {
         createTestBuilder().use { testBuilder ->
-            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+            val (deviceId, deviceKey) = testBuilder.manager.deviceSurveys.setupTestDevice()
+            testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey)
             val createdSurvey = testBuilder.manager.surveys.createDefault()
             val deviceSurveyToCreate = DeviceSurvey(
                 surveyId = createdSurvey.id!!,
@@ -172,11 +173,6 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             assertEquals(foundDeviceSurvey2.surveyId, createdSurvey.id)
             assertEquals(foundDeviceSurvey2.deviceId, deviceId)
             assertEquals(foundDeviceSurvey2.status, DeviceSurveyStatus.SCHEDULED)
-
-            // permissions
-            testBuilder.consumer.deviceSurveys.assertFindFail(403, deviceId, createdDeviceSurvey1.id)
-            testBuilder.empty.deviceSurveys.assertFindFail(401, deviceId, createdDeviceSurvey1.id)
-            testBuilder.notvalid.deviceSurveys.assertFindFail(401, deviceId, createdDeviceSurvey1.id)
         }
     }
 
@@ -320,7 +316,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
     @Test
     fun testDeleteDeviceSurvey() {
         createTestBuilder().use { testBuilder ->
-            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+            val (deviceId, deviceKey) = testBuilder.manager.deviceSurveys.setupTestDevice()
+            testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey)
             val createdSurvey = testBuilder.manager.surveys.createDefault()
             testBuilder.manager.surveys.update(
                 surveyId = createdSurvey.id!!,
@@ -411,40 +408,38 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
     @Test
     fun testFindDeviceSurveyFail() {
         createTestBuilder().use { testBuilder ->
-            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
-
-            // Device not found
-            testBuilder.manager.deviceSurveys.assertFindFail(
-                expectedStatusCode = 404,
-                deviceId = UUID.randomUUID(),
-                deviceSurveyId = UUID.randomUUID()
-            )
-            // Device Survey not found
-            testBuilder.manager.deviceSurveys.assertFindFail(
-                expectedStatusCode = 404,
-                deviceId = deviceId,
-                deviceSurveyId = UUID.randomUUID()
-            )
-        }
-    }
-
-    @Test
-    fun testListDeviceSurveysFail() {
-        createTestBuilder().use { testBuilder ->
             val (deviceId1, deviceKey1) = testBuilder.manager.deviceSurveys.setupTestDevice()
             val (deviceId2, deviceKey2) = testBuilder.manager.deviceSurveys.setupTestDevice("321")
 
             // Device 1 surveys with device 2 key
-            testBuilder.manager.deviceSurveys.assertListFail(
+            testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey2)
+            testBuilder.manager.deviceSurveys.assertFindFail(
                 expectedStatusCode = 401,
                 deviceId = deviceId1,
-                deviceKey = deviceKey2
+                deviceSurveyId = UUID.randomUUID()
             )
+
             // Device 2 surveys with device 1 key
-            testBuilder.manager.deviceSurveys.assertListFail(
+            testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey1)
+            testBuilder.manager.deviceSurveys.assertFindFail(
                 expectedStatusCode = 401,
                 deviceId = deviceId2,
-                deviceKey = deviceKey1
+                deviceSurveyId = UUID.randomUUID()
+            )
+
+            // Device not found
+            testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey1)
+            testBuilder.manager.deviceSurveys.assertFindFail(
+                expectedStatusCode = 404,
+                deviceId = deviceId1,
+                deviceSurveyId = UUID.randomUUID()
+            )
+            // Device Survey not found
+            testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey1)
+            testBuilder.manager.deviceSurveys.assertFindFail(
+                expectedStatusCode = 404,
+                deviceId = deviceId1,
+                deviceSurveyId = UUID.randomUUID()
             )
         }
     }
