@@ -57,7 +57,6 @@ class DeviceTestIT: AbstractResourceTest() {
             testBuilder.manager.devices.delete(deviceId)
 
             testBuilder.manager.devices.assertFindFail(404, deviceId)
-            assertNull(foundDevice)
         }
     }
 
