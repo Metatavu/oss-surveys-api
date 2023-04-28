@@ -27,7 +27,7 @@ class ReactiveDeviceSurveysProducer: AbstractReactiveProducer<DeviceSurveyMessag
     }
 
     override fun sendUpdateMessage(deviceId: UUID, message: DeviceSurveyMessage) {
-        val topic = getMqttTopicName(deviceId) + "/surveys/create"
+        val topic = getMqttTopicName(deviceId) + "/surveys/update"
         super.sendMessage(
             emitter = emitter,
             topic = topic,
@@ -36,7 +36,7 @@ class ReactiveDeviceSurveysProducer: AbstractReactiveProducer<DeviceSurveyMessag
     }
 
     override fun sendDeleteMessage(deviceId: UUID, message: DeviceSurveyMessage) {
-        val topic = getMqttTopicName(deviceId) + "/surveys/create"
+        val topic = getMqttTopicName(deviceId) + "/surveys/delete"
         super.sendMessage(
             emitter = emitter,
             topic = topic,

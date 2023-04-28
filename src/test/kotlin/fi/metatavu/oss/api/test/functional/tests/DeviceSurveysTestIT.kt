@@ -1,10 +1,8 @@
 package fi.metatavu.oss.api.test.functional.tests
 
+import fi.metatavu.oss.api.test.functional.mqtt.TestMqttClient
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
-import fi.metatavu.oss.test.client.models.DeviceSurvey
-import fi.metatavu.oss.test.client.models.DeviceSurveyStatus
-import fi.metatavu.oss.test.client.models.Survey
-import fi.metatavu.oss.test.client.models.SurveyStatus
+import fi.metatavu.oss.test.client.models.*
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -441,6 +439,65 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 deviceId = deviceId1,
                 deviceSurveyId = UUID.randomUUID()
             )
+        }
+    }
+
+    @Test
+    fun testDeviceSurveysRealtimeNotification() {
+        createTestBuilder().use { testBuilder ->
+            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+            val createdSurvey = testBuilder.manager.surveys.createDefault()
+            testBuilder.manager.surveys.update(
+                surveyId = createdSurvey.id!!,
+                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
+            )
+            val mqttTopics = listOf(
+                "$deviceId/surveys/create",
+                "$deviceId/surveys/update",
+                "$deviceId/surveys/delete"
+            )
+            val mqttClient = TestMqttClient()
+            val (createSubscription, updateSubscription, deleteSubscription) = mqttTopics.map {
+                mqttClient.subscribe(
+                    targetClass = DeviceSurveyMessage::class.java,
+                    subscriptionTopic = it
+                )
+            }
+            val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
+                deviceId = deviceId,
+                DeviceSurvey(
+                    surveyId = createdSurvey.id,
+                    deviceId = deviceId,
+                    status = DeviceSurveyStatus.PUBLISHED
+                )
+            )
+            val createMessage = createSubscription.getMessages(1)
+            testBuilder.manager.deviceSurveys.update(
+                deviceId = deviceId,
+                deviceSurveyId = createdDeviceSurvey.id!!,
+                deviceSurvey = createdDeviceSurvey.copy(
+                    status = DeviceSurveyStatus.PUBLISHED,
+                )
+            )
+            val updateMessage = updateSubscription.getMessages(1)
+            testBuilder.manager.deviceSurveys.delete(
+                deviceId = deviceId,
+                deviceSurveyId = createdDeviceSurvey.id
+            )
+            val deleteMessage = deleteSubscription.getMessages(1)
+
+            assertEquals(1, createMessage.size)
+            assertEquals(1, updateMessage.size)
+            assertEquals(1, deleteMessage.size)
+            assertEquals(deviceId, createMessage[0].deviceId)
+            assertEquals(createdDeviceSurvey.id, createMessage[0].deviceSurveyId)
+            assertEquals(DeviceSurveysMessageAction.CREATE, createMessage[0].action)
+            assertEquals(deviceId, updateMessage[0].deviceId)
+            assertEquals(createdDeviceSurvey.id, updateMessage[0].deviceSurveyId)
+            assertEquals(DeviceSurveysMessageAction.UPDATE, updateMessage[0].action)
+            assertEquals(deviceId, updateMessage[0].deviceId)
+            assertEquals(createdDeviceSurvey.id, deleteMessage[0].deviceSurveyId)
+            assertEquals(DeviceSurveysMessageAction.DELETE, deleteMessage[0].action)
         }
     }
 }

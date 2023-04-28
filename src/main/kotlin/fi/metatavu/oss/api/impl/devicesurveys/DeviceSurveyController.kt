@@ -1,9 +1,11 @@
 package fi.metatavu.oss.api.impl.devicesurveys
 
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
+import fi.metatavu.oss.api.impl.realtime.RealtimeNotificationController
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DeviceSurvey
 import fi.metatavu.oss.api.model.DeviceSurveyStatus
+import fi.metatavu.oss.api.model.DeviceSurveysMessageAction
 import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.lang.StringBuilder
@@ -20,6 +22,9 @@ class DeviceSurveyController {
 
     @Inject
     lateinit var deviceSurveyRepository: DeviceSurveyRepository
+
+    @Inject
+    lateinit var realtimeNotificationController: RealtimeNotificationController
 
     /**
      * Lists device surveys
@@ -76,7 +81,7 @@ class DeviceSurveyController {
         survey: SurveyEntity,
         userId: UUID
     ): DeviceSurveyEntity {
-        return deviceSurveyRepository.create(
+        val createdDeviceSurvey = deviceSurveyRepository.create(
             device = device,
             survey = survey,
             status = deviceSurvey.status,
@@ -84,6 +89,14 @@ class DeviceSurveyController {
             publishEndTime = deviceSurvey.publishEndTime,
             userId = userId
         )
+
+        realtimeNotificationController.notifyDeviceSurveyAction(
+            deviceId = device.id,
+            deviceSurveyId = createdDeviceSurvey.id,
+            action = DeviceSurveysMessageAction.CREATE
+        )
+
+        return createdDeviceSurvey
     }
 
     /**
@@ -93,6 +106,12 @@ class DeviceSurveyController {
      */
     suspend fun deleteDeviceSurvey(deviceSurvey: DeviceSurveyEntity) {
         deviceSurveyRepository.deleteSuspending(deviceSurvey)
+
+        realtimeNotificationController.notifyDeviceSurveyAction(
+            deviceId = deviceSurvey.device.id,
+            deviceSurveyId = deviceSurvey.id,
+            action = DeviceSurveysMessageAction.DELETE
+        )
     }
 
     /**
@@ -108,13 +127,21 @@ class DeviceSurveyController {
         newRestDeviceSurvey: DeviceSurvey,
         userId: UUID
     ): DeviceSurveyEntity {
-        return deviceSurveyRepository.update(
+        val updatedDeviceSurvey = deviceSurveyRepository.update(
             deviceSurveyToUpdate,
             status = newRestDeviceSurvey.status,
             publishStartTime = newRestDeviceSurvey.publishStartTime,
             publishEndTime = newRestDeviceSurvey.publishEndTime,
             userId = userId
         )
+
+        realtimeNotificationController.notifyDeviceSurveyAction(
+            deviceId = updatedDeviceSurvey.device.id,
+            deviceSurveyId = updatedDeviceSurvey.id,
+            action = DeviceSurveysMessageAction.UPDATE
+        )
+
+        return updatedDeviceSurvey
     }
 
     /**

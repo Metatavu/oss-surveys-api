@@ -32,30 +32,30 @@ class ScheduledSurveyPublisher {
     @OptIn(ExperimentalCoroutinesApi::class)
     @Scheduled(every = "\${scheduled.survey.publish.interval}")
     fun publishScheduledSurveys() {
-         CoroutineScope(vertx.dispatcher()).launch {
-            val deviceSurveysToPublish = deviceSurveyController.listDeviceSurveysToPublish()
-            val deviceSurveysToUnPublish = deviceSurveyController.listDeviceSurveysToUnPublish()
-
-            logger.info("Publishing scheduled surveys...")
-            for (deviceSurvey in deviceSurveysToPublish) {
-                Panache.withTransaction {
-                    async {
-                        val (existingDeviceSurveys) = deviceSurveyController.listDeviceSurveys(
-                            deviceId = deviceSurvey.device.id,
-                            firstResult = null,
-                            maxResults = null,
-                            status = DeviceSurveyStatus.PUBLISHED
-                        )
-                        logger.info("Un-publishing existing device surveys for ${deviceSurvey.device.id}...")
-                        for (existingDeviceSurvey in existingDeviceSurveys) {
-                            deviceSurveyController.unPublishDeviceSurvey(existingDeviceSurvey)
-                            logger.info("Un-published existing device survey ${existingDeviceSurvey.id}")
-                        }
-                        logger.info("Publishing scheduled survey ${deviceSurvey.id}")
-                        deviceSurveyController.publishDeviceSurvey(deviceSurvey)
-                    }.asUni()
-                }
-            }
-        }
+//         CoroutineScope(vertx.dispatcher()).launch {
+//            val deviceSurveysToPublish = deviceSurveyController.listDeviceSurveysToPublish()
+//            val deviceSurveysToUnPublish = deviceSurveyController.listDeviceSurveysToUnPublish()
+//
+//            logger.info("Publishing scheduled surveys...")
+//            for (deviceSurvey in deviceSurveysToPublish) {
+//                Panache.withTransaction {
+//                    async {
+//                        val (existingDeviceSurveys) = deviceSurveyController.listDeviceSurveys(
+//                            deviceId = deviceSurvey.device.id,
+//                            firstResult = null,
+//                            maxResults = null,
+//                            status = DeviceSurveyStatus.PUBLISHED
+//                        )
+//                        logger.info("Un-publishing existing device surveys for ${deviceSurvey.device.id}...")
+//                        for (existingDeviceSurvey in existingDeviceSurveys) {
+//                            deviceSurveyController.unPublishDeviceSurvey(existingDeviceSurvey)
+//                            logger.info("Un-published existing device survey ${existingDeviceSurvey.id}")
+//                        }
+//                        logger.info("Publishing scheduled survey ${deviceSurvey.id}")
+//                        deviceSurveyController.publishDeviceSurvey(deviceSurvey)
+//                    }.asUni()
+//                }
+//            }
+//        }
     }
 }

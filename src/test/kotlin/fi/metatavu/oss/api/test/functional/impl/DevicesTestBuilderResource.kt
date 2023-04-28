@@ -5,6 +5,7 @@ import fi.metatavu.oss.api.test.functional.TestBuilder
 import fi.metatavu.oss.api.test.functional.settings.ApiTestSettings
 import fi.metatavu.oss.test.client.apis.DevicesApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
+import fi.metatavu.oss.test.client.infrastructure.ClientException
 import fi.metatavu.oss.test.client.models.Device
 import java.util.*
 
@@ -26,6 +27,11 @@ class DevicesTestBuilderResource(
         return DevicesApi(ApiTestSettings.apiBasePath)
     }
 
+    /**
+     * Deletes a device
+     *
+     * @param deviceId device id
+     */
     fun delete(deviceId: UUID) {
         api.deleteDevice(deviceId)
         removeCloseable { closable ->
@@ -37,7 +43,36 @@ class DevicesTestBuilderResource(
         }
     }
 
+    /**
+     * Lists devices
+     *
+     * @return found devices
+     */
     fun list(): Array<Device> {
         return api.listDevices()
+    }
+
+    /**
+     * Finds a device
+     *
+     * @param id id
+     * @return found device
+     */
+    fun find(id: UUID): Device {
+        return api.findDevice(id)
+    }
+
+    /**
+     * Asserts that finding device fails with given status code
+     *
+     * @param expectedStatusCode expected status code
+     * @param id id
+     */
+    fun assertFindFail(expectedStatusCode: Int, id: UUID) {
+        try {
+            api.findDevice(id)
+        } catch (e: ClientException) {
+            assertClientExceptionStatus(expectedStatusCode, e)
+        }
     }
 }

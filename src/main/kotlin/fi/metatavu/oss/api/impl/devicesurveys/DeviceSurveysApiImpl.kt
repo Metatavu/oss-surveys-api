@@ -3,7 +3,6 @@ package fi.metatavu.oss.api.impl.devicesurveys
 import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.UserRole
 import fi.metatavu.oss.api.impl.devices.DeviceController
-import fi.metatavu.oss.api.impl.realtime.RealtimeNotificationController
 import fi.metatavu.oss.api.impl.surveys.SurveyController
 import fi.metatavu.oss.api.model.DeviceSurvey
 import fi.metatavu.oss.api.model.DeviceSurveyStatus
@@ -40,9 +39,6 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
     lateinit var deviceSurveyTranslator: DeviceSurveyTranslator
 
     @Inject
-    lateinit var realtimeNotificationController: RealtimeNotificationController
-
-    @Inject
     lateinit var vertx: Vertx
 
     @ReactiveTransactional
@@ -76,11 +72,6 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
             device = foundDevice,
             survey = foundSurvey,
             userId = userId
-        )
-
-        realtimeNotificationController.notifyDeviceSurveyCreated(
-            deviceId = foundDevice.id,
-            surveyId = foundSurvey.id
         )
 
         createCreated(deviceSurveyTranslator.translate(createdDeviceSurvey))

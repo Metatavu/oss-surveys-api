@@ -48,14 +48,12 @@ class SchedulerTestIT: AbstractResourceTest() {
                         deviceId = deviceId,
                         firstResult = null,
                         maxResults = null,
-                        deviceKey = key
                     ).isEmpty()
             }
             val firstDeviceSurveys = testBuilder.manager.deviceSurveys.list(
                 deviceId = deviceId,
                 firstResult = null,
-                maxResults = null,
-                deviceKey = key
+                maxResults = null
             )
             firstDeviceSurveys.forEach { println(it) }
         }
