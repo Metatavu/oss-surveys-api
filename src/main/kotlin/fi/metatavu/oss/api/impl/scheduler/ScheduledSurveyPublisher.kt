@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.scheduler
 
 import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.model.DeviceSurveyStatus
+import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
 import io.quarkus.scheduler.Scheduled
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.asUni
@@ -36,10 +37,10 @@ class ScheduledSurveyPublisher {
         delay = 30,
         delayUnit = TimeUnit.SECONDS
     )
+    @ReactiveTransactional
     fun publishScheduledSurveys(): Uni<Void> {
          return CoroutineScope(vertx.dispatcher()).async {
             val deviceSurveysToPublish = deviceSurveyController.listDeviceSurveysToPublish()
-            val deviceSurveysToUnPublish = deviceSurveyController.listDeviceSurveysToUnPublish()
 
             logger.info("Publishing scheduled surveys...")
             for (deviceSurvey in deviceSurveysToPublish) {

@@ -1,8 +1,8 @@
 package fi.metatavu.oss.api.test.functional.tests
 
+import fi.metatavu.oss.api.test.functional.mqtt.TestMqttClient
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
-import fi.metatavu.oss.test.client.models.Survey
-import fi.metatavu.oss.test.client.models.SurveyStatus
+import fi.metatavu.oss.test.client.models.*
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -106,4 +106,41 @@ class SurveyTestIT : AbstractResourceTest() {
         }
     }
 
+    @Test
+    fun testUpdateSurveyNotifications() {
+        createTestBuilder().use { testBuilder ->
+            val mqttClient = TestMqttClient()
+            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+            val createdSurvey = testBuilder.manager.surveys.createDefault()
+            testBuilder.manager.surveys.update(
+                surveyId = createdSurvey.id!!,
+                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
+            )
+            val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
+                deviceId = deviceId,
+                deviceSurvey = DeviceSurvey(
+                    deviceId = deviceId,
+                    surveyId = createdSurvey.id,
+                    status = DeviceSurveyStatus.PUBLISHED
+                )
+            )
+
+            val subscription = mqttClient.subscribe(
+                targetClass = DeviceSurveyMessage::class.java,
+                subscriptionTopic = "$deviceId/surveys/update"
+            )
+
+            testBuilder.manager.surveys.update(
+                surveyId = createdSurvey.id,
+                newSurvey = createdSurvey.copy(title = "updated-title")
+            )
+
+            val message = subscription.getMessages(1)
+
+            assertEquals(1, message.size)
+            assertEquals(deviceId, message[0].deviceId)
+            assertEquals(createdDeviceSurvey.id, message[0].deviceSurveyId)
+            assertEquals(DeviceSurveysMessageAction.UPDATE, message[0].action)
+        }
+    }
 }

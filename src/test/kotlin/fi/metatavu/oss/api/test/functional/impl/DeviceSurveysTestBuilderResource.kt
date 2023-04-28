@@ -8,6 +8,7 @@ import fi.metatavu.oss.test.client.apis.DeviceSurveysApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.infrastructure.ClientException
 import fi.metatavu.oss.test.client.models.DeviceApprovalStatus
+import fi.metatavu.oss.test.client.models.DeviceSurveyStatus
 import org.junit.jupiter.api.fail
 import java.util.*
 
@@ -53,17 +54,20 @@ class DeviceSurveysTestBuilderResource(
      * @param deviceId device id
      * @param firstResult first result
      * @param maxResults max results
+     * @param status status
      * @return list of device surveys
      */
     fun list(
         deviceId: UUID,
-        firstResult: Int?,
-        maxResults: Int?
+        firstResult: Int? = null,
+        maxResults: Int? = null,
+        status: DeviceSurveyStatus? = null
     ): Array<DeviceSurvey> {
         return api.listDeviceSurveys(
             deviceId = deviceId,
             firstResult = firstResult,
             maxResults = maxResults,
+            status = status
         )
     }
 

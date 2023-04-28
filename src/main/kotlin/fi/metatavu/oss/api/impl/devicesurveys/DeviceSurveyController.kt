@@ -145,6 +145,26 @@ class DeviceSurveyController {
     }
 
     /**
+     * Notifies devices of updates to associated surveys
+     *
+     * @param surveyId survey id
+     */
+    suspend fun notifyDevicesOfSurveyUpdate(surveyId: UUID) {
+        val foundDeviceSurveys = deviceSurveyRepository.listDeviceSurveysWithParameters(
+            queryString = "survey_id = :survey_id",
+            parameters = Parameters.with("survey_id", surveyId)
+        )
+
+        for (deviceSurvey in foundDeviceSurveys) {
+            realtimeNotificationController.notifyDeviceSurveyAction(
+                deviceId = deviceSurvey.device.id,
+                deviceSurveyId = deviceSurvey.id,
+                action = DeviceSurveysMessageAction.UPDATE
+            )
+        }
+    }
+
+    /**
      * Validates given scheduled device survey publication times
      *
      * @param deviceSurvey device survey
@@ -176,23 +196,6 @@ class DeviceSurveyController {
         val parameters = Parameters
             .with("status", DeviceSurveyStatus.SCHEDULED)
             .and("publishStartTime", OffsetDateTime.now())
-
-        return deviceSurveyRepository.listDeviceSurveysWithParameters(
-            queryString = queryString,
-            parameters = parameters
-        )
-    }
-
-    /**
-     * Lists device surveys that are scheduled to be un-published
-     *
-     * @return list of device surveys
-     */
-    suspend fun listDeviceSurveysToUnPublish(): List<DeviceSurveyEntity> {
-        val queryString = "status = :status AND publishEndTime <= :publishEndTime"
-        val parameters = Parameters
-            .with("status", DeviceSurveyStatus.PUBLISHED)
-            .and("publishEndTime", OffsetDateTime.now())
 
         return deviceSurveyRepository.listDeviceSurveysWithParameters(
             queryString = queryString,
