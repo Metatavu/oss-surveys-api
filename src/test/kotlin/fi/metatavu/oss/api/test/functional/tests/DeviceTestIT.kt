@@ -81,9 +81,9 @@ class DeviceTestIT: AbstractResourceTest() {
             Awaitility
                 .await()
                 .atMost(Duration.ofMinutes(1))
+                .pollInterval(Duration.ofSeconds(5))
                 .until {
-                    val foundDevice2 = testBuilder.manager.devices.find(deviceId)
-                    foundDevice2.deviceStatus == DeviceStatus.ONLINE
+                    testBuilder.manager.devices.find(deviceId).deviceStatus === DeviceStatus.ONLINE
                 }
         }
     }
