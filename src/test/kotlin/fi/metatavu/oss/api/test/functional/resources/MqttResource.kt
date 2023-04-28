@@ -14,7 +14,6 @@ class MqttResource: QuarkusTestResourceLifecycleManager {
         val config = HashMap<String, String>()
         hivemqContainer.start()
         config["mqtt.server.url"] = hivemqContainer.host + ":" + hivemqContainer.mqttPort
-        config["mqtt.base.topic"] = "test"
         config["mp.messaging.outgoing.surveys.host"] = hivemqContainer.host
         config["mp.messaging.outgoing.surveys.port"] = hivemqContainer.mqttPort.toString()
         config["mp.messaging.incoming.status.host"] = hivemqContainer.host
