@@ -2,9 +2,7 @@ package fi.metatavu.oss.api.test.functional.tests
 
 import fi.metatavu.oss.api.test.functional.mqtt.TestMqttClient
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
-import fi.metatavu.oss.api.test.functional.resources.MqttResource
 import fi.metatavu.oss.test.client.models.*
-import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -15,7 +13,6 @@ import org.junit.jupiter.api.Test
  * Tests for surveys API
  */
 @QuarkusTest
-@QuarkusTestResource(MqttResource::class)
 @TestProfile(LocalTestProfile::class)
 class SurveyTestIT : AbstractResourceTest() {
 
