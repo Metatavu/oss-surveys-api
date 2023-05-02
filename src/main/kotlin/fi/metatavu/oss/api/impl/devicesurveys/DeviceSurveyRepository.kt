@@ -4,8 +4,6 @@ import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DeviceSurveyStatus
-import io.quarkus.panache.common.Parameters
-import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.time.OffsetDateTime
 import java.util.UUID
 import javax.enterprise.context.ApplicationScoped
@@ -91,16 +89,5 @@ class DeviceSurveyRepository: AbstractRepository<DeviceSurveyEntity, UUID>() {
         deviceSurvey.publishEndTime = publishEndTime
 
         return persistSuspending(deviceSurvey)
-    }
-
-    /**
-     * Lists Device Surveys with given query string and parameters
-     *
-     * @param queryString query string
-     * @param parameters parameters
-     * @return found device surveys
-     */
-    suspend fun listDeviceSurveysWithParameters(queryString: String, parameters: Parameters): List<DeviceSurveyEntity> {
-        return find(queryString, parameters).list<DeviceSurveyEntity>().awaitSuspending()
     }
 }

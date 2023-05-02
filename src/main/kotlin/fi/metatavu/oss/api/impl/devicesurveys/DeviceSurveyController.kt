@@ -49,8 +49,9 @@ class DeviceSurveyController {
             parameters.and("status", status)
         }
 
-        return deviceSurveyRepository.applyPagingToQuery(
-            query = deviceSurveyRepository.find(queryString.toString(), parameters),
+        return deviceSurveyRepository.listWithFilters(
+            queryString = queryString.toString(),
+            parameters = parameters,
             page = firstResult,
             pageSize = maxResults
         )
@@ -150,12 +151,14 @@ class DeviceSurveyController {
      * @param surveyId survey id
      */
     suspend fun notifyDevicesOfSurveyUpdate(surveyId: UUID) {
-        val foundDeviceSurveys = deviceSurveyRepository.listDeviceSurveysWithParameters(
+        val foundDeviceSurveys = deviceSurveyRepository.listWithFilters(
             queryString = "survey_id = :survey_id",
-            parameters = Parameters.with("survey_id", surveyId)
+            parameters = Parameters.with("survey_id", surveyId),
+            page = null,
+            pageSize = null
         )
 
-        for (deviceSurvey in foundDeviceSurveys) {
+        for (deviceSurvey in foundDeviceSurveys.first) {
             realtimeNotificationController.notifyDeviceSurveyAction(
                 deviceId = deviceSurvey.device.id,
                 deviceSurveyId = deviceSurvey.id,
@@ -197,10 +200,12 @@ class DeviceSurveyController {
             .with("status", DeviceSurveyStatus.SCHEDULED)
             .and("publishStartTime", OffsetDateTime.now())
 
-        return deviceSurveyRepository.listDeviceSurveysWithParameters(
+        return deviceSurveyRepository.listWithFilters(
             queryString = queryString,
-            parameters = parameters
-        )
+            parameters = parameters,
+            page = null,
+            pageSize = null
+        ).first
     }
 
     /**

@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.abstracts
 
 import io.quarkus.hibernate.reactive.panache.PanacheQuery
 import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase
+import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 
 /**
@@ -27,23 +28,25 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
     }
 
     /**
-     * Applies paging to query and executes it
+     * Lists with filtering
      *
-     * @param query PanacheQuery<Entity>
+     * @param queryString query string
+     * @param parameters parameters
      * @param page page index
      * @param pageSize page size
-     * @return MutableList<Entity>?
+     * @return list surveys and count
      */
-    open suspend fun applyPagingToQuery(
-        query: PanacheQuery<Entity>,
+    suspend fun listWithFilters(
+        queryString: String,
+        parameters: Parameters,
         page: Int?,
         pageSize: Int?
     ): Pair<List<Entity>, Long> {
-        val count = query.count().awaitSuspending()
-        return if (page != null && pageSize != null) {
-            Pair(query.page<Entity>(page, pageSize).list<Entity>().awaitSuspending(), count)
-        } else
-            Pair(query.list<Entity>().awaitSuspending(), count)
+        return applyPagingToQuery(
+            query = find(queryString, parameters),
+            page = page,
+            pageSize = pageSize
+        )
     }
 
     /**
@@ -83,5 +86,25 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
      */
     open suspend fun deleteSuspending(entity: Entity) {
         delete(entity).awaitSuspending()
+    }
+
+    /**
+     * Applies paging to query and executes it
+     *
+     * @param query PanacheQuery<Entity>
+     * @param page page index
+     * @param pageSize page size
+     * @return MutableList<Entity>?
+     */
+    private suspend fun applyPagingToQuery(
+        query: PanacheQuery<Entity>,
+        page: Int?,
+        pageSize: Int?
+    ): Pair<List<Entity>, Long> {
+        val count = query.count().awaitSuspending()
+        return if (page != null && pageSize != null) {
+            Pair(query.page<Entity>(page, pageSize).list<Entity>().awaitSuspending(), count)
+        } else
+            Pair(query.list<Entity>().awaitSuspending(), count)
     }
 }

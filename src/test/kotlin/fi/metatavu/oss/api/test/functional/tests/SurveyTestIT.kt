@@ -28,9 +28,9 @@ class SurveyTestIT : AbstractResourceTest() {
             assertNotNull(survey.metadata.lastModifierId)
 
             //permissions
-            testBuilder.consumer.surveys.assertCreateFail(403, Survey(title = "default survey"))
-            testBuilder.empty.surveys.assertCreateFail(401, Survey(title = "default survey"))
-            testBuilder.notvalid.surveys.assertCreateFail(401, Survey(title = "default survey"))
+            testBuilder.consumer.surveys.assertCreateFail(403, Survey(title = "default survey", status = SurveyStatus.DRAFT))
+            testBuilder.empty.surveys.assertCreateFail(401, Survey(title = "default survey", status = SurveyStatus.DRAFT))
+            testBuilder.notvalid.surveys.assertCreateFail(401, Survey(title = "default survey", status = SurveyStatus.DRAFT))
         }
     }
 
@@ -79,7 +79,7 @@ class SurveyTestIT : AbstractResourceTest() {
     fun testUpdateSurvey() {
         createTestBuilder().use { testBuilder ->
             val survey = testBuilder.manager.surveys.createDefault()
-            val surveyUpdateData = Survey(title = "updated survey")
+            val surveyUpdateData = Survey(title = "updated survey", status = SurveyStatus.DRAFT)
             val updatedSurvey = testBuilder.manager.surveys.update(survey.id!!, surveyUpdateData)
             assertEquals(survey.id, updatedSurvey.id)
             assertEquals("updated survey", updatedSurvey.title)

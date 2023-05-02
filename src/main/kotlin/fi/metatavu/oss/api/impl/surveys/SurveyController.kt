@@ -1,6 +1,7 @@
 package fi.metatavu.oss.api.impl.surveys
 
 import fi.metatavu.oss.api.model.SurveyStatus
+import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
@@ -28,15 +29,20 @@ class SurveyController {
         maxResults: Int?,
         status: SurveyStatus?
     ): Pair<List<SurveyEntity>, Long> {
+        val stringBuilder = StringBuilder()
+        val parameters = Parameters()
+
         if (status != null) {
-            return surveyRepository.applyPagingToQuery(
-                query = surveyRepository.find("status = ?1", status),
-                page = firstResult,
-                pageSize = maxResults,
-            )
+            stringBuilder.append("status = :status")
+            parameters.and("status", status)
         }
 
-        return surveyRepository.listAllWithPaging(firstResult, maxResults)
+        return surveyRepository.listWithFilters(
+            queryString = stringBuilder.toString(),
+            parameters = parameters,
+            page = firstResult,
+            pageSize = maxResults
+        )
     }
 
     /**
@@ -79,7 +85,7 @@ class SurveyController {
         return surveyRepository.update(
             survey = surveyEntityToUpdate,
             title = newRestSurvey.title,
-            status  = newRestSurvey.status ?: SurveyStatus.DRAFT,
+            status  = newRestSurvey.status,
             lastModifierId = userId
         )
     }
