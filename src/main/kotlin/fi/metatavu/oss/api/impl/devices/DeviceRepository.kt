@@ -3,7 +3,7 @@ package fi.metatavu.oss.api.impl.devices
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import io.smallrye.mutiny.Uni
 import java.util.UUID
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * Repository class for devices

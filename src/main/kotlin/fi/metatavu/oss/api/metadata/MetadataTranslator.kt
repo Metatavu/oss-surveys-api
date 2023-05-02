@@ -1,7 +1,7 @@
 package fi.metatavu.oss.api.metadata
 
 import fi.metatavu.oss.api.impl.translate.AbstractTranslator
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * Translates JPA additional metadata info into REST Metadata object

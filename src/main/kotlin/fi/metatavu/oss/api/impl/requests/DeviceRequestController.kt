@@ -3,8 +3,8 @@ package fi.metatavu.oss.api.impl.requests
 import fi.metatavu.oss.api.model.DeviceRequest
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Controller class for devices (transactions should start here)

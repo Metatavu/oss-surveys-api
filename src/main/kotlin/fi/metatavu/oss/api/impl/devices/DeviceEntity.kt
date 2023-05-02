@@ -3,7 +3,7 @@ package fi.metatavu.oss.api.impl.devices
 import fi.metatavu.oss.api.metadata.DBMetadata
 import fi.metatavu.oss.api.model.DeviceStatus
 import java.util.UUID
-import javax.persistence.*
+import jakarta.persistence.*
 
 /**
  * Device JPA entity

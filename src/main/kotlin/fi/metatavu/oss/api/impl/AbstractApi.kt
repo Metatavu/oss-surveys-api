@@ -5,12 +5,12 @@ import fi.metatavu.oss.api.impl.devices.DeviceController
 import fi.metatavu.oss.api.model.Error
 import org.eclipse.microprofile.jwt.JsonWebToken
 import java.util.*
-import javax.enterprise.context.RequestScoped
-import javax.inject.Inject
-import javax.ws.rs.core.Context
-import javax.ws.rs.core.Response
-import javax.ws.rs.core.SecurityContext
-import javax.ws.rs.core.HttpHeaders
+import jakarta.enterprise.context.RequestScoped
+import jakarta.inject.Inject
+import jakarta.ws.rs.core.Context
+import jakarta.ws.rs.core.Response
+import jakarta.ws.rs.core.SecurityContext
+import jakarta.ws.rs.core.HttpHeaders
 
 /**
  * Abstract base class for all API services

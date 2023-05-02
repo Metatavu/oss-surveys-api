@@ -3,7 +3,7 @@ package fi.metatavu.oss.api.impl.requests
 import fi.metatavu.oss.api.impl.translate.AbstractTranslator
 import fi.metatavu.oss.api.model.DeviceRequest
 import fi.metatavu.oss.api.model.Metadata
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 @ApplicationScoped
 class DeviceRequestTranslator: AbstractTranslator<DeviceRequestEntity, DeviceRequest>() {

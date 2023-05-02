@@ -2,8 +2,8 @@ package fi.metatavu.oss.api.impl.surveys
 
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
-import javax.enterprise.context.ApplicationScoped
-import javax.inject.Inject
+import jakarta.enterprise.context.ApplicationScoped
+import jakarta.inject.Inject
 
 /**
  * Controller class for surveys (transactions should start here)

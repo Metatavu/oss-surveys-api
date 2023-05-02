@@ -4,7 +4,7 @@ import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.UserRole
 import fi.metatavu.oss.api.model.Survey
 import fi.metatavu.oss.api.spec.SurveysApi
-import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
+import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.asUni
 import io.vertx.kotlin.coroutines.dispatcher
@@ -13,10 +13,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import java.util.*
-import javax.annotation.security.RolesAllowed
-import javax.enterprise.context.RequestScoped
-import javax.inject.Inject
-import javax.ws.rs.core.Response
+import jakarta.annotation.security.RolesAllowed
+import jakarta.enterprise.context.RequestScoped
+import jakarta.inject.Inject
+import jakarta.ws.rs.core.Response
 
 @RequestScoped
 @Suppress ("unused")
@@ -32,7 +32,7 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
     @Inject
     lateinit var vertx: Vertx
 
-    @ReactiveTransactional
+    @WithTransaction
     @RolesAllowed(UserRole.MANAGER.name, UserRole.CONSUMER_DISPLAY.name)
     override fun listSurveys(firstResult: Int?, maxResults: Int?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val (surveys, count) = surveyController.listSurveys(firstResult, maxResults)
@@ -40,7 +40,7 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
         createOk(surveysTranslated, count)
     }.asUni()
 
-    @ReactiveTransactional
+    @WithTransaction
     @RolesAllowed(UserRole.MANAGER.name)
     override fun createSurvey(survey: Survey): Uni<Response> {
         return CoroutineScope(vertx.dispatcher()).async {
@@ -51,7 +51,7 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
         }.asUni()
     }
 
-    @ReactiveTransactional
+    @WithTransaction
     @RolesAllowed(UserRole.MANAGER.name, UserRole.CONSUMER_DISPLAY.name)
     override fun findSurvey(surveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val foundSurvey =
@@ -62,7 +62,7 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
         createOk(surveyTranslator.translate(foundSurvey))
     }.asUni()
 
-    @ReactiveTransactional
+    @WithTransaction
     @RolesAllowed(UserRole.MANAGER.name)
     override fun updateSurvey(surveyId: UUID, survey: Survey): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val userId = loggedUserId ?: return@async createUnauthorized(UNAUTHORIZED)
@@ -77,7 +77,7 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
         createOk(surveyTranslator.translate(updatedSurvey))
     }.asUni()
 
-    @ReactiveTransactional
+    @WithTransaction
     @RolesAllowed(UserRole.MANAGER.name)
     override fun deleteSurvey(surveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val foundSurvey = surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(

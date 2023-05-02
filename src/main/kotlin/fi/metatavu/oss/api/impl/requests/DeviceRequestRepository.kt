@@ -4,7 +4,7 @@ import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.model.DeviceApprovalStatus
 import io.smallrye.mutiny.Uni
 import java.util.UUID
-import javax.enterprise.context.ApplicationScoped
+import jakarta.enterprise.context.ApplicationScoped
 
 /**
  * Repository class for device requests
