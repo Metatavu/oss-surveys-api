@@ -80,6 +80,7 @@
                 <constraints nullable="false"/>
             </column>
         </addColumn>
+        <sql>UPDATE survey SET status = 'DRAFT';</sql>
     </changeSet>
 
     <changeSet id="device_surveys" author="Ville Juutila">
