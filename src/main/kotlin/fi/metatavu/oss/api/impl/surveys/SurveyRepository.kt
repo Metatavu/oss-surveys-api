@@ -1,7 +1,7 @@
 package fi.metatavu.oss.api.impl.surveys
 
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
-import io.smallrye.mutiny.coroutines.awaitSuspending
+import fi.metatavu.oss.api.model.SurveyStatus
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 
@@ -23,9 +23,11 @@ class SurveyRepository : AbstractRepository<SurveyEntity, UUID>() {
         val surveyEntity = SurveyEntity()
         surveyEntity.id = id
         surveyEntity.title = title
+        surveyEntity.status = SurveyStatus.DRAFT
         surveyEntity.creatorId = creatorId
         surveyEntity.lastModifierId = creatorId
-        return persist(surveyEntity).awaitSuspending()
+
+        return persistSuspending(surveyEntity)
     }
 
     /**
@@ -33,12 +35,20 @@ class SurveyRepository : AbstractRepository<SurveyEntity, UUID>() {
      *
      * @param survey survey to update
      * @param title new title
+     * @param status new status
      * @param lastModifierId last modifier id
      * @return uni with updated survey
      */
-    suspend fun update(survey: SurveyEntity, title: String, lastModifierId: UUID): SurveyEntity {
+    suspend fun update(
+        survey: SurveyEntity,
+        title: String,
+        status: SurveyStatus,
+        lastModifierId: UUID
+    ): SurveyEntity {
         survey.title = title
         survey.lastModifierId = lastModifierId
-        return persist(survey).awaitSuspending()
+        survey.status = status
+
+        return persistSuspending(survey)
     }
 }

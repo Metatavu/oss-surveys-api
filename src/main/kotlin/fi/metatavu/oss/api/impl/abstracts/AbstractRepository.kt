@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.abstracts
 
 import io.quarkus.hibernate.reactive.panache.PanacheQuery
 import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase
+import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 
 /**
@@ -24,6 +25,28 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
         } else {
             Pair(listAll().awaitSuspending(), count)
         }
+    }
+
+    /**
+     * Lists with filtering
+     *
+     * @param queryString query string
+     * @param parameters parameters
+     * @param page page index
+     * @param pageSize page size
+     * @return list surveys and count
+     */
+    suspend fun listWithFilters(
+        queryString: String,
+        parameters: Parameters,
+        page: Int?,
+        pageSize: Int?
+    ): Pair<List<Entity>, Long> {
+        return applyPagingToQuery(
+            query = find(queryString, parameters),
+            page = page,
+            pageSize = pageSize
+        )
     }
 
     /**
@@ -64,5 +87,24 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
             Pair(query.range<Entity>(firstIndex, lastIndex).list<Entity>().awaitSuspending(), count)
         } else
             Pair(query.list<Entity>().awaitSuspending(), count)
+    }
+
+    /**
+     * Persists suspending
+     *
+     * @param entity entity
+     * @return persisted entity
+     */
+    open suspend fun persistSuspending(entity: Entity): Entity {
+        return persist(entity).awaitSuspending()
+    }
+
+    /**
+     * Deletes suspending
+     *
+     * @param entity entity
+     */
+    open suspend fun deleteSuspending(entity: Entity) {
+        delete(entity).awaitSuspending()
     }
 }
