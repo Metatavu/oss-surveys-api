@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.abstracts
 
 import io.quarkus.hibernate.reactive.panache.PanacheQuery
 import io.quarkus.hibernate.reactive.panache.PanacheRepositoryBase
+import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 
 /**
@@ -24,6 +25,28 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
         } else {
             Pair(listAll().awaitSuspending(), count)
         }
+    }
+
+    /**
+     * Lists with filtering
+     *
+     * @param queryString query string
+     * @param parameters parameters
+     * @param page page index
+     * @param pageSize page size
+     * @return list surveys and count
+     */
+    suspend fun listWithFilters(
+        queryString: String,
+        parameters: Parameters,
+        page: Int?,
+        pageSize: Int?
+    ): Pair<List<Entity>, Long> {
+        return applyPagingToQuery(
+            query = find(queryString, parameters),
+            page = page,
+            pageSize = pageSize
+        )
     }
 
     /**
