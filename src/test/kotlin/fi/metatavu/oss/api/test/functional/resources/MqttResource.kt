@@ -28,6 +28,6 @@ class MqttResource: QuarkusTestResourceLifecycleManager {
     }
 
     companion object {
-        val hivemqContainer = HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce")).withLogLevel(Level.DEBUG).withExposedPorts(1883)
+        val hivemqContainer = HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce")).withLogLevel(Level.DEBUG)
     }
 }
