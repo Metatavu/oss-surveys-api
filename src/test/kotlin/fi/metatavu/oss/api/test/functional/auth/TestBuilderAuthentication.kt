@@ -4,6 +4,7 @@ import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenTestBuilderAuthentication
 import fi.metatavu.oss.api.test.functional.impl.DeviceRequestsTestBuilderResource
 import fi.metatavu.oss.api.test.functional.impl.DevicesTestBuilderResource
+import fi.metatavu.oss.api.test.functional.impl.PagesTestBuilderResource
 import fi.metatavu.oss.api.test.functional.impl.SurveysTestBuilderResource
 import fi.metatavu.oss.api.test.functional.settings.ApiTestSettings
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
@@ -28,6 +29,7 @@ class TestBuilderAuthentication(
     val surveys = SurveysTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
     val devices = DevicesTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
     val deviceRequests = DeviceRequestsTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val pages = PagesTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
 
     override fun createClient(authProvider: AccessTokenProvider): ApiClient {
         val result = ApiClient(ApiTestSettings.apiBasePath)
