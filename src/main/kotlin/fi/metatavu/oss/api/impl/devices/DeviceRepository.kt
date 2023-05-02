@@ -1,7 +1,6 @@
 package fi.metatavu.oss.api.impl.devices
 
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
-import io.smallrye.mutiny.Uni
 import java.util.UUID
 import jakarta.enterprise.context.ApplicationScoped
 
@@ -17,8 +16,8 @@ class DeviceRepository: AbstractRepository<DeviceEntity, UUID>() {
      * @param device device
      * @return uni with created device
      */
-    fun create(device: DeviceEntity): Uni<DeviceEntity> {
-        return persist(device)
+    suspend fun create(device: DeviceEntity): DeviceEntity {
+        return persistSuspending(device)
     }
 
     /**
@@ -31,18 +30,18 @@ class DeviceRepository: AbstractRepository<DeviceEntity, UUID>() {
      * @param lastModifierId last modifier id
      * @return uni with updated device
      */
-    fun update(
+    suspend fun update(
         device: DeviceEntity,
         name: String,
         description: String?,
         location: String?,
         lastModifierId: UUID,
-    ): Uni<DeviceEntity> {
+    ): DeviceEntity {
         device.name = name
         device.description = description
         device.location = location
         device.lastModifierId = lastModifierId
 
-        return persist(device)
+        return persistSuspending(device)
     }
 }

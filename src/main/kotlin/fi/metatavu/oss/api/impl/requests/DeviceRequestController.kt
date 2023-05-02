@@ -22,7 +22,7 @@ class DeviceRequestController {
      * @return uni with created device request
      */
     suspend fun createDeviceRequest(serialNumber: String): DeviceRequestEntity {
-        return deviceRequestRepository.create(serialNumber = serialNumber).awaitSuspending()
+        return deviceRequestRepository.create(serialNumber = serialNumber)
     }
 
     /**
@@ -42,7 +42,7 @@ class DeviceRequestController {
      * @return uni with found device request
      */
     suspend fun findDeviceRequest(serialNumber: String): DeviceRequestEntity? {
-        return deviceRequestRepository.findBySerialNumber(serialNumber = serialNumber).awaitSuspending()
+        return deviceRequestRepository.findBySerialNumber(serialNumber = serialNumber)
     }
 
     /**
@@ -51,7 +51,7 @@ class DeviceRequestController {
      * @param deviceRequest device request
      */
     suspend fun deleteDeviceRequest(deviceRequest: DeviceRequestEntity) {
-        deviceRequestRepository.delete(deviceRequest).awaitSuspending()
+        deviceRequestRepository.deleteSuspending(deviceRequest)
     }
 
     /**
@@ -71,6 +71,6 @@ class DeviceRequestController {
         foundDeviceRequest.approvalStatus = updatedDeviceRequest.approvalStatus!!
         foundDeviceRequest.lastModifierId = userId
 
-        return deviceRequestRepository.update(deviceRequest = foundDeviceRequest).awaitSuspending()
+        return deviceRequestRepository.update(deviceRequest = foundDeviceRequest)
     }
 }

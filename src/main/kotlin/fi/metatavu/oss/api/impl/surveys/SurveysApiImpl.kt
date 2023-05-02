@@ -3,6 +3,7 @@ package fi.metatavu.oss.api.impl.surveys
 import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.UserRole
 import fi.metatavu.oss.api.model.Survey
+import fi.metatavu.oss.api.model.SurveyStatus
 import fi.metatavu.oss.api.spec.SurveysApi
 import io.quarkus.hibernate.reactive.panache.common.WithTransaction
 import io.smallrye.mutiny.Uni
@@ -34,8 +35,12 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
 
     @WithTransaction
     @RolesAllowed(UserRole.MANAGER.name, UserRole.CONSUMER_DISPLAY.name)
-    override fun listSurveys(firstResult: Int?, maxResults: Int?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
-        val (surveys, count) = surveyController.listSurveys(firstResult, maxResults)
+    override fun listSurveys(firstResult: Int?, maxResults: Int?, status: SurveyStatus?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        val (surveys, count) = surveyController.listSurveys(
+            firstResult = firstResult,
+            maxResults = maxResults,
+            status = status
+        )
         val surveysTranslated = surveyTranslator.translate(surveys)
         createOk(surveysTranslated, count)
     }.asUni()

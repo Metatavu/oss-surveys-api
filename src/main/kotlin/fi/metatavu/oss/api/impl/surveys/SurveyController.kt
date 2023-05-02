@@ -1,5 +1,7 @@
 package fi.metatavu.oss.api.impl.surveys
 
+import fi.metatavu.oss.api.model.SurveyStatus
+import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
 import jakarta.enterprise.context.ApplicationScoped
@@ -19,10 +21,28 @@ class SurveyController {
      *
      * @param firstResult first result
      * @param maxResults max results
+     * @param status status
      * @return uni with list of surveys and count
      */
-    suspend fun listSurveys(firstResult: Int?, maxResults: Int?): Pair<List<SurveyEntity>, Long> {
-        return surveyRepository.listAllWithPaging(firstResult, maxResults)
+    suspend fun listSurveys(
+        firstResult: Int?,
+        maxResults: Int?,
+        status: SurveyStatus?
+    ): Pair<List<SurveyEntity>, Long> {
+        val stringBuilder = StringBuilder()
+        val parameters = Parameters()
+
+        if (status != null) {
+            stringBuilder.append("status = :status")
+            parameters.and("status", status)
+        }
+
+        return surveyRepository.listWithFilters(
+            queryString = stringBuilder.toString(),
+            parameters = parameters,
+            page = firstResult,
+            pageSize = maxResults
+        )
     }
 
     /**
@@ -47,7 +67,7 @@ class SurveyController {
      * @return uni with void
      */
     suspend fun deleteSurvey(surveyEntity: SurveyEntity) {
-        surveyRepository.delete(surveyEntity).awaitSuspending()
+        surveyRepository.deleteSuspending(surveyEntity)
     }
 
     /**
@@ -63,7 +83,12 @@ class SurveyController {
         newRestSurvey: fi.metatavu.oss.api.model.Survey,
         userId: UUID
     ): SurveyEntity {
-        return surveyRepository.update(surveyEntityToUpdate, newRestSurvey.title, userId)
+        return surveyRepository.update(
+            survey = surveyEntityToUpdate,
+            title = newRestSurvey.title,
+            status  = newRestSurvey.status,
+            lastModifierId = userId
+        )
     }
 
     /**

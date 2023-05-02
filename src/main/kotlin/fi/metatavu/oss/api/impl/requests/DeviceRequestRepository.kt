@@ -2,7 +2,7 @@ package fi.metatavu.oss.api.impl.requests
 
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.model.DeviceApprovalStatus
-import io.smallrye.mutiny.Uni
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.UUID
 import jakarta.enterprise.context.ApplicationScoped
 
@@ -18,13 +18,13 @@ class DeviceRequestRepository: AbstractRepository<DeviceRequestEntity, UUID>() {
      * @param serialNumber serial number
      * @return uni with created device request
      */
-    fun create(serialNumber: String): Uni<DeviceRequestEntity> {
+    suspend fun create(serialNumber: String): DeviceRequestEntity {
         val deviceRequestEntity = DeviceRequestEntity()
         deviceRequestEntity.id = UUID.randomUUID()
         deviceRequestEntity.serialNumber = serialNumber
         deviceRequestEntity.approvalStatus = DeviceApprovalStatus.PENDING
 
-        return persist(deviceRequestEntity)
+        return persistSuspending(deviceRequestEntity)
     }
 
     /**
@@ -33,8 +33,8 @@ class DeviceRequestRepository: AbstractRepository<DeviceRequestEntity, UUID>() {
      * @param serialNumber serial number
      * @return uni with found device request
      */
-    fun findBySerialNumber(serialNumber: String): Uni<DeviceRequestEntity?> {
-        return find("serialnumber = ?1", serialNumber).firstResult()
+    suspend fun findBySerialNumber(serialNumber: String): DeviceRequestEntity? {
+        return find("serialnumber = ?1", serialNumber).firstResult<DeviceRequestEntity?>().awaitSuspending()
     }
 
     /**
@@ -43,7 +43,7 @@ class DeviceRequestRepository: AbstractRepository<DeviceRequestEntity, UUID>() {
      * @param deviceRequest device request
      * @return uni with updated device request
      */
-    fun update(deviceRequest: DeviceRequestEntity): Uni<DeviceRequestEntity> {
-        return persist(deviceRequest)
+    suspend fun update(deviceRequest: DeviceRequestEntity): DeviceRequestEntity {
+        return persistSuspending(deviceRequest)
     }
 }
