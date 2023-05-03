@@ -3,7 +3,7 @@ package fi.metatavu.oss.api.impl.requests
 import fi.metatavu.oss.api.metadata.DBMetadata
 import fi.metatavu.oss.api.model.DeviceApprovalStatus
 import java.util.*
-import jakarta.persistence.*
+import javax.persistence.*
 
 /**
  * Device Request JPA entity

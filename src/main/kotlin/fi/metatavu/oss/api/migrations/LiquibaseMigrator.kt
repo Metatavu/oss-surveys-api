@@ -10,7 +10,7 @@ import liquibase.exception.LiquibaseException
 import liquibase.resource.ClassLoaderResourceAccessor
 import liquibase.resource.ResourceAccessor
 import org.eclipse.microprofile.config.inject.ConfigProperty
-import jakarta.enterprise.event.Observes
+import javax.enterprise.event.Observes
 
 /**
  * Custom liquibase migrator class

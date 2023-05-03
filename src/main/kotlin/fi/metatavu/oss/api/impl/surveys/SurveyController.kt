@@ -4,8 +4,8 @@ import fi.metatavu.oss.api.model.SurveyStatus
 import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
+import javax.enterprise.context.ApplicationScoped
+import javax.inject.Inject
 
 /**
  * Controller class for surveys (transactions should start here)

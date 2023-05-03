@@ -2,8 +2,8 @@ package fi.metatavu.oss.api.impl.surveys
 
 import fi.metatavu.oss.api.impl.translate.AbstractTranslator
 import fi.metatavu.oss.api.metadata.MetadataTranslator
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
+import javax.enterprise.context.ApplicationScoped
+import javax.inject.Inject
 
 /**
  * Translates DB Survey entity to REST Survey resource

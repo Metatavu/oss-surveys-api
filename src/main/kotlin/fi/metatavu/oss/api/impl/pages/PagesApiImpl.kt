@@ -5,14 +5,14 @@ import fi.metatavu.oss.api.impl.UserRole
 import fi.metatavu.oss.api.impl.surveys.SurveyController
 import fi.metatavu.oss.api.model.Page
 import fi.metatavu.oss.api.spec.PagesApi
-import io.quarkus.hibernate.reactive.panache.common.WithTransaction
+import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.asUni
 import io.vertx.kotlin.coroutines.dispatcher
-import jakarta.annotation.security.RolesAllowed
-import jakarta.enterprise.context.RequestScoped
-import jakarta.inject.Inject
-import jakarta.ws.rs.core.Response
+import javax.annotation.security.RolesAllowed
+import javax.enterprise.context.RequestScoped
+import javax.inject.Inject
+import javax.ws.rs.core.Response
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
@@ -35,7 +35,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
     @Inject
     lateinit var vertx: io.vertx.core.Vertx
 
-    @WithTransaction
+    @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name, UserRole.CONSUMER_DISPLAY.name)
     override fun listSurveyPages(surveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val survey = surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(SURVEY, surveyId)
@@ -44,7 +44,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
         createOk(pagesTranslator.translate(pages), count.toLong())
     }.asUni()
 
-    @WithTransaction
+    @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
     override fun createSurveyPage(surveyId: UUID, page: Page): Uni<Response> =
         CoroutineScope(vertx.dispatcher()).async {
@@ -62,7 +62,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
             )
         }.asUni()
 
-    @WithTransaction
+    @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name, UserRole.CONSUMER_DISPLAY.name)
     override fun findSurveyPage(surveyId: UUID, pageId: UUID): Uni<Response> =
         CoroutineScope(vertx.dispatcher()).async {
@@ -74,7 +74,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
             createOk(pagesTranslator.translate(page))
         }.asUni()
 
-    @WithTransaction
+    @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
     override fun updateSurveyPage(surveyId: UUID, pageId: UUID, page: Page): Uni<Response> =
         CoroutineScope(vertx.dispatcher()).async {
@@ -93,7 +93,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
             createOk(pagesTranslator.translate(updatedPage))
         }.asUni()
 
-    @WithTransaction
+    @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
     override fun deleteSurveyPage(surveyId: UUID, pageId: UUID): Uni<Response> =
         CoroutineScope(vertx.dispatcher()).async {

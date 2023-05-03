@@ -3,7 +3,7 @@ package fi.metatavu.oss.api.impl.pages
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import io.smallrye.mutiny.coroutines.awaitSuspending
-import jakarta.enterprise.context.ApplicationScoped
+import javax.enterprise.context.ApplicationScoped
 import java.util.*
 
 /**

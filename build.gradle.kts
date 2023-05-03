@@ -108,7 +108,6 @@ val generateApiSpec = tasks.register("generateApiSpec",GenerateTask::class){
     this.configOptions.put("returnResponse", "true")
     this.configOptions.put("useSwaggerAnnotations", "false")
     this.configOptions.put("additionalModelTypeAnnotations", "@io.quarkus.runtime.annotations.RegisterForReflection")
-    setProperty("templateDir", "$rootDir/openapi/api-spec")
 }
 
 val generateApiClient = tasks.register("generateApiClient",GenerateTask::class){

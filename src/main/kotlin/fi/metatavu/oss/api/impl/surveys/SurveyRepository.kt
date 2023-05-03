@@ -3,7 +3,7 @@ package fi.metatavu.oss.api.impl.surveys
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.model.SurveyStatus
 import java.util.*
-import jakarta.enterprise.context.ApplicationScoped
+import javax.enterprise.context.ApplicationScoped
 
 /**
  * Repository class for surveys

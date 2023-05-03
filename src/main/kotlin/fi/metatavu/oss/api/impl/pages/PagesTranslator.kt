@@ -4,8 +4,8 @@ import fi.metatavu.oss.api.impl.translate.AbstractTranslator
 import fi.metatavu.oss.api.metadata.MetadataTranslator
 import fi.metatavu.oss.api.model.Page
 import fi.metatavu.oss.api.model.PageProperty
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
+import javax.enterprise.context.ApplicationScoped
+import javax.inject.Inject
 
 @ApplicationScoped
 class PagesTranslator: AbstractTranslator<PageEntity, Page>() {

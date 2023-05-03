@@ -8,8 +8,8 @@ import java.security.spec.InvalidKeySpecException
 import java.security.spec.PKCS8EncodedKeySpec
 import java.security.spec.X509EncodedKeySpec
 import java.util.*
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
+import javax.enterprise.context.ApplicationScoped
+import javax.inject.Inject
 
 /**
  * Controller for cryptography related operations

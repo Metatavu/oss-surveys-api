@@ -2,7 +2,7 @@ package fi.metatavu.oss.api.impl.pages
 
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.metadata.DBMetadata
-import jakarta.persistence.*
+import javax.persistence.*
 import java.util.*
 
 /**

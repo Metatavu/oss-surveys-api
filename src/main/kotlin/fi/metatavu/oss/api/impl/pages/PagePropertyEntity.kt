@@ -1,7 +1,7 @@
 package fi.metatavu.oss.api.impl.pages
 
 import fi.metatavu.oss.api.model.PagePropertyType
-import jakarta.persistence.*
+import javax.persistence.*
 import java.util.*
 
 /**

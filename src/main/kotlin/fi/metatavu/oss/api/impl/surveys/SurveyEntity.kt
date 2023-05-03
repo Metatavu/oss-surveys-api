@@ -3,12 +3,12 @@ package fi.metatavu.oss.api.impl.surveys
 import fi.metatavu.oss.api.metadata.DBMetadata
 import fi.metatavu.oss.api.model.SurveyStatus
 import java.util.*
-import jakarta.persistence.Column
-import jakarta.persistence.Entity
-import jakarta.persistence.Id
-import jakarta.persistence.Table
-import jakarta.persistence.EnumType
-import jakarta.persistence.Enumerated
+import javax.persistence.Column
+import javax.persistence.Entity
+import javax.persistence.Id
+import javax.persistence.Table
+import javax.persistence.EnumType
+import javax.persistence.Enumerated
 
 @Entity
 @Table(name = "survey")

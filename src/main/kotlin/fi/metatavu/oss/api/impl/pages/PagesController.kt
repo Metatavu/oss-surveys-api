@@ -3,8 +3,8 @@ package fi.metatavu.oss.api.impl.pages
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.Page
 import io.smallrye.mutiny.coroutines.awaitSuspending
-import jakarta.enterprise.context.ApplicationScoped
-import jakarta.inject.Inject
+import javax.enterprise.context.ApplicationScoped
+import javax.inject.Inject
 import java.util.*
 
 /**
