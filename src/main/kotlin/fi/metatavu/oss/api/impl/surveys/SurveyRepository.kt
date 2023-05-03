@@ -16,14 +16,20 @@ class SurveyRepository : AbstractRepository<SurveyEntity, UUID>() {
      *
      * @param id id
      * @param title title
+     * @param status status
      * @param creatorId creator id
      * @return uni with created survey
      */
-    suspend fun create(id: UUID, title: String, creatorId: UUID): SurveyEntity {
+    suspend fun create(
+        id: UUID,
+        title: String,
+        creatorId: UUID,
+        status: SurveyStatus
+    ): SurveyEntity {
         val surveyEntity = SurveyEntity()
         surveyEntity.id = id
         surveyEntity.title = title
-        surveyEntity.status = SurveyStatus.DRAFT
+        surveyEntity.status = status
         surveyEntity.creatorId = creatorId
         surveyEntity.lastModifierId = creatorId
 
