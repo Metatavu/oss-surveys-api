@@ -36,7 +36,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
     lateinit var vertx: io.vertx.core.Vertx
 
     @ReactiveTransactional
-    @RolesAllowed(UserRole.MANAGER.name, UserRole.CONSUMER_DISPLAY.name)
+    @RolesAllowed(UserRole.MANAGER.name)
     override fun listSurveyPages(surveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val survey = surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(SURVEY, surveyId)
         val (pages, count) = pagesController.listPages(survey)
@@ -63,7 +63,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
         }.asUni()
 
     @ReactiveTransactional
-    @RolesAllowed(UserRole.MANAGER.name, UserRole.CONSUMER_DISPLAY.name)
+    @RolesAllowed(UserRole.MANAGER.name)
     override fun findSurveyPage(surveyId: UUID, pageId: UUID): Uni<Response> =
         CoroutineScope(vertx.dispatcher()).async {
             val survey = surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(SURVEY, surveyId)
