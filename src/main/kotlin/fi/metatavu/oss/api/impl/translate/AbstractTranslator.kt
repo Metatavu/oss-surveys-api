@@ -13,7 +13,7 @@ import javax.inject.Inject
 abstract class AbstractTranslator<E: DBMetadata, R> {
 
     @Inject
-    protected lateinit var metadataTranslator: MetadataTranslator
+    private lateinit var metadataTranslator: MetadataTranslator
 
     /**
      * Translates metadata
@@ -21,11 +21,11 @@ abstract class AbstractTranslator<E: DBMetadata, R> {
      * @param entity entity
      * @return rest metadata
      */
-    protected fun translateMetadata(entity: E): Metadata {
+    protected suspend fun translateMetadata(entity: E): Metadata {
         return metadataTranslator.translate(entity)
     }
 
-    abstract fun translate(entity: E): R
+    abstract suspend fun translate(entity: E): R
 
     /**
      * Translates list of entities
@@ -33,7 +33,7 @@ abstract class AbstractTranslator<E: DBMetadata, R> {
      * @param entities list of entities to translate
      * @return List of translated entities
      */
-    open fun translate(entities: List<E>): List<R> {
-        return entities.mapNotNull(this::translate)
+    open suspend fun translate(entities: List<E>): List<R> {
+        return entities.mapNotNull { translate(it) }
     }
 }

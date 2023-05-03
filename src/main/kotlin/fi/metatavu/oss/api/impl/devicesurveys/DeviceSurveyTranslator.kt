@@ -10,7 +10,7 @@ import javax.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class DeviceSurveyTranslator: AbstractTranslator<DeviceSurveyEntity, DeviceSurvey>() {
 
-    override fun translate(entity: DeviceSurveyEntity): DeviceSurvey {
+    override suspend fun translate(entity: DeviceSurveyEntity): DeviceSurvey {
         return DeviceSurvey(
             id = entity.id,
             surveyId = entity.survey.id,

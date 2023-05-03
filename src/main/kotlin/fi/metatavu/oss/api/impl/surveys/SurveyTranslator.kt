@@ -9,7 +9,7 @@ import javax.enterprise.context.ApplicationScoped
 @ApplicationScoped
 class SurveyTranslator: AbstractTranslator<SurveyEntity, fi.metatavu.oss.api.model.Survey>() {
 
-    override fun translate(entity: SurveyEntity): fi.metatavu.oss.api.model.Survey {
+    override suspend fun translate(entity: SurveyEntity): fi.metatavu.oss.api.model.Survey {
         return fi.metatavu.oss.api.model.Survey(
             id = entity.id,
             title = entity.title,
