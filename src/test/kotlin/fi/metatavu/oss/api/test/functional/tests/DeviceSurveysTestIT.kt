@@ -25,12 +25,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         createTestBuilder().use { testBuilder ->
             val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
             val createdSurvey = testBuilder.manager.surveys.createDefault()
-            testBuilder.manager.surveys.update(
-                surveyId = createdSurvey.id!!,
-                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-            )
             val deviceSurveyToCreate = DeviceSurvey(
-                surveyId = createdSurvey.id,
+                surveyId = createdSurvey.id!!,
                 deviceId = deviceId,
                 status = DeviceSurveyStatus.PUBLISHED,
             )
@@ -69,10 +65,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                     status = SurveyStatus.APPROVED
                 )
             )
-//            testBuilder.manager.surveys.update(
-//                surveyId = createdSurveyDevice2.id!!,
-//                newSurvey = createdSurveyDevice2.copy(status = SurveyStatus.APPROVED)
-//            )
+
             testBuilder.manager.deviceSurveys.create(
                 deviceId = deviceId2,
                 deviceSurvey = DeviceSurvey(
@@ -92,12 +85,12 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 testBuilder.manager.deviceSurveys.create(
                     deviceId = deviceId,
                     deviceSurvey = DeviceSurvey(
-                        surveyId = createdSurvey.id,
+                        surveyId = created.id!!,
                         deviceId = deviceId,
                         status = DeviceSurveyStatus.PUBLISHED
                     )
                 )
-                createdSurveys.add(createdSurvey)
+                createdSurveys.add(created)
             }
 
             val deviceSurveys = testBuilder.manager.deviceSurveys.list(
@@ -137,10 +130,6 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 deviceId = deviceId,
                 status = DeviceSurveyStatus.PUBLISHED
             )
-            testBuilder.manager.surveys.update(
-                surveyId = createdSurvey.id,
-                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-            )
             val createdDeviceSurvey1 = testBuilder.manager.deviceSurveys.create(
                 deviceId = deviceId,
                 deviceSurvey = deviceSurveyToCreate
@@ -179,14 +168,10 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         createTestBuilder().use { testBuilder ->
             val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
             val createdSurvey = testBuilder.manager.surveys.createDefault()
-            testBuilder.manager.surveys.update(
-                surveyId = createdSurvey.id!!,
-                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-            )
             val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
                 deviceId = deviceId,
                 deviceSurvey = DeviceSurvey(
-                    surveyId = createdSurvey.id,
+                    surveyId = createdSurvey.id!!,
                     deviceId = deviceId,
                     status = DeviceSurveyStatus.PUBLISHED
                 )
@@ -214,12 +199,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         createTestBuilder().use { testBuilder ->
             val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
             val createdSurvey = testBuilder.manager.surveys.createDefault()
-            testBuilder.manager.surveys.update(
-                surveyId = createdSurvey.id!!,
-                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-            )
             val deviceSurveyToCreate = DeviceSurvey(
-                surveyId = createdSurvey.id,
+                surveyId = createdSurvey.id!!,
                 deviceId = deviceId,
                 status = DeviceSurveyStatus.PUBLISHED
             )
@@ -247,12 +228,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         createTestBuilder().use { testBuilder ->
             val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
             val createdSurvey = testBuilder.manager.surveys.createDefault()
-            testBuilder.manager.surveys.update(
-                surveyId = createdSurvey.id!!,
-                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-            )
             val deviceSurveyToCreate = DeviceSurvey(
-                surveyId = createdSurvey.id,
+                surveyId = createdSurvey.id!!,
                 deviceId = deviceId,
                 status = DeviceSurveyStatus.SCHEDULED
             )
@@ -317,14 +294,10 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             val (deviceId, deviceKey) = testBuilder.manager.deviceSurveys.setupTestDevice()
             testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey)
             val createdSurvey = testBuilder.manager.surveys.createDefault()
-            testBuilder.manager.surveys.update(
-                surveyId = createdSurvey.id!!,
-                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-            )
             val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
                 deviceId = deviceId,
                     DeviceSurvey(
-                    surveyId = createdSurvey.id,
+                    surveyId = createdSurvey.id!!,
                     deviceId = deviceId,
                     status = DeviceSurveyStatus.PUBLISHED
                 )
