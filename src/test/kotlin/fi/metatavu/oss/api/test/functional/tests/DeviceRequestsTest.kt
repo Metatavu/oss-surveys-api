@@ -4,9 +4,9 @@ import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
 import fi.metatavu.oss.test.client.models.DeviceApprovalStatus
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -64,7 +64,7 @@ class DeviceRequestsTest: AbstractResourceTest() {
 
             assertEquals(deviceRequest.id, updatedDeviceRequest.id)
             assertEquals(deviceRequest.serialNumber, updatedDeviceRequest.serialNumber)
-            assertEquals(deviceRequest.metadata!!.createdAt, updatedDeviceRequest.metadata!!.createdAt)
+            assertEquals(OffsetDateTime.parse(deviceRequest.metadata!!.createdAt).toEpochSecond(), OffsetDateTime.parse(updatedDeviceRequest.metadata!!.createdAt).toEpochSecond())
             assertEquals(updatedDeviceRequest.approvalStatus, DeviceApprovalStatus.APPROVED)
 
             // Test that can update only as manager
