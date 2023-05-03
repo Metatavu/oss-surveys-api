@@ -7,6 +7,9 @@ import fi.metatavu.oss.api.model.PageProperty
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 
+/**
+ * Translates JPA survey page to REST page object
+ */
 @ApplicationScoped
 class PagesTranslator: AbstractTranslator<PageEntity, Page>() {
 
