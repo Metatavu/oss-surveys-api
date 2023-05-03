@@ -40,8 +40,8 @@ class PageTestIT: AbstractResourceTest() {
             it.manager.pages.createDefault(survey2.id!!)
             it.manager.pages.createDefault(survey2.id)
 
-            assertEquals(3, it.consumer.pages.list(survey.id).size)
-            assertEquals(2, it.consumer.pages.list(survey2.id).size)
+            assertEquals(3, it.manager.pages.list(survey.id).size)
+            assertEquals(2, it.manager.pages.list(survey2.id).size)
 
             //permissions
             it.notvalid.pages.assertListFail(surveyId = survey.id, expectedStatus = 401)
@@ -86,7 +86,7 @@ class PageTestIT: AbstractResourceTest() {
             val survey2 = it.manager.surveys.createDefault()
 
             val createdPage = it.manager.pages.createDefault(surveyId = survey.id!!)
-            val foundPage = it.consumer.pages.find(surveyId = survey.id, pageId = createdPage.id!!)
+            val foundPage = it.manager.pages.find(surveyId = survey.id, pageId = createdPage.id!!)
             assertNotNull(foundPage.id)
 
             // permissions
