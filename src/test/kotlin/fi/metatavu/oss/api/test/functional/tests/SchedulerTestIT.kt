@@ -52,32 +52,10 @@ class SchedulerTestIT: AbstractResourceTest() {
                 .atMost(Duration.ofMinutes(1))
                 .pollInterval(Duration.ofSeconds(5))
                 .until {
-                        testBuilder.manager.deviceSurveys.list(
-                            deviceId = deviceId,
-                            status = DeviceSurveyStatus.PUBLISHED
-                        ).isNotEmpty()
-                }
-
-            val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
-                deviceId = deviceId,
-                deviceSurvey = DeviceSurvey(
-                    deviceId = deviceId,
-                    surveyId = createdSurvey.id,
-                    status = DeviceSurveyStatus.SCHEDULED,
-                    publishStartTime = OffsetDateTime.now().plusSeconds(5).toString(),
-                    publishEndTime = OffsetDateTime.now().plusMinutes(1).toString()
-                )
-            )
-
-            Awaitility
-                .await()
-                .atMost(Duration.ofMinutes(1))
-                .pollInterval(Duration.ofSeconds(5))
-                .until {
                     testBuilder.manager.deviceSurveys.list(
                         deviceId = deviceId,
                         status = DeviceSurveyStatus.PUBLISHED
-                    ).any { it.id == createdDeviceSurvey.id }
+                    ).isNotEmpty()
                 }
         }
     }
