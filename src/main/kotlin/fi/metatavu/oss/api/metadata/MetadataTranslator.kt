@@ -8,7 +8,7 @@ import javax.enterprise.context.ApplicationScoped
  */
 @ApplicationScoped
 class MetadataTranslator : AbstractTranslator<DBMetadata, fi.metatavu.oss.api.model.Metadata>() {
-    override fun translate(entity: DBMetadata): fi.metatavu.oss.api.model.Metadata {
+    override suspend fun translate(entity: DBMetadata): fi.metatavu.oss.api.model.Metadata {
         return fi.metatavu.oss.api.model.Metadata(
             createdAt = entity.createdAt,
             modifiedAt = entity.modifiedAt,

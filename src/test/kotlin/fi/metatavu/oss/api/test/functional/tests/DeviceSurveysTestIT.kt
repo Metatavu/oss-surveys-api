@@ -63,7 +63,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
             val createdSurveyDevice2 = testBuilder.manager.surveys.create(
                 survey = Survey(
-                    title = "device-2-test-survey"
+                    title = "device-2-test-survey",
+                    status = SurveyStatus.DRAFT
                 )
             )
             testBuilder.manager.surveys.update(
@@ -82,7 +83,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             for (i in 1..5) {
                 val createdSurvey = testBuilder.manager.surveys.create(
                     survey = Survey(
-                        title = "test-survey-$i"
+                        title = "test-survey-$i",
+                        status = SurveyStatus.DRAFT
                     )
                 )
                 testBuilder.manager.surveys.update(
@@ -323,7 +325,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             )
             val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
                 deviceId = deviceId,
-                    DeviceSurvey(
+                DeviceSurvey(
                     surveyId = createdSurvey.id,
                     deviceId = deviceId,
                     status = DeviceSurveyStatus.PUBLISHED
