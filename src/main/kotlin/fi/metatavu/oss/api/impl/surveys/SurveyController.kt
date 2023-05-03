@@ -56,7 +56,7 @@ class SurveyController {
         return surveyRepository.create(
             id = UUID.randomUUID(),
             title = survey.title,
-            status = survey.status,
+            status = SurveyStatus.DRAFT,
             creatorId = userId
         )
     }
