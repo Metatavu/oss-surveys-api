@@ -34,7 +34,7 @@ class DeviceRequestRepository: AbstractRepository<DeviceRequestEntity, UUID>() {
      * @return uni with found device request
      */
     suspend fun findBySerialNumber(serialNumber: String): DeviceRequestEntity? {
-        return find("serialnumber = ?1", serialNumber).firstResult<DeviceRequestEntity?>().awaitSuspending()
+        return find("serialNumber = ?1", serialNumber).firstResult<DeviceRequestEntity?>().awaitSuspending()
     }
 
     /**
