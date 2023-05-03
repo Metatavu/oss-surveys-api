@@ -63,33 +63,31 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             val (deviceId2) = testBuilder.manager.deviceSurveys.setupTestDevice("321")
             val createdSurveys = mutableListOf<Survey>()
 
-            val createdSurveyDevice2 = testBuilder.manager.surveys.create(
+            val createdSurvey = testBuilder.manager.surveys.create(
                 survey = Survey(
-                    title = "device-2-test-survey"
+                    title = "device-2-test-survey",
+                    status = SurveyStatus.APPROVED
                 )
             )
-            testBuilder.manager.surveys.update(
-                surveyId = createdSurveyDevice2.id!!,
-                newSurvey = createdSurveyDevice2.copy(status = SurveyStatus.APPROVED)
-            )
+//            testBuilder.manager.surveys.update(
+//                surveyId = createdSurveyDevice2.id!!,
+//                newSurvey = createdSurveyDevice2.copy(status = SurveyStatus.APPROVED)
+//            )
             testBuilder.manager.deviceSurveys.create(
                 deviceId = deviceId2,
                 deviceSurvey = DeviceSurvey(
-                    surveyId = createdSurveyDevice2.id,
+                    surveyId = createdSurvey.id!!,
                     deviceId = deviceId2,
                     status = DeviceSurveyStatus.PUBLISHED
                 )
             )
 
             for (i in 1..5) {
-                val createdSurvey = testBuilder.manager.surveys.create(
+                val created = testBuilder.manager.surveys.create(
                     survey = Survey(
-                        title = "test-survey-$i"
+                        title = "test-survey-$i",
+                        status = SurveyStatus.APPROVED
                     )
-                )
-                testBuilder.manager.surveys.update(
-                    surveyId = createdSurvey.id!!,
-                    newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
                 )
                 testBuilder.manager.deviceSurveys.create(
                     deviceId = deviceId,
