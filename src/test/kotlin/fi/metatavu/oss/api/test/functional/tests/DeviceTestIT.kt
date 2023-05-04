@@ -75,7 +75,7 @@ class DeviceTestIT: AbstractResourceTest() {
             .atMost(Duration.ofMinutes(1))
             .pollInterval(Duration.ofSeconds(5))
             .until {
-                testBuilder.manager.devices.find(deviceId).deviceStatus === DeviceStatus.ONLINE
+                testBuilder.manager.devices.find(deviceId).deviceStatus == DeviceStatus.ONLINE
             }
     }
 }

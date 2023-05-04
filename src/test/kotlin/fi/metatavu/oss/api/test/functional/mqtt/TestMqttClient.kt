@@ -59,7 +59,6 @@ class TestMqttClient: AutoCloseable {
      * @param message message
      */
     fun <T> publish(topic: String, message: T) {
-        println("TOPIC: ${baseTopic}/test/$topic")
         mqttClient?.publish(
             "${baseTopic}/test/$topic",
             jacksonObjectMapper().writeValueAsBytes(message),
