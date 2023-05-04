@@ -24,6 +24,12 @@ class SurveyEntity : DBMetadata() {
     @Enumerated(EnumType.STRING)
     lateinit var status: SurveyStatus
 
+    @Column
+    var description: String? = null
+
+    @Column(nullable = false)
+    var timeout: Int? = null
+
     override var creatorId: UUID? = null
     override var lastModifierId: UUID? = null
 }

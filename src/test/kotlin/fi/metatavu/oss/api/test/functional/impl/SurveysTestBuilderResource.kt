@@ -37,7 +37,8 @@ class SurveysTestBuilderResource(
     fun createDefault(): Survey {
         val created = api.createSurvey(Survey(
             title = "default survey",
-            status = SurveyStatus.DRAFT
+            status = SurveyStatus.DRAFT,
+            timeout = 60,
         ))
         return addClosable(created)
     }
