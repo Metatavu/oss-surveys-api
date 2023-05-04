@@ -14,7 +14,7 @@ import java.util.*
  */
 @QuarkusTest
 @TestProfile(LocalTestProfile::class)
-class DeviceRequestsTest: AbstractResourceTest() {
+class DeviceRequestsTestIT: AbstractResourceTest() {
 
     @Test
     fun testCreateDeviceRequest() {
@@ -134,6 +134,16 @@ class DeviceRequestsTest: AbstractResourceTest() {
 
             testBuilder.manager.deviceRequests.assertGetKeyFail(
                 requestId = deviceRequest.id,
+                expectedStatusCode = 404
+            )
+        }
+    }
+
+    @Test
+    fun testUpdateDeviceRequestFail() {
+        createTestBuilder().use { testBuilder ->
+            testBuilder.manager.deviceRequests.assertUpdateFail(
+                requestId = UUID.randomUUID(),
                 expectedStatusCode = 404
             )
         }

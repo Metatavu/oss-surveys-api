@@ -82,7 +82,7 @@
         </addColumn>
         <sql>UPDATE survey SET status = 'DRAFT';</sql>
     </changeSet>
-    
+
     <changeSet id="survey_pages" author="katja danilova">
         <createTable tableName="page">
             <column name="id" type="binary(16)">
@@ -122,6 +122,41 @@
             </column>
             <column name="page_id" type="binary(16)">
                 <constraints nullable="false" foreignKeyName="FK_PAGEPROPERTY_PAGE_ID" referencedTableName="page" referencedColumnNames="id"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="device_surveys" author="Ville Juutila">
+        <createTable tableName="devicesurvey">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="survey_id" type="binary(16)">
+                <constraints
+                    nullable="false"
+                    foreignKeyName="FK_DEVICE_SURVEY_SURVEY_ID"
+                    referencedColumnNames="id"
+                    referencedTableName="survey"/>
+            </column>
+            <column name="device_id" type="binary(16)">
+                <constraints
+                    nullable="false"
+                    foreignKeyName="FK_DEVICE_SURVEY_DEVICE_ID"
+                    referencedColumnNames="id"
+                    referencedTableName="device"/>
+            </column>
+            <column name="status" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="publishstarttime" type="datetime(6)"/>
+            <column name="publishendtime" type="datetime(6)"/>
+            <column name="creatorid" type="binary(16)"/>
+            <column name="lastmodifierid" type="binary(16)"/>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
             </column>
         </createTable>
     </changeSet>

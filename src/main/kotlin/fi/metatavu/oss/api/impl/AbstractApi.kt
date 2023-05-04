@@ -56,7 +56,11 @@ abstract class AbstractApi {
      * @return whether device key is authorized
      */
     protected suspend fun isAuthorizedDevice(deviceId: UUID): Boolean {
-        val token = httpHeaders.requestHeaders[deviceKeyHeader]?.first() ?: return false
+        val deviceKeyHeader = httpHeaders.requestHeaders[deviceKeyHeader]
+        if (deviceKeyHeader.isNullOrEmpty()) {
+            return false
+        }
+        val token = deviceKeyHeader.firstOrNull() ?: return false
         val privateKey = cryptoController.loadPrivateKeyBase64(token) ?: return false
         val deviceKey = deviceController.getDeviceKey(deviceId)
         val publicKey = cryptoController.loadPublicKey(deviceKey) ?: return false
@@ -267,6 +271,7 @@ abstract class AbstractApi {
         const val DEVICE_REQUEST = "Device Request"
         const val DEVICE = "Device"
         const val PAGE = "Page"
+        const val DEVICE_SURVEY = "Device Survey"
 
         const val deviceKeyHeader = "X-DEVICE-KEY"
     }

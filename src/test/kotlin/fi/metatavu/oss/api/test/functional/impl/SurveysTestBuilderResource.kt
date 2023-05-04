@@ -29,7 +29,7 @@ class SurveysTestBuilderResource(
         return SurveysApi(ApiTestSettings.apiBasePath)
     }
 
-    fun create(survey: Survey): Survey? {
+    fun create(survey: Survey): Survey {
         val created = api.createSurvey(survey)
         return addClosable(created)
     }

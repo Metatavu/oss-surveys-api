@@ -3,6 +3,7 @@ package fi.metatavu.oss.api.test.functional.tests
 import io.quarkus.test.common.DevServicesContext
 import io.quarkus.test.junit.QuarkusTest
 import org.eclipse.microprofile.config.ConfigProvider
+import org.junit.jupiter.api.AfterEach
 
 /**
  * Abstract base class for resource tests
@@ -11,6 +12,19 @@ import org.eclipse.microprofile.config.ConfigProvider
 abstract class AbstractResourceTest {
 
     private var devServicesContext: DevServicesContext? = null
+
+    /**
+     * Devices are being created as a side effect from the device fetching its key for the first time,
+     * therefore devices need special clean up as they cannot be handled as closeables.
+     */
+    @AfterEach
+    fun cleanDevicesAfterEach() {
+        createTestBuilder().use {
+            it.manager.devices.list().forEach { device ->
+                it.manager.devices.delete(device.id!!)
+            }
+        }
+    }
 
     /**
      * Creates new test builder

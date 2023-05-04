@@ -22,7 +22,7 @@ class SurveyController {
      * @param firstResult first result
      * @param maxResults max results
      * @param status status
-     * @return uni with list of surveys and count
+     * @return list of surveys and count
      */
     suspend fun listSurveys(
         firstResult: Int?,
@@ -50,12 +50,13 @@ class SurveyController {
      *
      * @param survey survey to create
      * @param userId user id
-     * @return uni with created survey
+     * @return created survey
      */
     suspend fun createSurvey(survey: fi.metatavu.oss.api.model.Survey, userId: UUID): SurveyEntity {
         return surveyRepository.create(
             id = UUID.randomUUID(),
             title = survey.title,
+            status = SurveyStatus.DRAFT,
             creatorId = userId
         )
     }
@@ -64,7 +65,6 @@ class SurveyController {
      * Deletes a survey
      *
      * @param surveyEntity survey to delete
-     * @return uni with void
      */
     suspend fun deleteSurvey(surveyEntity: SurveyEntity) {
         surveyRepository.deleteSuspending(surveyEntity)
@@ -76,7 +76,7 @@ class SurveyController {
      * @param surveyEntityToUpdate survey to update
      * @param newRestSurvey new survey data
      * @param userId user id
-     * @return uni with updated survey
+     * @return updated survey
      */
     suspend fun updateSurvey(
         surveyEntityToUpdate: SurveyEntity,
@@ -95,7 +95,7 @@ class SurveyController {
      * Finds a survey by id
      *
      * @param surveyId survey id
-     * @return uni with found survey
+     * @return found survey
      */
     suspend fun findSurvey(surveyId: UUID): SurveyEntity? {
         return surveyRepository.findById(surveyId).awaitSuspending()

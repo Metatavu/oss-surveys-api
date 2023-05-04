@@ -7,7 +7,7 @@ import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 
 /**
- * Controller class for devices (transactions should start here)
+ * Controller class for devices
  */
 @ApplicationScoped
 class DeviceRequestController {

@@ -25,6 +25,9 @@ class DevicesApiImpl: fi.metatavu.oss.api.spec.DevicesApi, AbstractApi() {
     lateinit var deviceController: DeviceController
 
     @Inject
+    lateinit var deviceTranslator: DeviceTranslator
+
+    @Inject
     lateinit var vertx: Vertx
 
     @ReactiveTransactional
@@ -35,5 +38,15 @@ class DevicesApiImpl: fi.metatavu.oss.api.spec.DevicesApi, AbstractApi() {
         deviceController.deleteDevice(device = foundDevice)
 
         createNoContent()
+    }.asUni()
+
+    override fun listDevices(firstResult: Int?, maxResults: Int?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        val (devices, count) = deviceController.listDevices(
+            firstResult = firstResult,
+            maxResults = maxResults
+        )
+        val devicesTranslated = deviceTranslator.translate(devices)
+
+        createOk(devicesTranslated, count)
     }.asUni()
 }
