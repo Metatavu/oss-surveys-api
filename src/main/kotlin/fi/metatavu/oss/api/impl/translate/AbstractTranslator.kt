@@ -13,7 +13,7 @@ import javax.inject.Inject
 abstract class AbstractTranslator<E: DBMetadata, R> {
 
     @Inject
-    private lateinit var metadataTranslator: MetadataTranslator
+    lateinit var metadataTranslator: MetadataTranslator
 
     /**
      * Translates metadata

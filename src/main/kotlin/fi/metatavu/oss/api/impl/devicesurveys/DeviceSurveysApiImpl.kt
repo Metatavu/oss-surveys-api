@@ -118,7 +118,7 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
 
     @RolesAllowed(UserRole.MANAGER.name)
     override fun listDeviceSurveys(deviceId: UUID, firstResult: Int?, maxResults: Int?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
-        val (deviceSurveys, count) = deviceSurveyController.listDeviceSurveys(
+        val (deviceSurveys, count) = deviceSurveyController.listDeviceSurveysByDevice(
             deviceId = deviceId,
             firstResult = firstResult,
             maxResults = maxResults

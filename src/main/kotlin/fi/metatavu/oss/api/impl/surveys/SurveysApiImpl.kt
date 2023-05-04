@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.surveys
 
 import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.UserRole
+import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.model.Survey
 import fi.metatavu.oss.api.model.SurveyStatus
 import fi.metatavu.oss.api.spec.SurveysApi
@@ -29,6 +30,9 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
 
     @Inject
     lateinit var surveyTranslator: SurveyTranslator
+
+    @Inject
+    lateinit var deviceSurveyController: DeviceSurveyController
 
     @Inject
     lateinit var vertx: Vertx
@@ -89,6 +93,14 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
             target = SURVEY,
             id = surveyId
         )
+
+        val (foundDeviceSurveys) = deviceSurveyController.listDeviceSurveysBySurvey(surveyId)
+
+        if (foundDeviceSurveys.isNotEmpty()) {
+            val deviceIds = foundDeviceSurveys.map { it.device.id }.toSet()
+
+            return@async createBadRequest("Survey is assigned to devices $deviceIds")
+        }
 
         surveyController.deleteSurvey(foundSurvey)
 

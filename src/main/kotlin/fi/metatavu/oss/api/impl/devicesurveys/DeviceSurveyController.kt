@@ -19,20 +19,40 @@ class DeviceSurveyController {
     lateinit var deviceSurveyRepository: DeviceSurveyRepository
 
     /**
-     * Lists device surveys
+     * Lists device surveys by device
      *
      * @param deviceId device id
      * @param firstResult first result
      * @param maxResults max results
      * @return list of device surveys and count
      */
-    suspend fun listDeviceSurveys(
+    suspend fun listDeviceSurveysByDevice(
         deviceId: UUID,
-        firstResult: Int?,
-        maxResults: Int?
+        firstResult: Int? = null,
+        maxResults: Int? = null
     ): Pair<List<DeviceSurveyEntity>, Long> {
         return deviceSurveyRepository.applyPagingToQuery(
             query = deviceSurveyRepository.find("device_id = ?1", deviceId),
+            page = firstResult,
+            pageSize = maxResults
+        )
+    }
+
+    /**
+     * Lists device surveys by survey
+     *
+     * @param surveyId survey id
+     * @param firstResult first result
+     * @param maxResults max results
+     * @return list of device surveys and count
+     */
+    suspend fun listDeviceSurveysBySurvey(
+        surveyId: UUID,
+        firstResult: Int? = null,
+        maxResults: Int? = null
+    ): Pair<List<DeviceSurveyEntity>, Long> {
+        return deviceSurveyRepository.applyPagingToQuery(
+            query = deviceSurveyRepository.find("survey_id = ?1", surveyId),
             page = firstResult,
             pageSize = maxResults
         )

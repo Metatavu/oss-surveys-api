@@ -1,5 +1,6 @@
 package fi.metatavu.oss.api.impl.devices
 
+import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.impl.requests.DeviceRequestEntity
 import fi.metatavu.oss.api.model.DeviceStatus
 import io.smallrye.mutiny.coroutines.awaitSuspending
@@ -16,6 +17,9 @@ class DeviceController {
 
     @Inject
     lateinit var deviceRepository: DeviceRepository
+
+    @Inject
+    lateinit var deviceSurveyController: DeviceSurveyController
 
     /**
      * Creates a device
@@ -64,9 +68,16 @@ class DeviceController {
     /**
      * Deletes a Device
      *
+     * Also deletes associated device surveys
+     *
      * @param device device
      */
     suspend fun deleteDevice(device: DeviceEntity) {
+        val (deviceSurveys) = deviceSurveyController.listDeviceSurveysByDevice(device.id)
+
+        for (deviceSurvey in deviceSurveys) {
+            deviceSurveyController.deleteDeviceSurvey(deviceSurvey)
+        }
         deviceRepository.deleteSuspending(device)
     }
 
