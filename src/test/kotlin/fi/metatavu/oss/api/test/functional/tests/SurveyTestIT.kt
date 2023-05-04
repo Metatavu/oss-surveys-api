@@ -19,8 +19,17 @@ class SurveyTestIT : AbstractResourceTest() {
     @Test
     fun testCreateSurvey() {
         createTestBuilder().use { testBuilder ->
-            val survey = testBuilder.manager.surveys.createDefault()
-            assertEquals("default survey", survey.title)
+            val survey = testBuilder.manager.surveys.create(
+                Survey(
+                    title = "test survey",
+                    description = "test survey description",
+                    status = SurveyStatus.DRAFT,
+                    timeout = 60,
+                )
+            )
+            assertEquals("test survey", survey.title)
+            assertEquals("test survey description", survey.description)
+            assertEquals(60, survey.timeout)
             assertNotNull(survey.id)
             assertNotNull(survey.metadata!!.createdAt)
             assertNotNull(survey.metadata.creatorId)
@@ -28,9 +37,30 @@ class SurveyTestIT : AbstractResourceTest() {
             assertNotNull(survey.metadata.lastModifierId)
 
             //permissions
-            testBuilder.consumer.surveys.assertCreateFail(403, Survey(title = "default survey", status = SurveyStatus.DRAFT))
-            testBuilder.empty.surveys.assertCreateFail(401, Survey(title = "default survey", status = SurveyStatus.DRAFT))
-            testBuilder.notvalid.surveys.assertCreateFail(401, Survey(title = "default survey", status = SurveyStatus.DRAFT))
+            testBuilder.consumer.surveys.assertCreateFail(
+                expectedStatus = 403,
+                survey = Survey(title = "default survey", status = SurveyStatus.DRAFT, timeout = 60)
+            )
+            testBuilder.empty.surveys.assertCreateFail(
+                expectedStatus = 401,
+                survey = Survey(title = "default survey", status = SurveyStatus.DRAFT, timeout = 60)
+            )
+            testBuilder.notvalid.surveys.assertCreateFail(
+                expectedStatus = 401,
+                survey = Survey(title = "default survey", status = SurveyStatus.DRAFT, timeout = 60)
+            )
+
+            // Cannot create Survey with negative timeout
+            testBuilder.manager.surveys.assertCreateFail(
+                expectedStatus = 400,
+                survey = Survey(title = "default survey", status = SurveyStatus.DRAFT, timeout = -1)
+            )
+
+            // Cannot create Survey with 0 timeout
+            testBuilder.manager.surveys.assertCreateFail(
+                expectedStatus = 400,
+                survey = Survey(title = "default survey", status = SurveyStatus.DRAFT, timeout = 0)
+            )
         }
     }
 
@@ -79,15 +109,36 @@ class SurveyTestIT : AbstractResourceTest() {
     fun testUpdateSurvey() {
         createTestBuilder().use { testBuilder ->
             val survey = testBuilder.manager.surveys.createDefault()
-            val surveyUpdateData = Survey(title = "updated survey", status = SurveyStatus.DRAFT)
+            val surveyUpdateData = Survey(
+                title = "updated survey",
+                status = SurveyStatus.DRAFT,
+                timeout = 600,
+                description = "updated survey description"
+            )
             val updatedSurvey = testBuilder.manager.surveys.update(survey.id!!, surveyUpdateData)
             assertEquals(survey.id, updatedSurvey.id)
             assertEquals("updated survey", updatedSurvey.title)
+            assertEquals(600, updatedSurvey.timeout)
+            assertEquals("updated survey description", updatedSurvey.description)
 
             //permissions
             testBuilder.consumer.surveys.assertUpdateFail(403, survey.id, surveyUpdateData)
             testBuilder.empty.surveys.assertUpdateFail(401, survey.id, surveyUpdateData)
             testBuilder.notvalid.surveys.assertUpdateFail(401, survey.id, surveyUpdateData)
+
+            // Cannot update Survey with negative timeout
+            testBuilder.manager.surveys.assertUpdateFail(
+                expectedStatus = 400,
+                surveyId = survey.id,
+                newSurvey = updatedSurvey.copy(timeout = -1)
+            )
+
+            // Cannot update Survey with 0 timeout
+            testBuilder.manager.surveys.assertUpdateFail(
+                expectedStatus = 400,
+                surveyId = survey.id,
+                newSurvey = updatedSurvey.copy(timeout = 0)
+            )
         }
     }
 

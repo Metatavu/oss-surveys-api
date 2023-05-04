@@ -66,7 +66,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             val createdSurveyDevice2 = testBuilder.manager.surveys.create(
                 survey = Survey(
                     title = "device-2-test-survey",
-                    status = SurveyStatus.DRAFT
+                    status = SurveyStatus.DRAFT,
+                    timeout = 60
                 )
             )
             testBuilder.manager.surveys.update(
@@ -86,7 +87,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 val createdSurvey = testBuilder.manager.surveys.create(
                     survey = Survey(
                         title = "test-survey-$i",
-                        status = SurveyStatus.DRAFT
+                        status = SurveyStatus.DRAFT,
+                        timeout = 60
                     )
                 )
                 testBuilder.manager.surveys.update(

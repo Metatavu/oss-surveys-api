@@ -160,4 +160,18 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="survey_desc_timeout" author="Ville Juutila">
+        <addColumn tableName="survey">
+            <column name="description" type="varchar(191)"/>
+        </addColumn>
+        <addColumn tableName="survey">
+            <column name="timeout" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>
+            UPDATE survey SET timeout = 60;
+        </sql>
+    </changeSet>
 </databaseChangeLog>
