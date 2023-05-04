@@ -6,9 +6,7 @@ import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DeviceSurvey
 import fi.metatavu.oss.api.model.DeviceSurveyStatus
 import fi.metatavu.oss.api.model.DeviceSurveysMessageAction
-import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
-import java.lang.StringBuilder
 import java.time.OffsetDateTime
 import java.util.UUID
 import javax.enterprise.context.ApplicationScoped
@@ -40,20 +38,11 @@ class DeviceSurveyController {
         maxResults: Int? = null,
         status: DeviceSurveyStatus? = null
     ): Pair<List<DeviceSurveyEntity>, Long> {
-        val queryString = StringBuilder()
-        queryString.append("device_id = :device_id")
-        val parameters = Parameters.with("device_id", deviceId)
-
-        if (status != null) {
-            queryString.append(" AND status = :status")
-            parameters.and("status", status)
-        }
-
-        return deviceSurveyRepository.listWithFilters(
-            queryString = queryString.toString(),
-            parameters = parameters,
-            page = firstResult,
-            pageSize = maxResults
+        return deviceSurveyRepository.list(
+            deviceId = deviceId,
+            surveyId = null,
+            firstResult = firstResult,
+            maxResults = maxResults
         )
     }
 
@@ -68,17 +57,14 @@ class DeviceSurveyController {
     suspend fun listDeviceSurveysBySurvey(
         surveyId: UUID,
         firstResult: Int? = null,
-        maxResults: Int? = null
+        maxResults: Int? = null,
+        status: DeviceSurveyStatus? = null
     ): Pair<List<DeviceSurveyEntity>, Long> {
-        val queryString= StringBuilder()
-        queryString.append("survey_id = :survey_id")
-        val parameters = Parameters.with("survey_id", surveyId)
-
-        return deviceSurveyRepository.listWithFilters(
-            queryString = queryString.toString(),
-            parameters = parameters,
-            page = firstResult,
-            pageSize = maxResults
+        return deviceSurveyRepository.list(
+            deviceId = null,
+            surveyId = surveyId,
+            firstResult = firstResult,
+            maxResults = maxResults
         )
     }
 
@@ -176,11 +162,11 @@ class DeviceSurveyController {
      * @param surveyId survey id
      */
     suspend fun notifyDevicesOfSurveyUpdate(surveyId: UUID) {
-        val foundDeviceSurveys = deviceSurveyRepository.listWithFilters(
-            queryString = "survey_id = :survey_id",
-            parameters = Parameters.with("survey_id", surveyId),
-            page = null,
-            pageSize = null
+        val foundDeviceSurveys = deviceSurveyRepository.list(
+            deviceId = null,
+            surveyId = surveyId,
+            firstResult = null,
+            maxResults = null
         )
 
         for (deviceSurvey in foundDeviceSurveys.first) {
@@ -220,17 +206,7 @@ class DeviceSurveyController {
      * @return list of device surveys
      */
     suspend fun listDeviceSurveysToPublish(): List<DeviceSurveyEntity> {
-        val queryString = "status = :status AND publishStartTime <= :publishStartTime"
-        val parameters = Parameters
-            .with("status", DeviceSurveyStatus.SCHEDULED)
-            .and("publishStartTime", OffsetDateTime.now())
-
-        return deviceSurveyRepository.listWithFilters(
-            queryString = queryString,
-            parameters = parameters,
-            page = null,
-            pageSize = null
-        ).first
+        return deviceSurveyRepository.listDeviceSurveysToPublish()
     }
 
     /**

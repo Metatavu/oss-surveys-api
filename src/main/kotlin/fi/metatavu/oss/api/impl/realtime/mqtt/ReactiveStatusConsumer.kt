@@ -40,28 +40,26 @@ class ReactiveStatusConsumer {
     @Incoming(CHANNEL_NAME)
     @ActivateRequestContext
     @ReactiveTransactional
-    fun consumeSurveyStatus(message: ByteArray): Uni<Void> {
-        return CoroutineScope(vertx.dispatcher()).async {
-            val deviceStatusMessage = jacksonObjectMapper().readValue<DeviceStatusMessage>(String(message))
-            val deviceId = deviceStatusMessage.deviceId
-            val status = deviceStatusMessage.status
-                try {
-                    val foundDevice = deviceController.findDevice(deviceId)
+    fun consumeSurveyStatus(message: ByteArray): Uni<Void> = CoroutineScope(vertx.dispatcher()).async {
+        val deviceStatusMessage = jacksonObjectMapper().readValue<DeviceStatusMessage>(String(message))
+        val deviceId = deviceStatusMessage.deviceId
+        val status = deviceStatusMessage.status
+            try {
+                val foundDevice = deviceController.findDevice(deviceId)
 
-                    if (foundDevice == null) {
-                        logger.warn("Received status message from unknown Device $deviceId")
-                    } else {
-                        logger.info("Received status ($status) message from Device $deviceId")
-                        deviceController.updateDeviceStatus(
-                            device = foundDevice,
-                            status = status
-                        )
-                    }
-                } catch (e: Exception) {
-                    logger.error("Failed to process status message from Device $deviceId", e)
+                if (foundDevice == null) {
+                    logger.warn("Received status message from unknown Device $deviceId")
+                } else {
+                    logger.info("Received status ($status) message from Device $deviceId")
+                    deviceController.updateDeviceStatus(
+                        device = foundDevice,
+                        status = status
+                    )
                 }
-        }.asUni().replaceWithVoid()
-    }
+            } catch (e: Exception) {
+                logger.error("Failed to process status message from Device $deviceId", e)
+            }
+    }.asUni().replaceWithVoid()
 
     companion object {
         private const val CHANNEL_NAME = "status"

@@ -19,71 +19,63 @@ import java.time.Duration
 class DeviceTestIT: AbstractResourceTest() {
 
     @Test
-    fun testFindDevices() {
-        createTestBuilder().use { testBuilder ->
-            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+    fun testFindDevices() = createTestBuilder().use { testBuilder ->
+        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
 
-            val foundDevice = testBuilder.manager.devices.find(deviceId)
+        val foundDevice = testBuilder.manager.devices.find(deviceId)
 
-            assertNotNull(foundDevice)
-            assertEquals(deviceId, foundDevice.id)
+        assertNotNull(foundDevice)
+        assertEquals(deviceId, foundDevice.id)
+    }
+
+    @Test
+    fun testListDevices() = createTestBuilder().use { testBuilder ->
+        (1..3).map {
+            testBuilder.manager.deviceSurveys.setupTestDevice(it.toString())
+        }
+
+        val foundDevices = testBuilder.manager.devices.list()
+
+        assertEquals(3, foundDevices.size)
+        foundDevices.forEach { device ->
+            val foundDevice = testBuilder.manager.devices.find(device.id!!)
+            assertTrue(foundDevices.any { device == foundDevice })
         }
     }
 
     @Test
-    fun testListDevices() {
-        createTestBuilder().use { testBuilder ->
-            (1..3).map {
-                testBuilder.manager.deviceSurveys.setupTestDevice(it.toString())
-            }
+    fun testDeleteDevice() = createTestBuilder().use { testBuilder ->
+        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val foundDevice = testBuilder.manager.devices.find(deviceId)
 
-            val foundDevices = testBuilder.manager.devices.list()
+        assertNotNull(foundDevice)
+        testBuilder.manager.devices.delete(deviceId)
 
-            assertEquals(3, foundDevices.size)
-            foundDevices.forEach { device ->
-                val foundDevice = testBuilder.manager.devices.find(device.id!!)
-                assertTrue(foundDevices.any { device == foundDevice })
-            }
-        }
+        testBuilder.manager.devices.assertFindFail(404, deviceId)
     }
 
     @Test
-    fun testDeleteDevice() {
-        createTestBuilder().use { testBuilder ->
-            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
-            val foundDevice = testBuilder.manager.devices.find(deviceId)
+    fun testDeviceStatusMessage() = createTestBuilder().use { testBuilder ->
+        val mqttClient = TestMqttClient()
+        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val foundDevice = testBuilder.manager.devices.find(deviceId)
 
-            assertNotNull(foundDevice)
-            testBuilder.manager.devices.delete(deviceId)
+        assertEquals(DeviceStatus.OFFLINE, foundDevice.deviceStatus)
 
-            testBuilder.manager.devices.assertFindFail(404, deviceId)
-        }
-    }
-
-    @Test
-    fun testDeviceStatusMessage() {
-        createTestBuilder().use { testBuilder ->
-            val mqttClient = TestMqttClient()
-            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
-            val foundDevice = testBuilder.manager.devices.find(deviceId)
-
-            assertEquals(DeviceStatus.OFFLINE, foundDevice.deviceStatus)
-
-            mqttClient.publish(
-                topic = "$deviceId/status",
-                message = DeviceStatusMessage(
-                    deviceId = deviceId,
-                    status = DeviceStatus.ONLINE
-                )
+        mqttClient.publish(
+            topic = "$deviceId/status",
+            message = DeviceStatusMessage(
+                deviceId = deviceId,
+                status = DeviceStatus.ONLINE
             )
+        )
 
-            Awaitility
-                .await()
-                .atMost(Duration.ofMinutes(1))
-                .pollInterval(Duration.ofSeconds(5))
-                .until {
-                    testBuilder.manager.devices.find(deviceId).deviceStatus === DeviceStatus.ONLINE
-                }
-        }
+        Awaitility
+            .await()
+            .atMost(Duration.ofMinutes(1))
+            .pollInterval(Duration.ofSeconds(5))
+            .until {
+                testBuilder.manager.devices.find(deviceId).deviceStatus === DeviceStatus.ONLINE
+            }
     }
 }

@@ -20,43 +20,41 @@ import java.time.OffsetDateTime
 class SchedulerTestIT: AbstractResourceTest() {
 
     @Test
-    fun testScheduler() {
-        createTestBuilder().use { testBuilder ->
-            val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
-            val createdSurvey = testBuilder.manager.surveys.createDefault()
-            testBuilder.manager.surveys.update(
-                surveyId = createdSurvey.id!!,
-                newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-            )
+    fun testScheduler() = createTestBuilder().use { testBuilder ->
+        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val createdSurvey = testBuilder.manager.surveys.createDefault()
+        testBuilder.manager.surveys.update(
+            surveyId = createdSurvey.id!!,
+            newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
+        )
 
-            testBuilder.manager.deviceSurveys.create(
+        testBuilder.manager.deviceSurveys.create(
+            deviceId = deviceId,
+            deviceSurvey = DeviceSurvey(
                 deviceId = deviceId,
-                deviceSurvey = DeviceSurvey(
+                surveyId = createdSurvey.id,
+                status = DeviceSurveyStatus.SCHEDULED,
+                publishStartTime = OffsetDateTime.now().plusSeconds(5).toString(),
+                publishEndTime = OffsetDateTime.now().plusMinutes(1).toString()
+            )
+        )
+
+        val foundDeviceSurveys = testBuilder.manager.deviceSurveys.list(
+            deviceId = deviceId,
+            status = DeviceSurveyStatus.SCHEDULED
+        )
+
+        assertEquals(1, foundDeviceSurveys.size)
+
+        Awaitility
+            .await()
+            .atMost(Duration.ofMinutes(1))
+            .pollInterval(Duration.ofSeconds(5))
+            .until {
+                testBuilder.manager.deviceSurveys.list(
                     deviceId = deviceId,
-                    surveyId = createdSurvey.id,
-                    status = DeviceSurveyStatus.SCHEDULED,
-                    publishStartTime = OffsetDateTime.now().plusSeconds(5).toString(),
-                    publishEndTime = OffsetDateTime.now().plusMinutes(1).toString()
-                )
-            )
-
-            val foundDeviceSurveys = testBuilder.manager.deviceSurveys.list(
-                deviceId = deviceId,
-                status = DeviceSurveyStatus.SCHEDULED
-            )
-
-            assertEquals(1, foundDeviceSurveys.size)
-
-            Awaitility
-                .await()
-                .atMost(Duration.ofMinutes(1))
-                .pollInterval(Duration.ofSeconds(5))
-                .until {
-                    testBuilder.manager.deviceSurveys.list(
-                        deviceId = deviceId,
-                        status = DeviceSurveyStatus.PUBLISHED
-                    ).isNotEmpty()
-                }
-        }
+                    status = DeviceSurveyStatus.PUBLISHED
+                ).isNotEmpty()
+            }
     }
 }

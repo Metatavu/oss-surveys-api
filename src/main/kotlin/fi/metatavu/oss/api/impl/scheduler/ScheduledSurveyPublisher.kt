@@ -38,24 +38,22 @@ class ScheduledSurveyPublisher {
         delayUnit = TimeUnit.SECONDS
     )
     @ReactiveTransactional
-    fun publishScheduledSurveys(): Uni<Void> {
-         return CoroutineScope(vertx.dispatcher()).async {
-            val deviceSurveysToPublish = deviceSurveyController.listDeviceSurveysToPublish()
+    fun publishScheduledSurveys(): Uni<Void> = CoroutineScope(vertx.dispatcher()).async {
+        val deviceSurveysToPublish = deviceSurveyController.listDeviceSurveysToPublish()
 
-            logger.info("Publishing scheduled surveys...")
-            for (deviceSurvey in deviceSurveysToPublish) {
-                val (existingDeviceSurveys) = deviceSurveyController.listDeviceSurveysByDevice(
-                    deviceId = deviceSurvey.device.id,
-                    status = DeviceSurveyStatus.PUBLISHED
-                )
-                logger.info("Un-publishing existing device surveys for ${deviceSurvey.device.id}...")
-                for (existingDeviceSurvey in existingDeviceSurveys) {
-                    deviceSurveyController.unPublishDeviceSurvey(existingDeviceSurvey)
-                    logger.info("Un-published existing device survey ${existingDeviceSurvey.id}")
-                }
-                logger.info("Publishing scheduled survey ${deviceSurvey.id}")
-                deviceSurveyController.publishDeviceSurvey(deviceSurvey)
+        logger.info("Publishing scheduled surveys...")
+        for (deviceSurvey in deviceSurveysToPublish) {
+            val (existingDeviceSurveys) = deviceSurveyController.listDeviceSurveysByDevice(
+                deviceId = deviceSurvey.device.id,
+                status = DeviceSurveyStatus.PUBLISHED
+            )
+            logger.info("Un-publishing existing device surveys for ${deviceSurvey.device.id}...")
+            for (existingDeviceSurvey in existingDeviceSurveys) {
+                deviceSurveyController.unPublishDeviceSurvey(existingDeviceSurvey)
+                logger.info("Un-published existing device survey ${existingDeviceSurvey.id}")
             }
-        }.asUni().replaceWithVoid()
-    }
+            logger.info("Publishing scheduled survey ${deviceSurvey.id}")
+            deviceSurveyController.publishDeviceSurvey(deviceSurvey)
+        }
+    }.asUni().replaceWithVoid()
 }
