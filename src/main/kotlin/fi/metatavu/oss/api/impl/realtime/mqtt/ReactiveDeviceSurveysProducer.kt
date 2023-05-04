@@ -11,7 +11,7 @@ import javax.inject.Inject
  * Reactive MQTT producer for Device Survey messages
  */
 @ApplicationScoped
-class ReactiveDeviceSurveysProducer: AbstractReactiveProducer<DeviceSurveyMessage>() {
+class ReactiveDeviceSurveysProducer: AbstractReactiveDeviceProducer<DeviceSurveyMessage>() {
 
     @Inject
     @Channel(CHANNEL_NAME)
