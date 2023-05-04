@@ -55,6 +55,8 @@ class SurveyController {
         return surveyRepository.create(
             id = UUID.randomUUID(),
             title = survey.title,
+            description = survey.description,
+            timeout = survey.timeout,
             status = SurveyStatus.DRAFT,
             creatorId = userId
         )
@@ -85,6 +87,8 @@ class SurveyController {
         return surveyRepository.update(
             survey = surveyEntityToUpdate,
             title = newRestSurvey.title,
+            description = newRestSurvey.description,
+            timeout = newRestSurvey.timeout,
             status  = newRestSurvey.status,
             lastModifierId = userId
         )

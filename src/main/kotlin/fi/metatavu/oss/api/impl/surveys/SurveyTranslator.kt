@@ -14,6 +14,8 @@ class SurveyTranslator: AbstractTranslator<SurveyEntity, fi.metatavu.oss.api.mod
             id = entity.id,
             title = entity.title,
             status = entity.status,
+            description = entity.description,
+            timeout = entity.timeout!!,
             metadata = translateMetadata(entity)
         )
     }

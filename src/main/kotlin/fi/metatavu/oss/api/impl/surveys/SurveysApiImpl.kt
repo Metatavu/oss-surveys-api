@@ -55,6 +55,11 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
     override fun createSurvey(survey: Survey): Uni<Response> {
         return CoroutineScope(vertx.dispatcher()).async {
             val userId = loggedUserId ?: return@async createUnauthorized(UNAUTHORIZED)
+
+            if (survey.timeout <= 0) {
+                return@async createBadRequest("Negative timeout is not allowed")
+            }
+
             val createdSurvey = surveyController.createSurvey(survey, userId)
 
             createOk(surveyTranslator.translate(createdSurvey))
@@ -81,6 +86,10 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
                 target = SURVEY,
                 id = surveyId
             )
+
+        if (survey.timeout <= 0) {
+            return@async createBadRequest("Negative timeout is not allowed")
+        }
 
         val updatedSurvey = surveyController.updateSurvey(foundSurvey, survey, userId)
 

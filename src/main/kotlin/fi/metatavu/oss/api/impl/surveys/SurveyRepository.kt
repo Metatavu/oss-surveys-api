@@ -16,6 +16,8 @@ class SurveyRepository : AbstractRepository<SurveyEntity, UUID>() {
      *
      * @param id id
      * @param title title
+     * @param description description
+     * @param timeout timeout
      * @param status status
      * @param creatorId creator id
      * @return uni with created survey
@@ -23,13 +25,17 @@ class SurveyRepository : AbstractRepository<SurveyEntity, UUID>() {
     suspend fun create(
         id: UUID,
         title: String,
-        creatorId: UUID,
-        status: SurveyStatus
+        description: String?,
+        timeout: Int,
+        status: SurveyStatus,
+        creatorId: UUID
     ): SurveyEntity {
         val surveyEntity = SurveyEntity()
         surveyEntity.id = id
         surveyEntity.title = title
         surveyEntity.status = status
+        surveyEntity.description = description
+        surveyEntity.timeout = timeout
         surveyEntity.creatorId = creatorId
         surveyEntity.lastModifierId = creatorId
 
@@ -41,6 +47,8 @@ class SurveyRepository : AbstractRepository<SurveyEntity, UUID>() {
      *
      * @param survey survey to update
      * @param title new title
+     * @param description description
+     * @param timeout timeout
      * @param status new status
      * @param lastModifierId last modifier id
      * @return uni with updated survey
@@ -48,10 +56,14 @@ class SurveyRepository : AbstractRepository<SurveyEntity, UUID>() {
     suspend fun update(
         survey: SurveyEntity,
         title: String,
+        description: String?,
+        timeout: Int,
         status: SurveyStatus,
         lastModifierId: UUID
     ): SurveyEntity {
         survey.title = title
+        survey.description = description
+        survey.timeout = timeout
         survey.lastModifierId = lastModifierId
         survey.status = status
 
