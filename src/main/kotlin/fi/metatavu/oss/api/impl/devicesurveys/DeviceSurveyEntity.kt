@@ -8,6 +8,9 @@ import java.time.OffsetDateTime
 import java.util.*
 import javax.persistence.*
 
+/**
+ * JPA entity representing Surveys assigned to a Device
+ */
 @Entity
 @Table(name = "devicesurvey")
 class DeviceSurveyEntity: DBMetadata() {

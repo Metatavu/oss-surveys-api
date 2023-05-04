@@ -27,18 +27,18 @@ class DeviceSurveyController {
     lateinit var realtimeNotificationController: RealtimeNotificationController
 
     /**
-     * Lists device surveys
+     * Lists device surveys by device
      *
      * @param deviceId device id
      * @param firstResult first result
      * @param maxResults max results
      * @return list of device surveys and count
      */
-    suspend fun listDeviceSurveys(
+    suspend fun listDeviceSurveysByDevice(
         deviceId: UUID,
-        firstResult: Int?,
-        maxResults: Int?,
-        status: DeviceSurveyStatus?
+        firstResult: Int? = null,
+        maxResults: Int? = null,
+        status: DeviceSurveyStatus? = null
     ): Pair<List<DeviceSurveyEntity>, Long> {
         val queryString = StringBuilder()
         queryString.append("device_id = :device_id")
@@ -48,6 +48,31 @@ class DeviceSurveyController {
             queryString.append(" AND status = :status")
             parameters.and("status", status)
         }
+
+        return deviceSurveyRepository.listWithFilters(
+            queryString = queryString.toString(),
+            parameters = parameters,
+            page = firstResult,
+            pageSize = maxResults
+        )
+    }
+
+    /**
+     * Lists device surveys by survey
+     *
+     * @param surveyId survey id
+     * @param firstResult first result
+     * @param maxResults max results
+     * @return list of device surveys and count
+     */
+    suspend fun listDeviceSurveysBySurvey(
+        surveyId: UUID,
+        firstResult: Int? = null,
+        maxResults: Int? = null
+    ): Pair<List<DeviceSurveyEntity>, Long> {
+        val queryString= StringBuilder()
+        queryString.append("survey_id = :survey_id")
+        val parameters = Parameters.with("survey_id", surveyId)
 
         return deviceSurveyRepository.listWithFilters(
             queryString = queryString.toString(),

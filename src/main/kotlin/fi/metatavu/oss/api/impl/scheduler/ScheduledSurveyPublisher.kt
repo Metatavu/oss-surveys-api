@@ -44,10 +44,8 @@ class ScheduledSurveyPublisher {
 
             logger.info("Publishing scheduled surveys...")
             for (deviceSurvey in deviceSurveysToPublish) {
-                val (existingDeviceSurveys) = deviceSurveyController.listDeviceSurveys(
+                val (existingDeviceSurveys) = deviceSurveyController.listDeviceSurveysByDevice(
                     deviceId = deviceSurvey.device.id,
-                    firstResult = null,
-                    maxResults = null,
                     status = DeviceSurveyStatus.PUBLISHED
                 )
                 logger.info("Un-publishing existing device surveys for ${deviceSurvey.device.id}...")

@@ -96,6 +96,14 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
             id = surveyId
         )
 
+        val (foundDeviceSurveys) = deviceSurveyController.listDeviceSurveysBySurvey(surveyId)
+
+        if (foundDeviceSurveys.isNotEmpty()) {
+            val deviceIds = foundDeviceSurveys.map { it.device.id }.toSet()
+
+            return@async createBadRequest("Survey is assigned to devices $deviceIds")
+        }
+
         surveyController.deleteSurvey(foundSurvey)
 
         createNoContent()
