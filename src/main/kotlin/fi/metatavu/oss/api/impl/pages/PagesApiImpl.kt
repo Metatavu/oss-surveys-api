@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.pages
 
 import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.UserRole
+import fi.metatavu.oss.api.impl.layouts.LayoutController
 import fi.metatavu.oss.api.impl.surveys.SurveyController
 import fi.metatavu.oss.api.model.Page
 import fi.metatavu.oss.api.spec.PagesApi
@@ -33,6 +34,9 @@ class PagesApiImpl : PagesApi, AbstractApi() {
     lateinit var pagesTranslator: PagesTranslator
 
     @Inject
+    lateinit var layoutController: LayoutController
+
+    @Inject
     lateinit var vertx: io.vertx.core.Vertx
 
     @ReactiveTransactional
@@ -41,7 +45,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
         val survey = surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(SURVEY, surveyId)
         val (pages, count) = pagesController.listPages(survey)
 
-        createOk(pagesTranslator.translate(pages), count.toLong())
+        createOk(pagesTranslator.translate(pages), count)
     }.asUni()
 
     @ReactiveTransactional
@@ -50,12 +54,18 @@ class PagesApiImpl : PagesApi, AbstractApi() {
         CoroutineScope(vertx.dispatcher()).async {
             val userId = loggedUserId ?: return@async createUnauthorized(UNAUTHORIZED)
             val survey = surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(SURVEY, surveyId)
+            val layout = if (page.layoutId != null) {
+                layoutController.find(page.layoutId) ?: return@async createBadRequest(
+                    "No layout found!"
+                )
+            } else null
 
             createOk(
                 pagesTranslator.translate(
                     pagesController.createPage(
                         survey = survey,
                         page = page,
+                        layout = layout,
                         userId = userId
                     )
                 )
@@ -84,9 +94,16 @@ class PagesApiImpl : PagesApi, AbstractApi() {
 
             if (existingPage.survey != survey) return@async createNotFoundWithMessage(PAGE, pageId)
 
+            val layout = if (page.layoutId != null) {
+                layoutController.find(page.layoutId) ?: return@async createBadRequest(
+                    "No layout found!"
+                )
+            } else null
+
             val updatedPage = pagesController.updatePage(
                 existingPage = existingPage,
                 updateData = page,
+                layout = layout,
                 userId = userId
             )
 

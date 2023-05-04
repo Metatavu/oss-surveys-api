@@ -242,6 +242,23 @@ abstract class AbstractApi {
     }
 
     /**
+     * Translates REST parameters first/max results into index range
+     *
+     * @param firstResult first result
+     * @param maxResults max results
+     * @return index range
+     */
+    protected fun firstMaxToRange(
+        firstResult: Int?,
+        maxResults: Int?
+    ): Pair<Int, Int> {
+        val first = firstResult ?: 0
+        val max = maxResults ?: 10
+
+        return first to max + first - 1
+    }
+
+    /**
      * Constructs an error response
      *
      * @param status status code
@@ -272,6 +289,7 @@ abstract class AbstractApi {
         const val DEVICE = "Device"
         const val PAGE = "Page"
         const val DEVICE_SURVEY = "Device Survey"
+        const val LAYOUT = "Layout"
 
         const val deviceKeyHeader = "X-DEVICE-KEY"
     }

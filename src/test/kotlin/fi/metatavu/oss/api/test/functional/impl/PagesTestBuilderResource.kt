@@ -38,11 +38,12 @@ class PagesTestBuilderResource(
         return addClosable(created)
     }
 
-    fun createDefault(surveyId: UUID): Page {
+    fun createDefault(surveyId: UUID, layoutId: UUID? = null): Page {
         val created = api.createSurveyPage(
             surveyId, Page(
                 title = "default page",
-                html = "<html><body><h1>Default page</h1></body></html>"
+                html = "<html><body><h1>Default page</h1></body></html>",
+                layoutId = layoutId
             )
         )
         pageSurveyRelation[created.id!!] = surveyId
