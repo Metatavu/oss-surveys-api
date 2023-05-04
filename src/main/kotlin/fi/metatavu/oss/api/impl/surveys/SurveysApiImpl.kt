@@ -92,6 +92,8 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
 
         val updatedSurvey = surveyController.updateSurvey(foundSurvey, survey, userId)
 
+        deviceSurveyController.notifyDevicesOfSurveyUpdate(updatedSurvey.id)
+
         createOk(surveyTranslator.translate(updatedSurvey))
     }.asUni()
 

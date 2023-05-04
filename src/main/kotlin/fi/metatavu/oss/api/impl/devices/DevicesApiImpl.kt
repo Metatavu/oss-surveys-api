@@ -40,6 +40,14 @@ class DevicesApiImpl: fi.metatavu.oss.api.spec.DevicesApi, AbstractApi() {
         createNoContent()
     }.asUni()
 
+    @RolesAllowed(UserRole.MANAGER.name)
+    override fun findDevice(deviceId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        val foundDevice = deviceController.findDevice(id = deviceId) ?: return@async createNotFound(DEVICE)
+
+        createOk(deviceTranslator.translate(foundDevice))
+    }.asUni()
+
+    @RolesAllowed(UserRole.MANAGER.name)
     override fun listDevices(firstResult: Int?, maxResults: Int?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val (devices, count) = deviceController.listDevices(
             firstResult = firstResult,
