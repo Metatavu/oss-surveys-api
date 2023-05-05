@@ -9,5 +9,5 @@ import io.quarkus.test.junit.TestProfile
 @QuarkusIntegrationTest
 @QuarkusTestResource(MqttResource::class)
 @TestProfile(LocalTestProfile::class)
-class NativeDeviceSurveysTestIT: DeviceSurveysTestIT() {
+class NativeDeviceTestIT: DeviceTestIT() {
 }

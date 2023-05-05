@@ -1,8 +1,11 @@
 package fi.metatavu.oss.api.impl.devicesurveys
 
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
+import fi.metatavu.oss.api.impl.realtime.RealtimeNotificationController
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DeviceSurvey
+import fi.metatavu.oss.api.model.DeviceSurveyStatus
+import fi.metatavu.oss.api.model.DeviceSurveysMessageAction
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.time.OffsetDateTime
 import java.util.UUID
@@ -18,6 +21,9 @@ class DeviceSurveyController {
     @Inject
     lateinit var deviceSurveyRepository: DeviceSurveyRepository
 
+    @Inject
+    lateinit var realtimeNotificationController: RealtimeNotificationController
+
     /**
      * Lists device surveys by device
      *
@@ -29,12 +35,14 @@ class DeviceSurveyController {
     suspend fun listDeviceSurveysByDevice(
         deviceId: UUID,
         firstResult: Int? = null,
-        maxResults: Int? = null
+        maxResults: Int? = null,
+        status: DeviceSurveyStatus? = null
     ): Pair<List<DeviceSurveyEntity>, Long> {
-        return deviceSurveyRepository.applyPagingToQuery(
-            query = deviceSurveyRepository.find("device_id = ?1", deviceId),
-            page = firstResult,
-            pageSize = maxResults
+        return deviceSurveyRepository.list(
+            deviceId = deviceId,
+            surveyId = null,
+            firstResult = firstResult,
+            maxResults = maxResults
         )
     }
 
@@ -49,12 +57,14 @@ class DeviceSurveyController {
     suspend fun listDeviceSurveysBySurvey(
         surveyId: UUID,
         firstResult: Int? = null,
-        maxResults: Int? = null
+        maxResults: Int? = null,
+        status: DeviceSurveyStatus? = null
     ): Pair<List<DeviceSurveyEntity>, Long> {
-        return deviceSurveyRepository.applyPagingToQuery(
-            query = deviceSurveyRepository.find("survey_id = ?1", surveyId),
-            page = firstResult,
-            pageSize = maxResults
+        return deviceSurveyRepository.list(
+            deviceId = null,
+            surveyId = surveyId,
+            firstResult = firstResult,
+            maxResults = maxResults
         )
     }
 
@@ -83,7 +93,7 @@ class DeviceSurveyController {
         survey: SurveyEntity,
         userId: UUID
     ): DeviceSurveyEntity {
-        return deviceSurveyRepository.create(
+        val createdDeviceSurvey = deviceSurveyRepository.create(
             device = device,
             survey = survey,
             status = deviceSurvey.status,
@@ -91,6 +101,14 @@ class DeviceSurveyController {
             publishEndTime = deviceSurvey.publishEndTime,
             userId = userId
         )
+
+        realtimeNotificationController.notifyDeviceSurveyAction(
+            deviceId = device.id,
+            deviceSurveyId = createdDeviceSurvey.id,
+            action = DeviceSurveysMessageAction.CREATE
+        )
+
+        return createdDeviceSurvey
     }
 
     /**
@@ -100,6 +118,12 @@ class DeviceSurveyController {
      */
     suspend fun deleteDeviceSurvey(deviceSurvey: DeviceSurveyEntity) {
         deviceSurveyRepository.deleteSuspending(deviceSurvey)
+
+        realtimeNotificationController.notifyDeviceSurveyAction(
+            deviceId = deviceSurvey.device.id,
+            deviceSurveyId = deviceSurvey.id,
+            action = DeviceSurveysMessageAction.DELETE
+        )
     }
 
     /**
@@ -115,13 +139,43 @@ class DeviceSurveyController {
         newRestDeviceSurvey: DeviceSurvey,
         userId: UUID
     ): DeviceSurveyEntity {
-        return deviceSurveyRepository.update(
+        val updatedDeviceSurvey = deviceSurveyRepository.update(
             deviceSurveyToUpdate,
             status = newRestDeviceSurvey.status,
             publishStartTime = newRestDeviceSurvey.publishStartTime,
             publishEndTime = newRestDeviceSurvey.publishEndTime,
             userId = userId
         )
+
+        realtimeNotificationController.notifyDeviceSurveyAction(
+            deviceId = updatedDeviceSurvey.device.id,
+            deviceSurveyId = updatedDeviceSurvey.id,
+            action = DeviceSurveysMessageAction.UPDATE
+        )
+
+        return updatedDeviceSurvey
+    }
+
+    /**
+     * Notifies devices of updates to associated surveys
+     *
+     * @param surveyId survey id
+     */
+    suspend fun notifyDevicesOfSurveyUpdate(surveyId: UUID) {
+        val foundDeviceSurveys = deviceSurveyRepository.list(
+            deviceId = null,
+            surveyId = surveyId,
+            firstResult = null,
+            maxResults = null
+        )
+
+        for (deviceSurvey in foundDeviceSurveys.first) {
+            realtimeNotificationController.notifyDeviceSurveyAction(
+                deviceId = deviceSurvey.device.id,
+                deviceSurveyId = deviceSurvey.id,
+                action = DeviceSurveysMessageAction.UPDATE
+            )
+        }
     }
 
     /**
@@ -144,5 +198,38 @@ class DeviceSurveyController {
         }
 
         return true
+    }
+
+    /**
+     * Lists device surveys that are scheduled to be published
+     *
+     * @return list of device surveys
+     */
+    suspend fun listDeviceSurveysToPublish(): List<DeviceSurveyEntity> {
+        return deviceSurveyRepository.listDeviceSurveysToPublish()
+    }
+
+    /**
+     * Publishes a Device Survey
+     *
+     * @param deviceSurvey device survey to publish
+     * @return published device survey
+     */
+    suspend fun publishDeviceSurvey(deviceSurvey: DeviceSurveyEntity): DeviceSurveyEntity {
+        return deviceSurveyRepository.updateStatus(
+            deviceSurvey = deviceSurvey,
+            status = DeviceSurveyStatus.PUBLISHED,
+            publishStartTime = deviceSurvey.publishStartTime,
+            publishEndTime = deviceSurvey.publishEndTime
+        )
+    }
+
+    /**
+     * Un-publishes a Device Survey
+     *
+     * @param deviceSurvey device survey to un-publish
+     */
+    suspend fun unPublishDeviceSurvey(deviceSurvey: DeviceSurveyEntity) {
+        deviceSurveyRepository.deleteSuspending(deviceSurvey)
     }
 }

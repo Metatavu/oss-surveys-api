@@ -1,6 +1,8 @@
 package fi.metatavu.oss.api.test.functional.tests
 
+import fi.metatavu.oss.api.test.functional.resources.MqttResource
 import io.quarkus.test.common.DevServicesContext
+import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import org.eclipse.microprofile.config.ConfigProvider
 import org.junit.jupiter.api.AfterEach
@@ -9,6 +11,7 @@ import org.junit.jupiter.api.AfterEach
  * Abstract base class for resource tests
  */
 @QuarkusTest
+@QuarkusTestResource(MqttResource::class)
 abstract class AbstractResourceTest {
 
     private var devServicesContext: DevServicesContext? = null

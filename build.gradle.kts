@@ -18,6 +18,8 @@ val quarkusPlatformGroupId: String by project
 val quarkusPlatformArtifactId: String by project
 val quarkusPlatformVersion: String by project
 val jaxrsFunctionalTestBuilderVersion: String by project
+val awaitilityVersion: String by project
+val camelPahoVersion: String by project
 
 dependencies {
     implementation(enforcedPlatform("${quarkusPlatformGroupId}:${quarkusPlatformArtifactId}:${quarkusPlatformVersion}"))
@@ -40,6 +42,9 @@ dependencies {
     implementation("org.apache.commons:commons-lang3")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
+    implementation("io.quarkus:quarkus-smallrye-reactive-messaging-mqtt")
+    implementation("io.quarkus:quarkus-scheduler")
+
     testImplementation("com.squareup.okhttp3:okhttp")
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
     testImplementation("org.testcontainers:testcontainers")
@@ -47,6 +52,9 @@ dependencies {
     testImplementation("io.quarkus:quarkus-junit5")
     testImplementation("io.rest-assured:rest-assured")
     testImplementation("io.quarkus:quarkus-jacoco")
+    testImplementation("org.testcontainers:hivemq")
+    testImplementation("org.awaitility:awaitility:$awaitilityVersion")
+    implementation("org.apache.camel.quarkus:camel-quarkus-paho:$camelPahoVersion")
 }
 
 group = "fi.metatavu.oss"

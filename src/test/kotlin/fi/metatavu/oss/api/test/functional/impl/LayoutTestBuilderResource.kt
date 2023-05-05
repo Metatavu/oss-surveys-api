@@ -70,8 +70,7 @@ class LayoutTestBuilderResource(
                 return@removeCloseable false
             }
 
-            val Layout = closable as Layout
-            Layout.id == layoutId
+            closable.id == layoutId
         }
     }
 
