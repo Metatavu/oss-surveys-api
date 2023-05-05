@@ -38,11 +38,13 @@ class PagesTestBuilderResource(
         return addClosable(created)
     }
 
-    fun createDefault(surveyId: UUID): Page {
+    fun createDefault(surveyId: UUID, layoutId: UUID, orderNumber: Int = 1): Page {
         val created = api.createSurveyPage(
             surveyId, Page(
                 title = "default page",
-                html = "<html><body><h1>Default page</h1></body></html>"
+                html = "<html><body><h1>Default page</h1></body></html>",
+                layoutId = layoutId,
+                orderNumber = orderNumber
             )
         )
         pageSurveyRelation[created.id!!] = surveyId
@@ -72,14 +74,13 @@ class PagesTestBuilderResource(
                 return@removeCloseable false
             }
 
-            val closeablePage = closable as Page
-            closeablePage.id == pageId
+            closable.id == pageId
         }
     }
 
-    fun assertCreateFail(surveyId: UUID, expectedStatus: Int) {
+    fun assertCreateFail(surveyId: UUID, layoutId: UUID, expectedStatus: Int) {
         try {
-            createDefault(surveyId)
+            createDefault(surveyId  = surveyId, layoutId = layoutId)
             fail("Expected create to fail")
         } catch (e: fi.metatavu.oss.test.client.infrastructure.ClientException) {
             assertEquals(expectedStatus, e.statusCode)
@@ -104,12 +105,14 @@ class PagesTestBuilderResource(
         }
     }
 
-    fun assertUpdateFail(surveyId: UUID, pageId: UUID, expectedStatus: Int) {
+    fun assertUpdateFail(surveyId: UUID, pageId: UUID, layoutId: UUID, orderNumber: Int = 1, expectedStatus: Int) {
         try {
             api.updateSurveyPage(
                 surveyId, pageId, Page(
                     title = "default page",
-                    html = "<html><body><h1>Default page</h1></body></html>"
+                    html = "<html><body><h1>Default page</h1></body></html>",
+                    orderNumber = orderNumber,
+                    layoutId = layoutId
                 )
             )
             fail("Expected update to fail")

@@ -32,6 +32,7 @@ class TestBuilderAuthentication(
     val deviceRequests = DeviceRequestsTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
     val pages = PagesTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
     val deviceSurveys = DeviceSurveysTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val layouts = fi.metatavu.oss.api.test.functional.impl.LayoutTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
 
     override fun createClient(authProvider: AccessTokenProvider): ApiClient {
         val result = ApiClient(ApiTestSettings.apiBasePath)

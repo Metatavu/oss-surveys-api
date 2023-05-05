@@ -96,7 +96,7 @@ abstract class AbstractRepository<Entity, Id> : PanacheRepositoryBase<Entity, Id
      * @param pageSize page size
      * @return MutableList<Entity>?
      */
-    private suspend fun applyPagingToQuery(
+    protected suspend fun applyPagingToQuery(
         query: PanacheQuery<Entity>,
         page: Int?,
         pageSize: Int?

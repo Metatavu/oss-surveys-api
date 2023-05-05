@@ -19,14 +19,14 @@ class SurveyController {
     /**
      * Lists surveys
      *
-     * @param firstResult first result
-     * @param maxResults max results
+     * @param rangeStart page
+     * @param rangeEnd pageSize
      * @param status status
      * @return list of surveys and count
      */
     suspend fun listSurveys(
-        firstResult: Int?,
-        maxResults: Int?,
+        rangeStart: Int?,
+        rangeEnd: Int?,
         status: SurveyStatus?
     ): Pair<List<SurveyEntity>, Long> {
         val stringBuilder = StringBuilder()
@@ -37,11 +37,10 @@ class SurveyController {
             parameters.and("status", status)
         }
 
-        return surveyRepository.listWithFilters(
-            queryString = stringBuilder.toString(),
-            parameters = parameters,
-            page = firstResult,
-            pageSize = maxResults
+        return surveyRepository.applyRangeToQuery(
+            query = surveyRepository.find(stringBuilder.toString(), parameters),
+            firstIndex = rangeStart,
+            lastIndex = rangeEnd
         )
     }
 

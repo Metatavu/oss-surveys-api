@@ -1,5 +1,6 @@
 package fi.metatavu.oss.api.impl.pages
 
+import fi.metatavu.oss.api.impl.layouts.LayoutEntity
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.metadata.DBMetadata
 import javax.persistence.*
@@ -23,6 +24,12 @@ class PageEntity : DBMetadata() {
 
     @ManyToOne(optional = false)
     lateinit var survey: SurveyEntity
+
+    @ManyToOne(optional = false)
+    lateinit var layout: LayoutEntity
+
+    @Column (nullable = false)
+    var orderNumber: Int = 0
 
     override var creatorId: UUID? = null
     override var lastModifierId: UUID? = null

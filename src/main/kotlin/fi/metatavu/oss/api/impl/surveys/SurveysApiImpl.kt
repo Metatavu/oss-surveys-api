@@ -40,9 +40,10 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
     @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name, UserRole.CONSUMER_DISPLAY.name)
     override fun listSurveys(firstResult: Int?, maxResults: Int?, status: SurveyStatus?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        val (start, end) = firstMaxToRange(firstResult, maxResults)
         val (surveys, count) = surveyController.listSurveys(
-            firstResult = firstResult,
-            maxResults = maxResults,
+            rangeStart = start,
+            rangeEnd = end,
             status = status
         )
         val surveysTranslated = surveyTranslator.translate(surveys)
