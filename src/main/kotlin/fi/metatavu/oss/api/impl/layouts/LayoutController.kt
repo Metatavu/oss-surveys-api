@@ -79,6 +79,4 @@ class LayoutController {
     suspend fun delete(layoutEntry: LayoutEntity) {
         layoutRepository.deleteSuspending(layoutEntry)
     }
-
-
 }
