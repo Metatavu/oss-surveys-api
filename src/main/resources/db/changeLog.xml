@@ -212,7 +212,9 @@
 
     <changeSet id="page_ordering" author="katja danilova">
         <addColumn tableName="page">
-            <column name="ordernumber" type="integer"/>
+            <column name="ordernumber" type="integer">
+                <constraints nullable="false"/>
+            </column>
         </addColumn>
     </changeSet>
 </databaseChangeLog>

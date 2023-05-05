@@ -56,14 +56,14 @@ class LayoutController {
     /**
      * Updates a layout
      *
-     * @param found found layout
+     * @param layoutEntry found layout to be updated
      * @param layout layout data
      * @param userId last modifier id
      * @return updated layout
      */
-    suspend fun update(found: LayoutEntity, layout: Layout, userId: UUID): LayoutEntity {
+    suspend fun update(layoutEntry: LayoutEntity, layout: Layout, userId: UUID): LayoutEntity {
         return layoutRepository.update(
-            layout = found,
+            layout = layoutEntry,
             name = layout.name,
             thumbnailUrl = layout.thumbnail,
             html = layout.html,
@@ -74,10 +74,10 @@ class LayoutController {
     /**
      * Deletes a layout
      *
-     * @param found found layout
+     * @param layoutEntry layout entry to be deleted
      */
-    suspend fun delete(found: LayoutEntity) {
-        layoutRepository.deleteSuspending(found)
+    suspend fun delete(layoutEntry: LayoutEntity) {
+        layoutRepository.deleteSuspending(layoutEntry)
     }
 
 

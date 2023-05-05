@@ -28,8 +28,8 @@ class PageEntity : DBMetadata() {
     @ManyToOne(optional = true)
     var layout: LayoutEntity? = null
 
-    @Column
-    var orderNumber: Int? = null
+    @Column (nullable = false)
+    var orderNumber: Int = 0
 
     override var creatorId: UUID? = null
     override var lastModifierId: UUID? = null

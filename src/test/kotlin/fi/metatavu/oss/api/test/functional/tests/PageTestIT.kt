@@ -24,7 +24,8 @@ class PageTestIT: AbstractResourceTest() {
         properties = arrayOf(
             PageProperty(key = "key", value = "value", type = PagePropertyType.TEXT),
             PageProperty(key = "key2", value = "value2", type = PagePropertyType.IMAGE_URL)
-        )
+        ),
+        orderNumber = 1
     )
 
     @Test
@@ -66,9 +67,9 @@ class PageTestIT: AbstractResourceTest() {
             assertEquals(page.html, created.html)
             assertEquals(2, created.properties?.size)
             val textProp = created.properties!!.find { prop -> prop.key == "key" }
-            assertEquals(page.properties!![0].key, textProp!!.key)
-            assertEquals(page.properties!![0].value, textProp.value)
-            assertEquals(page.properties!![0].type, textProp.type)
+            assertEquals(page.properties?.get(0)?.key, textProp!!.key)
+            assertEquals(page.properties?.get(0)?.value, textProp.value)
+            assertEquals(page.properties?.get(0)?.type, textProp.type)
 
             //permissions
             it.consumer.pages.assertCreateFail(surveyId = survey.id, expectedStatus = 403)
@@ -90,12 +91,12 @@ class PageTestIT: AbstractResourceTest() {
             assertNotNull(foundPage.id)
 
             // permissions
-            it.notvalid.pages.assertFindFail(surveyId = survey.id, pageId = createdPage.id!!, expectedStatus = 401)
-            it.empty.pages.assertFindFail(surveyId = survey.id, pageId = createdPage.id!!, expectedStatus = 401)
+            it.notvalid.pages.assertFindFail(surveyId = survey.id, pageId = createdPage.id, expectedStatus = 401)
+            it.empty.pages.assertFindFail(surveyId = survey.id, pageId = createdPage.id, expectedStatus = 401)
 
-            it.manager.pages.assertFindFail(surveyId = UUID.randomUUID(), pageId = createdPage.id!!, expectedStatus = 404)
+            it.manager.pages.assertFindFail(surveyId = UUID.randomUUID(), pageId = createdPage.id, expectedStatus = 404)
             it.manager.pages.assertFindFail(surveyId = survey.id, pageId = UUID.randomUUID(), expectedStatus = 404)
-            it.manager.pages.assertFindFail(surveyId = survey2.id!!, pageId = createdPage.id!!, expectedStatus = 404)
+            it.manager.pages.assertFindFail(surveyId = survey2.id!!, pageId = createdPage.id, expectedStatus = 404)
         }
     }
 
@@ -113,14 +114,14 @@ class PageTestIT: AbstractResourceTest() {
                 page = page
             )
 
-            assertNotNull(updatedPage!!.id)
+            assertNotNull(updatedPage.id)
             assertEquals(page.title, updatedPage.title)
             assertEquals(page.html, updatedPage.html)
             assertEquals(2, updatedPage.properties?.size)
             val textProp = updatedPage.properties!!.find { prop -> prop.key == "key" }
-            assertEquals(page.properties!![0].key, textProp!!.key)
-            assertEquals(page.properties!![0].value, textProp.value)
-            assertEquals(page.properties!![0].type, textProp.type)
+            assertEquals(page.properties?.get(0)?.key, textProp!!.key)
+            assertEquals(page.properties?.get(0)?.value, textProp.value)
+            assertEquals(page.properties?.get(0)?.type, textProp.type)
 
             // permissions
             it.empty.pages.assertUpdateFail(surveyId = survey.id, pageId = createdPage.id, expectedStatus = 401)

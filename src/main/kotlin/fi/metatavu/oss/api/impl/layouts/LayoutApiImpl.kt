@@ -21,6 +21,7 @@ import javax.ws.rs.core.Response
 
 @RequestScoped
 @OptIn(ExperimentalCoroutinesApi::class)
+@Suppress("unused")
 class LayoutApiImpl : LayoutsApi, AbstractApi() {
 
     @Inject
@@ -67,9 +68,8 @@ class LayoutApiImpl : LayoutsApi, AbstractApi() {
         CoroutineScope(vertx.dispatcher()).async {
             val userId = loggedUserId ?: return@async createUnauthorized(UNAUTHORIZED)
             val found = layoutController.find(layoutId) ?: return@async createNotFoundWithMessage(LAYOUT, layoutId)
-            val created = layoutController.update(found, layout, userId)
-
-            createOk(layoutTranslator.translate(created))
+            val updated = layoutController.update(found, layout, userId)
+            createOk(layoutTranslator.translate(entity = updated))
         }.asUni()
 
     @ReactiveTransactional

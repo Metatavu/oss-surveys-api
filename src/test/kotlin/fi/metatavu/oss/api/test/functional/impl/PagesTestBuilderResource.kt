@@ -38,12 +38,13 @@ class PagesTestBuilderResource(
         return addClosable(created)
     }
 
-    fun createDefault(surveyId: UUID, layoutId: UUID? = null): Page {
+    fun createDefault(surveyId: UUID, layoutId: UUID? = null, orderNumber: Int = 1): Page {
         val created = api.createSurveyPage(
             surveyId, Page(
                 title = "default page",
                 html = "<html><body><h1>Default page</h1></body></html>",
-                layoutId = layoutId
+                layoutId = layoutId,
+                orderNumber = orderNumber
             )
         )
         pageSurveyRelation[created.id!!] = surveyId
@@ -73,8 +74,7 @@ class PagesTestBuilderResource(
                 return@removeCloseable false
             }
 
-            val closeablePage = closable as Page
-            closeablePage.id == pageId
+            closable.id == pageId
         }
     }
 
@@ -105,12 +105,13 @@ class PagesTestBuilderResource(
         }
     }
 
-    fun assertUpdateFail(surveyId: UUID, pageId: UUID, expectedStatus: Int) {
+    fun assertUpdateFail(surveyId: UUID, pageId: UUID, orderNumber: Int = 1, expectedStatus: Int) {
         try {
             api.updateSurveyPage(
                 surveyId, pageId, Page(
                     title = "default page",
-                    html = "<html><body><h1>Default page</h1></body></html>"
+                    html = "<html><body><h1>Default page</h1></body></html>",
+                    orderNumber = orderNumber
                 )
             )
             fail("Expected update to fail")
