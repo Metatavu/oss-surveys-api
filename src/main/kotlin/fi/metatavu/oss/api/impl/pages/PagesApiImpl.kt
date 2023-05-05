@@ -54,11 +54,9 @@ class PagesApiImpl : PagesApi, AbstractApi() {
         CoroutineScope(vertx.dispatcher()).async {
             val userId = loggedUserId ?: return@async createUnauthorized(UNAUTHORIZED)
             val survey = surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(SURVEY, surveyId)
-            val layout = if (page.layoutId != null) {
-                layoutController.find(page.layoutId) ?: return@async createBadRequest(
-                    "No layout found!"
-                )
-            } else null
+            val layout = layoutController.find(page.layoutId) ?: return@async createBadRequest(
+                "No layout found!"
+            )
 
             createOk(
                 pagesTranslator.translate(
@@ -94,11 +92,9 @@ class PagesApiImpl : PagesApi, AbstractApi() {
 
             if (existingPage.survey != survey) return@async createNotFoundWithMessage(PAGE, pageId)
 
-            val layout = if (page.layoutId != null) {
-                layoutController.find(page.layoutId) ?: return@async createBadRequest(
-                    "No layout found!"
-                )
-            } else null
+            val layout = layoutController.find(page.layoutId) ?: return@async createBadRequest(
+                "No layout found!"
+            )
 
             val updatedPage = pagesController.updatePage(
                 existingPage = existingPage,

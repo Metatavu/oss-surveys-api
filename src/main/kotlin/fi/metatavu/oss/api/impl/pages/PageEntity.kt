@@ -25,8 +25,8 @@ class PageEntity : DBMetadata() {
     @ManyToOne(optional = false)
     lateinit var survey: SurveyEntity
 
-    @ManyToOne(optional = true)
-    var layout: LayoutEntity? = null
+    @ManyToOne(optional = false)
+    lateinit var layout: LayoutEntity
 
     @Column (nullable = false)
     var orderNumber: Int = 0

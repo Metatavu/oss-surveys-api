@@ -28,7 +28,7 @@ class PagesController {
      * @param userId creator id
      * @return created page
      */
-    suspend fun createPage(page: Page, survey: SurveyEntity, layout: LayoutEntity?, userId: UUID): PageEntity {
+    suspend fun createPage(page: Page, survey: SurveyEntity, layout: LayoutEntity, userId: UUID): PageEntity {
         val createdPage = pageRepository.create(
             id = UUID.randomUUID(),
             title = page.title,
@@ -91,7 +91,7 @@ class PagesController {
      * @param userId modifier id
      * @return updated page
      */
-    suspend fun updatePage(existingPage: PageEntity, updateData: Page, layout: LayoutEntity?, userId: UUID): PageEntity {
+    suspend fun updatePage(existingPage: PageEntity, updateData: Page, layout: LayoutEntity, userId: UUID): PageEntity {
         existingPage.html = updateData.html
         existingPage.title = updateData.title
         existingPage.orderNumber = updateData.orderNumber

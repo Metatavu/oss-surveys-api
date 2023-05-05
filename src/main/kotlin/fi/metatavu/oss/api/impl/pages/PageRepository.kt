@@ -53,7 +53,7 @@ class PageRepository: AbstractRepository<PageEntity, UUID>() {
      * @param userId user id
      * @return created page
      */
-    suspend fun create(id: UUID, title: String, html: String, survey: SurveyEntity, layout: LayoutEntity?, orderNumber: Int, userId: UUID): PageEntity {
+    suspend fun create(id: UUID, title: String, html: String, survey: SurveyEntity, layout: LayoutEntity, orderNumber: Int, userId: UUID): PageEntity {
         val pageEntity = PageEntity()
         pageEntity.id = id
         pageEntity.title = title
