@@ -19,7 +19,6 @@ class PagesTranslator: AbstractTranslator<PageEntity, Page>() {
         return Page(
             id = entity.id,
             title = entity.title,
-            html = entity.html,
             properties = pagePropertyRepo.listByPage(entity).map {
                 PageProperty(
                     key = it.propertyKey,

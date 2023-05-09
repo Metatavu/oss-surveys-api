@@ -54,7 +54,6 @@ class PageTestIT: AbstractResourceTest() {
 
         assertNotNull(created!!.id)
         assertEquals(page.title, created.title)
-        assertEquals(page.html, created.html)
         assertEquals(2, created.properties?.size)
         val textProp = created.properties!!.find { prop -> prop.key == "key" }
         assertEquals(page.properties?.get(0)?.key, textProp!!.key)
@@ -104,7 +103,6 @@ class PageTestIT: AbstractResourceTest() {
 
         assertNotNull(updatedPage.id)
         assertEquals(page.title, updatedPage.title)
-        assertEquals(page.html, updatedPage.html)
         assertEquals(2, updatedPage.properties?.size)
         val textProp = updatedPage.properties!!.find { prop -> prop.key == "key" }
         assertEquals(page.properties?.get(0)?.key, textProp!!.key)
@@ -155,7 +153,6 @@ class PageTestIT: AbstractResourceTest() {
     private fun getTestPage(layoutId: UUID): Page {
         return Page(
             title = "title",
-            html = "<html></html>",
             properties = arrayOf(
                 PageProperty(key = "key", value = "value", type = PagePropertyType.TEXT),
                 PageProperty(key = "key2", value = "value2", type = PagePropertyType.IMAGE_URL)
