@@ -217,4 +217,8 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="page_remove_html" author="katja danilova">
+        <dropColumn tableName="page" columnName="html"/>
+    </changeSet>
 </databaseChangeLog>

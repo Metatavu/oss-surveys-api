@@ -32,7 +32,6 @@ class PagesController {
         val createdPage = pageRepository.create(
             id = UUID.randomUUID(),
             title = page.title,
-            html = page.html,
             survey = survey,
             layout = layout,
             orderNumber = page.orderNumber,
@@ -92,7 +91,6 @@ class PagesController {
      * @return updated page
      */
     suspend fun updatePage(existingPage: PageEntity, updateData: Page, layout: LayoutEntity, userId: UUID): PageEntity {
-        existingPage.html = updateData.html
         existingPage.title = updateData.title
         existingPage.orderNumber = updateData.orderNumber
         existingPage.layout = layout

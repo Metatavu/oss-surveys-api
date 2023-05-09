@@ -42,7 +42,6 @@ class PagesTestBuilderResource(
         val created = api.createSurveyPage(
             surveyId, Page(
                 title = "default page",
-                html = "<html><body><h1>Default page</h1></body></html>",
                 layoutId = layoutId,
                 orderNumber = orderNumber
             )
@@ -110,7 +109,6 @@ class PagesTestBuilderResource(
             api.updateSurveyPage(
                 surveyId, pageId, Page(
                     title = "default page",
-                    html = "<html><body><h1>Default page</h1></body></html>",
                     orderNumber = orderNumber,
                     layoutId = layoutId
                 )

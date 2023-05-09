@@ -19,9 +19,6 @@ class PageEntity : DBMetadata() {
     @Column(nullable = false)
     lateinit var title: String
 
-    @Column(nullable = false)
-    lateinit var html: String
-
     @ManyToOne(optional = false)
     lateinit var survey: SurveyEntity
 
