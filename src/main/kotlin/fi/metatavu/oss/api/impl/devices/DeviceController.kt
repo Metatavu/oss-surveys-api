@@ -3,6 +3,7 @@ package fi.metatavu.oss.api.impl.devices
 import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.impl.requests.DeviceRequestEntity
 import fi.metatavu.oss.api.model.DeviceStatus
+import io.quarkus.panache.common.Sort
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.security.PublicKey
 import java.util.*
@@ -94,15 +95,13 @@ class DeviceController {
     /**
      * Lists devices
      *
-     * @param firstResult first result
-     * @param maxResults max results
+     * @param rangeStart first index
+     * @param rangeEnd last index
+     * @param status status
      * @return list of devices and count
      */
-    suspend fun listDevices(firstResult: Int?, maxResults: Int?): Pair<List<DeviceEntity>, Long> {
-        return deviceRepository.listAllWithPaging(
-            page = firstResult,
-            pageSize = maxResults
-        )
+    suspend fun listDevices(rangeStart: Int?, rangeEnd: Int?, status: DeviceStatus?): Pair<List<DeviceEntity>, Long> {
+        return deviceRepository.list(rangeStart, rangeEnd, status)
     }
 
     /**

@@ -77,5 +77,8 @@ class DeviceTestIT: AbstractResourceTest() {
             .until {
                 testBuilder.manager.devices.find(deviceId).deviceStatus == DeviceStatus.ONLINE
             }
+
+        val foundDeviceAfterStatusChange = testBuilder.manager.devices.list(status = DeviceStatus.ONLINE)
+        assertEquals(1, foundDeviceAfterStatusChange.size)
     }
 }

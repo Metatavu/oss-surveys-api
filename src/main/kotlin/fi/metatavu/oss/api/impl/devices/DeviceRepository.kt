@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.devices
 
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.model.DeviceStatus
+import io.quarkus.panache.common.Sort
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.UUID
 import javax.enterprise.context.ApplicationScoped
@@ -11,6 +12,29 @@ import javax.enterprise.context.ApplicationScoped
  */
 @ApplicationScoped
 class DeviceRepository: AbstractRepository<DeviceEntity, UUID>() {
+
+    /**
+     * Lists devices
+     *
+     * @param rangeStart range start
+     * @param rangeEnd range end
+     * @param status optional status filter
+     * @return list of devices and count
+     */
+    suspend fun list(rangeStart: Int?, rangeEnd: Int?, status: DeviceStatus?): Pair<List<DeviceEntity>, Long> {
+        val sort = Sort.descending("modifiedAt")
+        val query = if (status == null) {
+            findAll(sort)
+        } else {
+            find("deviceStatus", sort, status)
+        }
+
+        return applyRangeToQuery(
+                query = query,
+                firstIndex = rangeStart,
+                lastIndex = rangeEnd
+        )
+    }
 
     /**
      * Creates a Device
