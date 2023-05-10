@@ -7,6 +7,7 @@ import fi.metatavu.oss.test.client.apis.DevicesApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.infrastructure.ClientException
 import fi.metatavu.oss.test.client.models.Device
+import fi.metatavu.oss.test.client.models.DeviceStatus
 import java.util.*
 
 /**
@@ -46,10 +47,11 @@ class DevicesTestBuilderResource(
     /**
      * Lists devices
      *
+     * @param status optonal status filter
      * @return found devices
      */
-    fun list(): Array<Device> {
-        return api.listDevices()
+    fun list(status: DeviceStatus? = null): Array<Device> {
+        return api.listDevices(status = status)
     }
 
     /**

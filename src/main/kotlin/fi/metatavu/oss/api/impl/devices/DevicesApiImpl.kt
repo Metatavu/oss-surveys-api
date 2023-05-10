@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.devices
 
 import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.UserRole
+import fi.metatavu.oss.api.model.DeviceStatus
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.asUni
@@ -14,6 +15,7 @@ import java.util.*
 import javax.annotation.security.RolesAllowed
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
+import javax.ws.rs.QueryParam
 import javax.ws.rs.core.Response
 
 @RequestScoped
@@ -48,10 +50,17 @@ class DevicesApiImpl: fi.metatavu.oss.api.spec.DevicesApi, AbstractApi() {
     }.asUni()
 
     @RolesAllowed(UserRole.MANAGER.name)
-    override fun listDevices(firstResult: Int?, maxResults: Int?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+    override fun listDevices(
+        @QueryParam(value = "firstResult") firstResult: Int?,
+        @QueryParam(value = "maxResults") maxResults: Int?,
+        @QueryParam(value = "status") status: DeviceStatus?
+    ): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        val (start, end) = firstMaxToRange(firstResult, maxResults)
+
         val (devices, count) = deviceController.listDevices(
-            firstResult = firstResult,
-            maxResults = maxResults
+            status = status,
+            rangeStart = start,
+            rangeEnd = end
         )
         val devicesTranslated = deviceTranslator.translate(devices)
 
