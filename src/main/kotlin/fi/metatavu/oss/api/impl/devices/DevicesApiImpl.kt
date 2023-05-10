@@ -51,9 +51,9 @@ class DevicesApiImpl: fi.metatavu.oss.api.spec.DevicesApi, AbstractApi() {
 
     @RolesAllowed(UserRole.MANAGER.name)
     override fun listDevices(
-        @QueryParam(value = "firstResult") firstResult: Int?,
-        @QueryParam(value = "maxResults") maxResults: Int?,
-        @QueryParam(value = "status") status: DeviceStatus?
+        firstResult: Int?,
+        maxResults: Int?,
+        status: DeviceStatus?
     ): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val (start, end) = firstMaxToRange(firstResult, maxResults)
 

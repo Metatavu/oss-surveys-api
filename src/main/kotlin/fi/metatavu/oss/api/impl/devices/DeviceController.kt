@@ -101,18 +101,7 @@ class DeviceController {
      * @return list of devices and count
      */
     suspend fun listDevices(rangeStart: Int?, rangeEnd: Int?, status: DeviceStatus?): Pair<List<DeviceEntity>, Long> {
-        val sort = Sort.descending("modifiedAt")
-        val query = if (status == null) {
-            deviceRepository.findAll(sort)
-        } else {
-            deviceRepository.find("deviceStatus", sort, status)
-        }
-
-        return deviceRepository.applyRangeToQuery(
-            query = query,
-            firstIndex = rangeStart,
-            lastIndex = rangeEnd
-        )
+        return deviceRepository.list(rangeStart, rangeEnd, status)
     }
 
     /**
