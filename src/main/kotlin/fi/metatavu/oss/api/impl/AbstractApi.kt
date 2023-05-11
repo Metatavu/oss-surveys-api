@@ -62,7 +62,7 @@ abstract class AbstractApi {
         }
         val token = deviceKeyHeader.firstOrNull() ?: return false
         val privateKey = cryptoController.loadPrivateKeyBase64(token) ?: return false
-        val deviceKey = deviceController.getDeviceKey(deviceId)
+        val deviceKey = deviceController.getDeviceKey(deviceId) ?: return false
         val publicKey = cryptoController.loadPublicKey(deviceKey) ?: return false
         val challenge = cryptoController.signUUID(
             privateKey = privateKey,

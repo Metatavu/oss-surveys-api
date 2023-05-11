@@ -99,9 +99,9 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
         createNoContent()
     }.asUni()
 
+    @ReactiveTransactional
+    @RolesAllowed(UserRole.MANAGER.name)
     override fun findDeviceSurvey(deviceId: UUID, deviceSurveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
-        if (!isAuthorizedDevice(deviceId)) return@async createUnauthorized(UNAUTHORIZED)
-
         deviceController.findDevice(deviceId)
             ?: return@async createNotFoundWithMessage(
                 target = DEVICE,

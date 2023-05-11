@@ -20,7 +20,7 @@ class DeviceTestIT: AbstractResourceTest() {
 
     @Test
     fun testFindDevices() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
 
         val foundDevice = testBuilder.manager.devices.find(deviceId)
 
@@ -31,7 +31,7 @@ class DeviceTestIT: AbstractResourceTest() {
     @Test
     fun testListDevices() = createTestBuilder().use { testBuilder ->
         (1..3).map {
-            testBuilder.manager.deviceSurveys.setupTestDevice(it.toString())
+            testBuilder.manager.devices.setupTestDevice(it.toString())
         }
 
         val foundDevices = testBuilder.manager.devices.list()
@@ -45,7 +45,7 @@ class DeviceTestIT: AbstractResourceTest() {
 
     @Test
     fun testDeleteDevice() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val foundDevice = testBuilder.manager.devices.find(deviceId)
 
         assertNotNull(foundDevice)
@@ -57,7 +57,7 @@ class DeviceTestIT: AbstractResourceTest() {
     @Test
     fun testDeviceStatusMessage() = createTestBuilder().use { testBuilder ->
         val mqttClient = TestMqttClient()
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val foundDevice = testBuilder.manager.devices.find(deviceId)
 
         assertEquals(DeviceStatus.OFFLINE, foundDevice.deviceStatus)

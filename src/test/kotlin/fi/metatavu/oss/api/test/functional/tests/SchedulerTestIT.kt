@@ -21,7 +21,7 @@ class SchedulerTestIT: AbstractResourceTest() {
 
     @Test
     fun testScheduler() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
         testBuilder.manager.surveys.update(
             surveyId = createdSurvey.id!!,

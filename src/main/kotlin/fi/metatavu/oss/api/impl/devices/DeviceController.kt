@@ -52,8 +52,8 @@ class DeviceController {
      * @param id id
      * @return device private key base 64 encoded
      */
-    suspend fun getDeviceKey(id: UUID): ByteArray {
-        return deviceRepository.findById(id).awaitSuspending().deviceKey
+    suspend fun getDeviceKey(id: UUID): ByteArray? {
+        return deviceRepository.findById(id).awaitSuspending()?.deviceKey
     }
 
     /**
