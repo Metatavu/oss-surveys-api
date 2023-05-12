@@ -41,24 +41,24 @@ class ReactiveStatusConsumer {
     @ActivateRequestContext
     @ReactiveTransactional
     fun consumeSurveyStatus(message: ByteArray): Uni<Void> = CoroutineScope(vertx.dispatcher()).async {
-        val deviceStatusMessage = jacksonObjectMapper().readValue<DeviceStatusMessage>(String(message))
-        val deviceId = deviceStatusMessage.deviceId
-        val status = deviceStatusMessage.status
-            try {
-                val foundDevice = deviceController.findDevice(deviceId)
+        try {
+            val deviceStatusMessage = jacksonObjectMapper().readValue<DeviceStatusMessage>(String(message))
+            val deviceId = deviceStatusMessage.deviceId
+            val status = deviceStatusMessage.status
+            val foundDevice = deviceController.findDevice(deviceId)
 
-                if (foundDevice == null) {
-                    logger.warn("Received status message from unknown Device $deviceId")
-                } else {
-                    logger.info("Received status ($status) message from Device $deviceId")
-                    deviceController.updateDeviceStatus(
-                        device = foundDevice,
-                        status = status
-                    )
-                }
-            } catch (e: Exception) {
-                logger.error("Failed to process status message from Device $deviceId", e)
+            if (foundDevice == null) {
+                logger.warn("Received status message from unknown Device $deviceId")
+            } else {
+                logger.info("Received status ($status) message from Device $deviceId")
+                deviceController.updateDeviceStatus(
+                    device = foundDevice,
+                    status = status
+                )
             }
+        } catch (e: Exception) {
+            logger.error("Failed to process status message from Device", e)
+        }
     }.asUni().replaceWithVoid()
 
     companion object {
