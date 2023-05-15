@@ -7,6 +7,7 @@ import fi.metatavu.oss.test.client.apis.DevicesApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.infrastructure.ClientException
 import fi.metatavu.oss.test.client.models.Device
+import fi.metatavu.oss.test.client.models.DeviceApprovalStatus
 import fi.metatavu.oss.test.client.models.DeviceStatus
 import java.util.*
 
@@ -14,7 +15,7 @@ import java.util.*
  * Test resources for devices
  */
 class DevicesTestBuilderResource(
-    testBuilder: TestBuilder,
+    private val testBuilder: TestBuilder,
     private val accessTokenProvider: AccessTokenProvider?,
     apiClient: ApiClient
 ) : ApiTestBuilderResource<Device, ApiClient>(testBuilder, apiClient) {
@@ -76,5 +77,25 @@ class DevicesTestBuilderResource(
         } catch (e: ClientException) {
             assertClientExceptionStatus(expectedStatusCode, e)
         }
+    }
+
+    /**
+     * Setups an approved device for use in tests.
+     *
+     * Devices are created via device registration API and are not automatically approved,
+     * therefore this simplifies that flow in tests.
+     *
+     * @param serialNumber optional serial number
+     * @return pair of device id and device key
+     */
+    fun setupTestDevice(serialNumber: String = "123"): Pair<UUID, String> {
+        val deviceRequest = testBuilder.manager.deviceRequests.create(serialNumber)
+        testBuilder.manager.deviceRequests.updateDeviceRequest(
+            requestId = deviceRequest.id!!,
+            deviceRequest = deviceRequest.copy(approvalStatus = DeviceApprovalStatus.APPROVED)
+        )
+        val deviceKey = testBuilder.manager.deviceRequests.getDeviceKey(deviceRequest.id)
+
+        return Pair(deviceRequest.id, deviceKey)
     }
 }

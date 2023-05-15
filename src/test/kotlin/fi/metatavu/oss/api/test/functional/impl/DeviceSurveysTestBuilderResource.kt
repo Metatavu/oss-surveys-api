@@ -16,12 +16,10 @@ import java.util.*
  * Test resources fo device surveys
  */
 class DeviceSurveysTestBuilderResource(
-    private val testBuilder: TestBuilder,
+    testBuilder: TestBuilder,
     private val accessTokenProvider: AccessTokenProvider?,
     apiClient: ApiClient
 ): ApiTestBuilderResource<DeviceSurvey, ApiClient>(testBuilder, apiClient) {
-
-    private var deviceKey: String? = null
 
     override fun clean(t: DeviceSurvey?) {
         api.deleteDeviceSurvey(
@@ -32,21 +30,8 @@ class DeviceSurveysTestBuilderResource(
 
     override fun getApi(): DeviceSurveysApi {
         ApiClient.accessToken = accessTokenProvider?.accessToken
-        if (!deviceKey.isNullOrBlank()) {
-            ApiClient.apiKey["X-DEVICE-KEY"] = deviceKey!!
-        }
         return DeviceSurveysApi(ApiTestSettings.apiBasePath)
     }
-
-    /**
-     * Sets the clients device key
-     *
-     * @param newDeviceKey device key
-     */
-    fun setDeviceKey(newDeviceKey: String?) {
-        deviceKey = newDeviceKey
-    }
-
 
     /**
      * Lists device surveys
@@ -247,25 +232,5 @@ class DeviceSurveysTestBuilderResource(
         } catch (e: ClientException) {
             assertClientExceptionStatus(expectedStatusCode, e)
         }
-    }
-
-    /**
-     * Setups an approved device for use in tests.
-     *
-     * Devices are created via device registration API and are not automatically approved,
-     * therefore this simplifies that flow in tests.
-     *
-     * @param serialNumber optional serial number
-     * @return pair of device id and device key
-     */
-    fun setupTestDevice(serialNumber: String = "123"): Pair<UUID, String> {
-        val deviceRequest = testBuilder.manager.deviceRequests.create(serialNumber)
-        testBuilder.manager.deviceRequests.updateDeviceRequest(
-            requestId = deviceRequest.id!!,
-            deviceRequest = deviceRequest.copy(approvalStatus = DeviceApprovalStatus.APPROVED)
-        )
-        val deviceKey = testBuilder.manager.deviceRequests.getDeviceKey(deviceRequest.id)
-
-        return Pair(deviceRequest.id, deviceKey)
     }
 }

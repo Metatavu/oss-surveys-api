@@ -1,6 +1,8 @@
 package fi.metatavu.oss.api.test.functional.tests
 
 import fi.metatavu.oss.api.test.functional.resources.MqttResource
+import fi.metatavu.oss.test.client.models.Survey
+import fi.metatavu.oss.test.client.models.SurveyStatus
 import io.quarkus.test.common.DevServicesContext
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
@@ -26,6 +28,20 @@ abstract class AbstractResourceTest {
             it.manager.devices.list().forEach { device ->
                 it.manager.devices.delete(device.id!!)
             }
+        }
+    }
+
+    /**
+     * Marks survey as approved
+     *
+     * @param survey
+     */
+    fun approveSurvey(survey: Survey) {
+        createTestBuilder().use {
+            it.manager.surveys.update(
+                surveyId = survey.id!!,
+                newSurvey = survey.copy(status = SurveyStatus.APPROVED)
+            )
         }
     }
 

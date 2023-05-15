@@ -20,14 +20,11 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testCreateDeviceSurvey() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
-        testBuilder.manager.surveys.update(
-            surveyId = createdSurvey.id!!,
-            newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-        )
+        approveSurvey(createdSurvey)
         val deviceSurveyToCreate = DeviceSurvey(
-            surveyId = createdSurvey.id,
+            surveyId = createdSurvey.id!!,
             deviceId = deviceId,
             status = DeviceSurveyStatus.PUBLISHED,
         )
@@ -54,8 +51,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testListDeviceSurveys() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
-        val (deviceId2) = testBuilder.manager.deviceSurveys.setupTestDevice("321")
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
+        val (deviceId2) = testBuilder.manager.devices.setupTestDevice("321")
         val createdSurveys = mutableListOf<Survey>()
 
         val createdSurveyDevice2 = testBuilder.manager.surveys.create(
@@ -65,14 +62,12 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 timeout = 60
             )
         )
-        testBuilder.manager.surveys.update(
-            surveyId = createdSurveyDevice2.id!!,
-            newSurvey = createdSurveyDevice2.copy(status = SurveyStatus.APPROVED)
-        )
+        approveSurvey(createdSurveyDevice2)
+
         testBuilder.manager.deviceSurveys.create(
             deviceId = deviceId2,
             deviceSurvey = DeviceSurvey(
-                surveyId = createdSurveyDevice2.id,
+                surveyId = createdSurveyDevice2.id!!,
                 deviceId = deviceId2,
                 status = DeviceSurveyStatus.PUBLISHED
             )
@@ -128,18 +123,15 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testFindDeviceSurvey() = createTestBuilder().use { testBuilder ->
-        val (deviceId, deviceKey) = testBuilder.manager.deviceSurveys.setupTestDevice()
-        testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey)
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
         val deviceSurveyToCreate = DeviceSurvey(
             surveyId = createdSurvey.id!!,
             deviceId = deviceId,
             status = DeviceSurveyStatus.PUBLISHED
         )
-        testBuilder.manager.surveys.update(
-            surveyId = createdSurvey.id,
-            newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-        )
+        approveSurvey(createdSurvey)
+
         val createdDeviceSurvey1 = testBuilder.manager.deviceSurveys.create(
             deviceId = deviceId,
             deviceSurvey = deviceSurveyToCreate
@@ -174,16 +166,14 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testUpdateDeviceSurvey() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
-        testBuilder.manager.surveys.update(
-            surveyId = createdSurvey.id!!,
-            newSurvey = createdSurvey.copy(status = SurveyStatus.APPROVED)
-        )
+        approveSurvey(createdSurvey)
+
         val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
             deviceId = deviceId,
             deviceSurvey = DeviceSurvey(
-                surveyId = createdSurvey.id,
+                surveyId = createdSurvey.id!!,
                 deviceId = deviceId,
                 status = DeviceSurveyStatus.PUBLISHED
             )
@@ -207,7 +197,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testUpdateDeviceSurveyFail() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
         testBuilder.manager.surveys.update(
             surveyId = createdSurvey.id!!,
@@ -238,7 +228,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testInvalidScheduledDeviceSurvey() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
         testBuilder.manager.surveys.update(
             surveyId = createdSurvey.id!!,
@@ -305,8 +295,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testDeleteDeviceSurvey() = createTestBuilder().use { testBuilder ->
-        val (deviceId, deviceKey) = testBuilder.manager.deviceSurveys.setupTestDevice()
-        testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey)
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
         testBuilder.manager.surveys.update(
             surveyId = createdSurvey.id!!,
@@ -338,7 +327,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testCreateInvalidDeviceSurvey() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
         val deviceSurveyToCreate = DeviceSurvey(
             surveyId = createdSurvey.id!!,
@@ -374,7 +363,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testDeleteInvalidDeviceSurvey() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         // Device doesn't exist
         testBuilder.manager.deviceSurveys.assertDeleteFail(
             expectedStatusCode = 404,
@@ -391,44 +380,38 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
     @Test
     fun testFindDeviceSurveyFail() = createTestBuilder().use { testBuilder ->
-        val (deviceId1, deviceKey1) = testBuilder.manager.deviceSurveys.setupTestDevice()
-        val (deviceId2, deviceKey2) = testBuilder.manager.deviceSurveys.setupTestDevice("321")
-
-        // Device 1 surveys with device 2 key
-        testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey2)
-        testBuilder.manager.deviceSurveys.assertFindFail(
-            expectedStatusCode = 401,
-            deviceId = deviceId1,
-            deviceSurveyId = UUID.randomUUID()
-        )
-
-        // Device 2 surveys with device 1 key
-        testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey1)
-        testBuilder.manager.deviceSurveys.assertFindFail(
-            expectedStatusCode = 401,
-            deviceId = deviceId2,
-            deviceSurveyId = UUID.randomUUID()
-        )
+        val (deviceId1) = testBuilder.manager.devices.setupTestDevice()
 
         // Device not found
-        testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey1)
         testBuilder.manager.deviceSurveys.assertFindFail(
             expectedStatusCode = 404,
             deviceId = deviceId1,
             deviceSurveyId = UUID.randomUUID()
         )
+
         // Device Survey not found
-        testBuilder.manager.deviceSurveys.setDeviceKey(deviceKey1)
         testBuilder.manager.deviceSurveys.assertFindFail(
             expectedStatusCode = 404,
             deviceId = deviceId1,
             deviceSurveyId = UUID.randomUUID()
+        )
+
+        //not-manager roles
+        testBuilder.empty.deviceSurveys.assertFindFail(
+            401,
+            deviceId1,
+            UUID.randomUUID()
+        )
+        testBuilder.consumer.deviceSurveys.assertFindFail(
+            403,
+            deviceId1,
+            UUID.randomUUID()
         )
     }
 
     @Test
     fun testDeviceSurveysRealtimeNotification() = createTestBuilder().use { testBuilder ->
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
         testBuilder.manager.surveys.update(
             surveyId = createdSurvey.id!!,

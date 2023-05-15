@@ -150,7 +150,7 @@ class SurveyTestIT : AbstractResourceTest() {
     @Test
     fun testUpdateSurveyNotifications() = createTestBuilder().use { testBuilder ->
         val mqttClient = TestMqttClient()
-        val (deviceId) = testBuilder.manager.deviceSurveys.setupTestDevice()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
         val createdSurvey = testBuilder.manager.surveys.createDefault()
         testBuilder.manager.surveys.update(
             surveyId = createdSurvey.id!!,

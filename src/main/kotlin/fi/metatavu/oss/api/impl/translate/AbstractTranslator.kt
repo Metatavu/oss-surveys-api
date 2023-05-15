@@ -21,7 +21,7 @@ abstract class AbstractTranslator<E: DBMetadata, R> {
      * @param entity entity
      * @return rest metadata
      */
-    protected suspend fun translateMetadata(entity: E): Metadata {
+    protected suspend fun translateMetadata(entity: DBMetadata): Metadata {
         return metadataTranslator.translate(entity)
     }
 
