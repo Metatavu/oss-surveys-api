@@ -70,7 +70,19 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         createTestBuilder().use { tb ->
             val (deviceId, deviceKey) = tb.manager.devices.setupTestDevice()
             val createdSurvey = tb.manager.surveys.createDefault()
-            val createdLayout = tb.manager.layouts.createDefault()
+            val createdLayout = tb.manager.layouts.create(
+                Layout(
+                    name = "layout",
+                    thumbnail = "thumbnail",
+                    html = "html",
+                    layoutVariables = arrayOf(
+                        LayoutVariable(
+                            type = LayoutVariableType.TEXT,
+                            key = "key"
+                        )
+                    )
+                )
+            )
             val createdPages = (1..3).map { i ->
                 tb.manager.pages.create(
                     surveyId = createdSurvey.id!!,
@@ -81,13 +93,11 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                         properties = arrayOf(
                             PageProperty(
                                 key = "question",
-                                value = "question $i",
-                                type = PagePropertyType.TEXT
+                                value = "question $i"
                             ),
                             PageProperty(
                                 key = "answers",
-                                value = "[\"answerOption1\", \"answerOption2\"]",
-                                PagePropertyType.OPTIONS
+                                value = "[\"answerOption1\", \"answerOption2\"]"
                             )
                         )
                     )
@@ -126,15 +136,19 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             val page1Data = foundSurveyData.pages?.get(0)
             assertNotNull(page1Data)
             assertEquals(createdPages[0]!!.id, page1Data!!.id)
-            assertEquals(createdLayout.html, page1Data.layoutHtml)
 
+            // verify page properties
             assertEquals(2, page1Data.properties?.size)
             val propertyData1 = page1Data.properties?.find { it.key == "question" }
             val propertyData2 = page1Data.properties?.find { it.key == "answers" }
-            assertEquals(PagePropertyType.TEXT, propertyData1?.type)
             assertEquals("question 1", propertyData1?.value)
-            assertEquals(PagePropertyType.OPTIONS, propertyData2?.type)
             assertEquals("[\"answerOption1\", \"answerOption2\"]", propertyData2?.value)
+
+            //verify page layout
+            assertEquals(createdLayout.html, page1Data.layoutHtml)
+            assertEquals(1, page1Data.layoutVariables?.size)
+            assertEquals(createdLayout.layoutVariables!![0].key, page1Data.layoutVariables!![0].key)
+            assertEquals(createdLayout.layoutVariables[0].type, page1Data.layoutVariables[0].type)
 
             tb.manager.deviceData.assertFindFail(401, UUID.randomUUID(), createdDeviceSurvey.id)
             tb.manager.deviceData.assertFindFail(404, deviceId, UUID.randomUUID())

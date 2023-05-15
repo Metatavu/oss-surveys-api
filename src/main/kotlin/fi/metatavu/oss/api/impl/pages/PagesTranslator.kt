@@ -22,8 +22,7 @@ class PagesTranslator: AbstractTranslator<PageEntity, Page>() {
             properties = pagePropertyRepo.listByPage(entity).map {
                 PageProperty(
                     key = it.propertyKey,
-                    value = it.value,
-                    type = it.type
+                    value = it.value
                 )
             },
             layoutId = entity.layout.id,

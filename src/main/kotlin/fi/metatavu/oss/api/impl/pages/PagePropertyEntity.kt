@@ -1,8 +1,7 @@
 package fi.metatavu.oss.api.impl.pages
 
-import fi.metatavu.oss.api.model.PagePropertyType
-import javax.persistence.*
 import java.util.*
+import javax.persistence.*
 
 /**
  * JPA entity representing a property of a survey page
@@ -19,10 +18,6 @@ class PagePropertyEntity {
 
     @Column(nullable = false)
     lateinit var value: String
-
-    @Column(nullable = false)
-    @Enumerated(EnumType.STRING)
-    lateinit var type: PagePropertyType
 
     @ManyToOne(optional = false)
     lateinit var page: PageEntity

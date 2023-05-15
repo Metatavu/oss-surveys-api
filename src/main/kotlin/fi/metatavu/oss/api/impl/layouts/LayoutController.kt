@@ -15,6 +15,9 @@ class LayoutController {
     @Inject
     lateinit var layoutRepository: LayoutRepository
 
+    @Inject
+    lateinit var layoutVariableRepository: LayoutVariableRepository
+
     /**
      * Lists layouts
      *
@@ -34,13 +37,24 @@ class LayoutController {
      * @return created layout
      */
     suspend fun create(layout: Layout, userId: UUID): LayoutEntity {
-        return layoutRepository.create(
+        val pageLayout = layoutRepository.create(
             id = UUID.randomUUID(),
             name = layout.name,
             thumbnailUrl = layout.thumbnail,
             html = layout.html,
             creatorId = userId
         )
+
+        layout.layoutVariables?.forEach { restLayoutVar ->
+            layoutVariableRepository.create(
+                id = UUID.randomUUID(),
+                layout = pageLayout,
+                type = restLayoutVar.type,
+                key = restLayoutVar.key
+            )
+        }
+
+        return pageLayout
     }
 
     /**
@@ -62,13 +76,28 @@ class LayoutController {
      * @return updated layout
      */
     suspend fun update(layoutEntry: LayoutEntity, layout: Layout, userId: UUID): LayoutEntity {
-        return layoutRepository.update(
+        val updated = layoutRepository.update(
             layout = layoutEntry,
             name = layout.name,
             thumbnailUrl = layout.thumbnail,
             html = layout.html,
             lastModifierId = userId
         )
+
+        //replace variables
+        layoutVariableRepository.listByLayout(layoutEntry).forEach {
+            layoutVariableRepository.deleteSuspending(it)
+        }
+        layout.layoutVariables?.forEach { restLayoutVar ->
+            layoutVariableRepository.create(
+                id = UUID.randomUUID(),
+                layout = updated,
+                type = restLayoutVar.type,
+                key = restLayoutVar.key
+            )
+        }
+
+        return updated
     }
 
     /**
@@ -77,6 +106,9 @@ class LayoutController {
      * @param layoutEntry layout entry to be deleted
      */
     suspend fun delete(layoutEntry: LayoutEntity) {
+        layoutVariableRepository.listByLayout(layoutEntry).forEach {
+            layoutVariableRepository.deleteSuspending(it)
+        }
         layoutRepository.deleteSuspending(layoutEntry)
     }
 }

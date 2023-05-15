@@ -3,7 +3,6 @@ package fi.metatavu.oss.api.test.functional.tests
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
 import fi.metatavu.oss.test.client.models.Page
 import fi.metatavu.oss.test.client.models.PageProperty
-import fi.metatavu.oss.test.client.models.PagePropertyType
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -58,7 +57,6 @@ class PageTestIT: AbstractResourceTest() {
         val textProp = created.properties!!.find { prop -> prop.key == "key" }
         assertEquals(page.properties?.get(0)?.key, textProp!!.key)
         assertEquals(page.properties?.get(0)?.value, textProp.value)
-        assertEquals(page.properties?.get(0)?.type, textProp.type)
 
         //permissions
         it.consumer.pages.assertCreateFail(surveyId = survey.id, layoutId = layout.id, expectedStatus = 403)
@@ -107,7 +105,6 @@ class PageTestIT: AbstractResourceTest() {
         val textProp = updatedPage.properties!!.find { prop -> prop.key == "key" }
         assertEquals(page.properties?.get(0)?.key, textProp!!.key)
         assertEquals(page.properties?.get(0)?.value, textProp.value)
-        assertEquals(page.properties?.get(0)?.type, textProp.type)
 
         // permissions
         it.empty.pages.assertUpdateFail(surveyId = survey.id, pageId = createdPage.id, layoutId = layout.id, expectedStatus = 401)
@@ -154,8 +151,8 @@ class PageTestIT: AbstractResourceTest() {
         return Page(
             title = "title",
             properties = arrayOf(
-                PageProperty(key = "key", value = "value", type = PagePropertyType.TEXT),
-                PageProperty(key = "key2", value = "value2", type = PagePropertyType.IMAGE_URL)
+                PageProperty(key = "key", value = "value"),
+                PageProperty(key = "key2", value = "value2")
             ),
             orderNumber = 1,
             layoutId = layoutId

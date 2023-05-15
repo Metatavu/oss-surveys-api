@@ -1,10 +1,9 @@
 package fi.metatavu.oss.api.impl.pages
 
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
-import fi.metatavu.oss.api.model.PagePropertyType
 import io.smallrye.mutiny.coroutines.awaitSuspending
-import javax.enterprise.context.ApplicationScoped
 import java.util.*
+import javax.enterprise.context.ApplicationScoped
 
 /**
  * A repository class for page properties
@@ -28,16 +27,14 @@ class PagePropertyRepository: AbstractRepository<PagePropertyEntity, UUID>() {
      * @param id id
      * @param key key
      * @param value value
-     * @param type type
      * @param page page
      * @return created page property
      */
-    suspend fun create(id: UUID, key: String, value: String, type: PagePropertyType, page: PageEntity): PagePropertyEntity {
+    suspend fun create(id: UUID, key: String, value: String, page: PageEntity): PagePropertyEntity {
         val pagePropertyEntity = PagePropertyEntity()
         pagePropertyEntity.id = id
         pagePropertyEntity.propertyKey = key
         pagePropertyEntity.value = value
-        pagePropertyEntity.type = type
         pagePropertyEntity.page = page
         return persist(pagePropertyEntity).awaitSuspending()
     }

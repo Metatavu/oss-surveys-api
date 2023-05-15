@@ -43,7 +43,6 @@ class PagesController {
                 id = UUID.randomUUID(),
                 key = it.key,
                 value = it.value,
-                type = it.type,
                 page = createdPage
             )
         }
@@ -102,7 +101,6 @@ class PagesController {
                 id = UUID.randomUUID(),
                 key = it.key,
                 value = it.value,
-                type = it.type,
                 page = existingPage
             )
         }
