@@ -71,7 +71,6 @@ class PageTestIT: AbstractResourceTest() {
         val layout = tb.manager.layouts.createDefault()
         val page = getTestPage(layoutId = layout.id!!).copy(
             question = PageQuestion(
-                question = "What's the best ketchup in universe?",
                 type = PageQuestionType.SINGLE_SELECT,
                 options = arrayOf(
                     PageQuestionOption(
@@ -90,8 +89,7 @@ class PageTestIT: AbstractResourceTest() {
         val createdPage = tb.manager.pages.create(surveyId = survey.id!!, page = page)
 
         assertNotNull(createdPage!!.id)
-        assertEquals(page.question!!.question, createdPage.question!!.question)
-        assertEquals(page.question.type, createdPage.question.type)
+        assertEquals(page.question!!.type, createdPage.question!!.type)
         assertEquals(2, createdPage.question.options.size)
         assertEquals("Heinz", createdPage.question.options[0].questionOptionValue)
         assertEquals(0, createdPage.question.options[0].orderNumber)
@@ -100,7 +98,6 @@ class PageTestIT: AbstractResourceTest() {
 
         // test modifying the question
         val questionUpdateData = PageQuestion(
-            question = "What's the best mayonnaise in universe?",
             type = PageQuestionType.MULTI_SELECT,
             options = arrayOf(
                 PageQuestionOption(
@@ -121,7 +118,6 @@ class PageTestIT: AbstractResourceTest() {
         val updatedPage = tb.manager.pages.update(surveyId = survey.id, pageId = createdPage.id!!, page = page.copy(question = questionUpdateData))
         assertNotNull(updatedPage.id)
         val updatedQuestion = updatedPage.question!!
-        assertEquals(questionUpdateData.question, updatedQuestion.question)
         assertEquals(questionUpdateData.type, updatedQuestion.type)
         assertEquals(3, updatedQuestion.options.size)
         assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Heinz" })

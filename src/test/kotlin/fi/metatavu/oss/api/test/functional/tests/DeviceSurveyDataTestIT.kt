@@ -97,7 +97,6 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                             )
                         ),
                         question = PageQuestion(
-                            question = "Question $i",
                             type = PageQuestionType.SINGLE_SELECT,
                             options = arrayOf(
                                 PageQuestionOption(
@@ -156,7 +155,6 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
 
             //verify page question
             val page1Question = page1Data.question
-            assertEquals("Question 1", page1Question?.question)
             assertEquals(PageQuestionType.SINGLE_SELECT, page1Question?.type)
             assertEquals(1, page1Question?.options?.size)
             assertEquals("Option 1", page1Question?.options?.get(0)?.questionOptionValue)
