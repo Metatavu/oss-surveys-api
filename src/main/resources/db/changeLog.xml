@@ -255,9 +255,6 @@
                         referencedColumnNames="id"
                         referencedTableName="page"/>
             </column>
-            <column name="question" type="varchar(255)">
-                <constraints nullable="false"/>
-            </column>
             <column name="type" type="varchar(191)">
                 <constraints nullable="false"/>
             </column>

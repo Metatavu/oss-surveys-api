@@ -17,7 +17,6 @@ class PageQuestionTranslator : AbstractTranslator<PageQuestionEntity, PageQuesti
 
     override suspend fun translate(entity: PageQuestionEntity): PageQuestion {
         return PageQuestion(
-            question = entity.question,
             type = entity.type,
             options = pageQuestionOptionRepository.listByQuestion(entity).map {
                 PageQuestionOption(

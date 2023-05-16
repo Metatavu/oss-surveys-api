@@ -46,7 +46,6 @@ class PageQuestionController {
         val question = pageQuestionRepository.create(
             id = UUID.randomUUID(),
             page = page,
-            question = pageQuestion.question,
             type = pageQuestion.type
         )
 
@@ -86,14 +85,12 @@ class PageQuestionController {
                 pageQuestionRepository.create(
                     id = UUID.randomUUID(),
                     page = page,
-                    question = newQuestion.question,
                     type = newQuestion.type
                 )
             }
         } else if (newQuestion == null) {
             pageQuestionRepository.deleteSuspending(questionToUpdate)
         } else {
-            questionToUpdate.question = newQuestion.question
             questionToUpdate.type = newQuestion.type
             pageQuestionRepository.persistSuspending(questionToUpdate)
 

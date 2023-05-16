@@ -18,20 +18,17 @@ class PageQuestionRepository: AbstractRepository<PageQuestionEntity, UUID>() {
      *
      * @param id id
      * @param page page question will be assigned to
-     * @param question question text
      * @param type question type
      * @return created page question entity
      */
     suspend fun create(
         id: UUID,
         page: PageEntity,
-        question: String,
         type: PageQuestionType
     ): PageQuestionEntity {
         val pageQuestionEntity = PageQuestionEntity()
         pageQuestionEntity.id = id
         pageQuestionEntity.page = page
-        pageQuestionEntity.question = question
         pageQuestionEntity.type = type
         return persistSuspending(pageQuestionEntity)
     }

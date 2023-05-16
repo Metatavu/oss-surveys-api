@@ -18,9 +18,6 @@ class PageQuestionEntity {
     @OneToOne(optional = false)
     lateinit var page: PageEntity
 
-    @Column(nullable = false)
-    lateinit var question: String
-
     @Enumerated(EnumType.STRING)
     lateinit var type: PageQuestionType
 }
