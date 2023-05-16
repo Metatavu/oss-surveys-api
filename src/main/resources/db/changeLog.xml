@@ -243,4 +243,42 @@
             </column>
         </createTable>
     </changeSet>
+    
+    <changeSet id="page_questions" author="katja danilova">
+        <createTable tableName="pagequestion">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="page_id" type="binary(16)">
+                <constraints
+                        foreignKeyName="FK_QUESTION_PAGE_ID"
+                        referencedColumnNames="id"
+                        referencedTableName="page"/>
+            </column>
+            <column name="question" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="questionoption">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="question_id" type="binary(16)">
+                <constraints
+                        foreignKeyName="FK_QUESTIONOPTION_PAGEQUESTION_ID"
+                        referencedColumnNames="id"
+                        referencedTableName="pagequestion"/>
+            </column>
+            <column name="value" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ordernumber" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

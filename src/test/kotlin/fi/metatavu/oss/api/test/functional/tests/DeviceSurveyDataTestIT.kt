@@ -92,12 +92,18 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                         title = "Page $i",
                         properties = arrayOf(
                             PageProperty(
-                                key = "question",
-                                value = "question $i"
-                            ),
-                            PageProperty(
-                                key = "answers",
-                                value = "[\"answerOption1\", \"answerOption2\"]"
+                                key = "htmlVariable",
+                                value = "value $i"
+                            )
+                        ),
+                        question = PageQuestion(
+                            question = "Question $i",
+                            type = PageQuestionType.SINGLE_SELECT,
+                            options = arrayOf(
+                                PageQuestionOption(
+                                    orderNumber = 0,
+                                    questionOptionValue = "Option 1"
+                                )
                             )
                         )
                     )
@@ -138,17 +144,22 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             assertEquals(createdPages[0]!!.id, page1Data!!.id)
 
             // verify page properties
-            assertEquals(2, page1Data.properties?.size)
-            val propertyData1 = page1Data.properties?.find { it.key == "question" }
-            val propertyData2 = page1Data.properties?.find { it.key == "answers" }
-            assertEquals("question 1", propertyData1?.value)
-            assertEquals("[\"answerOption1\", \"answerOption2\"]", propertyData2?.value)
+            assertEquals(1, page1Data.properties?.size)
+            val propertyData1 = page1Data.properties?.find { it.key == "htmlVariable" }
+            assertEquals("value 1", propertyData1?.value)
 
             //verify page layout
             assertEquals(createdLayout.html, page1Data.layoutHtml)
             assertEquals(1, page1Data.layoutVariables?.size)
             assertEquals(createdLayout.layoutVariables!![0].key, page1Data.layoutVariables!![0].key)
             assertEquals(createdLayout.layoutVariables[0].type, page1Data.layoutVariables[0].type)
+
+            //verify page question
+            val page1Question = page1Data.question
+            assertEquals("Question 1", page1Question?.question)
+            assertEquals(PageQuestionType.SINGLE_SELECT, page1Question?.type)
+            assertEquals(1, page1Question?.options?.size)
+            assertEquals("Option 1", page1Question?.options?.get(0)?.questionOptionValue)
 
             tb.manager.deviceData.assertFindFail(401, UUID.randomUUID(), createdDeviceSurvey.id)
             tb.manager.deviceData.assertFindFail(404, deviceId, UUID.randomUUID())

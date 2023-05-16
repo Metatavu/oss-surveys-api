@@ -1,8 +1,7 @@
 package fi.metatavu.oss.api.test.functional.tests
 
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
-import fi.metatavu.oss.test.client.models.Page
-import fi.metatavu.oss.test.client.models.PageProperty
+import fi.metatavu.oss.test.client.models.*
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -64,6 +63,70 @@ class PageTestIT: AbstractResourceTest() {
         it.empty.pages.assertCreateFail(surveyId = survey.id, layoutId = layout.id, expectedStatus = 401)
 
         it.manager.pages.assertCreateFail(UUID.randomUUID(), layoutId = layout.id, expectedStatus = 404)
+    }
+
+    @Test
+    fun createUpdatePageWithQuestion() = createTestBuilder().use { tb ->
+        val survey = tb.manager.surveys.createDefault()
+        val layout = tb.manager.layouts.createDefault()
+        val page = getTestPage(layoutId = layout.id!!).copy(
+            question = PageQuestion(
+                question = "What's the best ketchup in universe?",
+                type = PageQuestionType.SINGLE_SELECT,
+                options = arrayOf(
+                    PageQuestionOption(
+                        questionOptionValue = "Heinz",
+                        orderNumber = 0
+                    ),
+                    PageQuestionOption(
+                        questionOptionValue = "Other",
+                        orderNumber = 1
+                    )
+                )
+            )
+        )
+
+        // test creating page with question
+        val createdPage = tb.manager.pages.create(surveyId = survey.id!!, page = page)
+
+        assertNotNull(createdPage!!.id)
+        assertEquals(page.question!!.question, createdPage.question!!.question)
+        assertEquals(page.question.type, createdPage.question.type)
+        assertEquals(2, createdPage.question.options.size)
+        assertEquals("Heinz", createdPage.question.options[0].questionOptionValue)
+        assertEquals(0, createdPage.question.options[1].orderNumber)
+        assertEquals("Other", createdPage.question.options[1].questionOptionValue)
+        assertEquals(1, createdPage.question.options[1].orderNumber)
+
+        // test modifying the question
+        val questionUpdateData = PageQuestion(
+            question = "What's the best mayonnaise in universe?",
+            type = PageQuestionType.MULTI_SELECT,
+            options = arrayOf(
+                PageQuestionOption(
+                    questionOptionValue = "Heinz",
+                    orderNumber = 0
+                ),
+                PageQuestionOption(
+                    questionOptionValue = "Other",
+                    orderNumber = 1
+                ),
+                PageQuestionOption(
+                    questionOptionValue = "Hunts",
+                    orderNumber = 2
+                )
+            )
+        )
+
+        val updatedPage = tb.manager.pages.update(surveyId = survey.id, pageId = createdPage.id!!, page = page.copy(question = questionUpdateData))
+        assertNotNull(updatedPage!!.id)
+        val updatedQuestion = updatedPage.question!!
+        assertEquals(questionUpdateData.question, updatedQuestion.question)
+        assertEquals(questionUpdateData.type, updatedQuestion.type)
+        assertEquals(3, updatedQuestion.options.size)
+        assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Heinz" })
+        assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Other" })
+        assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Hunts" })
     }
 
     @Test

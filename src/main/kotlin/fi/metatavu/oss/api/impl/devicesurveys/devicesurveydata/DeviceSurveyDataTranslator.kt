@@ -4,6 +4,8 @@ import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyEntity
 import fi.metatavu.oss.api.impl.layouts.LayoutVariableRepository
 import fi.metatavu.oss.api.impl.pages.PagePropertyRepository
 import fi.metatavu.oss.api.impl.pages.PagesController
+import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
+import fi.metatavu.oss.api.impl.pages.questions.PageQuestionTranslator
 import fi.metatavu.oss.api.impl.surveys.SurveyController
 import fi.metatavu.oss.api.impl.translate.AbstractTranslator
 import fi.metatavu.oss.api.model.DeviceSurveyData
@@ -29,6 +31,12 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
 
     @Inject
     lateinit var layoutVariableRepository: LayoutVariableRepository
+
+    @Inject
+    lateinit var pageQuestionTranslator: PageQuestionTranslator
+
+    @Inject
+    lateinit var pageQuestionController: PageQuestionController
 
     override suspend fun translate(entity: DeviceSurveyEntity): DeviceSurveyData {
         val survey = surveyController.findSurvey(entity.survey.id) ?: throw IllegalArgumentException("Survey not found")
@@ -61,6 +69,9 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
                             key = layoutVar.variablekey,
                             type = layoutVar.variabletype
                         )
+                    },
+                    question = pageQuestionController.find(page)?.let { pageQuestion ->
+                        pageQuestionTranslator.translate(pageQuestion)
                     }
                 )
             },
