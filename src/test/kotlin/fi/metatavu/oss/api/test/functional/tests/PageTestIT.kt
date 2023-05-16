@@ -94,7 +94,7 @@ class PageTestIT: AbstractResourceTest() {
         assertEquals(page.question.type, createdPage.question.type)
         assertEquals(2, createdPage.question.options.size)
         assertEquals("Heinz", createdPage.question.options[0].questionOptionValue)
-        assertEquals(0, createdPage.question.options[1].orderNumber)
+        assertEquals(0, createdPage.question.options[0].orderNumber)
         assertEquals("Other", createdPage.question.options[1].questionOptionValue)
         assertEquals(1, createdPage.question.options[1].orderNumber)
 
@@ -119,7 +119,7 @@ class PageTestIT: AbstractResourceTest() {
         )
 
         val updatedPage = tb.manager.pages.update(surveyId = survey.id, pageId = createdPage.id!!, page = page.copy(question = questionUpdateData))
-        assertNotNull(updatedPage!!.id)
+        assertNotNull(updatedPage.id)
         val updatedQuestion = updatedPage.question!!
         assertEquals(questionUpdateData.question, updatedQuestion.question)
         assertEquals(questionUpdateData.type, updatedQuestion.type)
