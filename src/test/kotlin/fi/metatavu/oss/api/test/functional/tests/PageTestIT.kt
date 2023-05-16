@@ -7,6 +7,7 @@ import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -146,7 +147,9 @@ class PageTestIT: AbstractResourceTest() {
 
     @Test
     fun testUpdatePage() = createTestBuilder().use {
+        val (deviceId, _) = it.manager.devices.setupTestDevice()
         val survey = it.manager.surveys.createDefault()
+        approveSurvey(survey)
         val survey2 = it.manager.surveys.createDefault()
         val layout = it.manager.layouts.createDefault()
         val page = getTestPage(layoutId = layout.id!!)
@@ -173,6 +176,19 @@ class PageTestIT: AbstractResourceTest() {
         it.manager.pages.assertUpdateFail(surveyId = UUID.randomUUID(), pageId = createdPage.id, layoutId = layout.id, expectedStatus = 404)
         it.manager.pages.assertUpdateFail(surveyId = survey.id, pageId = UUID.randomUUID(), layoutId = layout.id, expectedStatus = 404)
         it.manager.pages.assertUpdateFail(surveyId = survey2.id!!, pageId = createdPage.id, layoutId = layout.id, expectedStatus = 404)
+
+        //check that cannot be updated after publishing
+        it.manager.deviceSurveys.create(
+            deviceId = deviceId,
+            deviceSurvey = DeviceSurvey(
+                surveyId = survey.id,
+                deviceId = deviceId,
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = OffsetDateTime.now().minusDays(5).toString(),
+                publishEndTime = OffsetDateTime.now().minusDays(1).toString()
+            )
+        )
+        it.manager.pages.assertUpdateFail(surveyId = survey.id, pageId = createdPage.id, layoutId = layout.id, expectedStatus = 400)
     }
 
     @Test
