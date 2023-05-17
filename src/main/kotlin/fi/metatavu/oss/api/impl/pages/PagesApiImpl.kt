@@ -15,6 +15,7 @@ import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.time.OffsetDateTime
 import java.util.*
 import javax.annotation.security.RolesAllowed
@@ -44,6 +45,10 @@ class PagesApiImpl : PagesApi, AbstractApi() {
 
     @Inject
     lateinit var vertx: io.vertx.core.Vertx
+
+    @Inject
+    @ConfigProperty(name = "environment")
+    protected lateinit var environment: String
 
     @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
@@ -135,6 +140,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
      * @return if is published on any device
      */
     private suspend fun hasBeenPublished(page: PageEntity): Boolean {
+        if (environment == "staging") return false
         val belongsToDeviceSurveys = deviceSurveyController.listDeviceSurveysBySurvey(page.survey.id).first
         return belongsToDeviceSurveys.any {
             it.status == DeviceSurveyStatus.PUBLISHED ||
