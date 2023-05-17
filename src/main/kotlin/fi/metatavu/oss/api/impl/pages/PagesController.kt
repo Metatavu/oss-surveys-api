@@ -1,6 +1,7 @@
 package fi.metatavu.oss.api.impl.pages
 
 import fi.metatavu.oss.api.impl.layouts.LayoutEntity
+import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.Page
 import io.smallrye.mutiny.coroutines.awaitSuspending
@@ -19,6 +20,9 @@ class PagesController {
 
     @Inject
     lateinit var pagePropertyRepository: PagePropertyRepository
+
+    @Inject
+    lateinit var pageQuestionController: PageQuestionController
 
     /**
      * Creates a page for the survey and fills in its properties
@@ -43,7 +47,13 @@ class PagesController {
                 id = UUID.randomUUID(),
                 key = it.key,
                 value = it.value,
-                type = it.type,
+                page = createdPage
+            )
+        }
+
+        if (page.question != null) {
+            pageQuestionController.create(
+                pageQuestion = page.question,
                 page = createdPage
             )
         }
@@ -102,11 +112,15 @@ class PagesController {
                 id = UUID.randomUUID(),
                 key = it.key,
                 value = it.value,
-                type = it.type,
                 page = existingPage
             )
         }
 
+        pageQuestionController.update(
+            questionToUpdate = pageQuestionController.find(existingPage),
+            newQuestion = updateData.question,
+            page = existingPage
+        )
         return pageRepository.persistSuspending(existingPage)
     }
 
@@ -116,6 +130,7 @@ class PagesController {
      * @param page page to delete
      */
     suspend fun deletePage(page: PageEntity) {
+        pageQuestionController.find(page).let { if (it != null) pageQuestionController.delete(it) }
         pagePropertyRepository.listByPage(page).forEach { pagePropertyRepository.deleteSuspending(it) }
         pageRepository.deleteSuspending(page)
     }

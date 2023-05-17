@@ -70,7 +70,19 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         createTestBuilder().use { tb ->
             val (deviceId, deviceKey) = tb.manager.devices.setupTestDevice()
             val createdSurvey = tb.manager.surveys.createDefault()
-            val createdLayout = tb.manager.layouts.createDefault()
+            val createdLayout = tb.manager.layouts.create(
+                Layout(
+                    name = "layout",
+                    thumbnail = "thumbnail",
+                    html = "html",
+                    layoutVariables = arrayOf(
+                        LayoutVariable(
+                            type = LayoutVariableType.TEXT,
+                            key = "key"
+                        )
+                    )
+                )
+            )
             val createdPages = (1..3).map { i ->
                 tb.manager.pages.create(
                     surveyId = createdSurvey.id!!,
@@ -80,14 +92,17 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                         title = "Page $i",
                         properties = arrayOf(
                             PageProperty(
-                                key = "question",
-                                value = "question $i",
-                                type = PagePropertyType.TEXT
-                            ),
-                            PageProperty(
-                                key = "answers",
-                                value = "[\"answerOption1\", \"answerOption2\"]",
-                                PagePropertyType.OPTIONS
+                                key = "htmlVariable",
+                                value = "value $i"
+                            )
+                        ),
+                        question = PageQuestion(
+                            type = PageQuestionType.SINGLE_SELECT,
+                            options = arrayOf(
+                                PageQuestionOption(
+                                    orderNumber = 0,
+                                    questionOptionValue = "Option 1"
+                                )
                             )
                         )
                     )
@@ -126,15 +141,23 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             val page1Data = foundSurveyData.pages?.get(0)
             assertNotNull(page1Data)
             assertEquals(createdPages[0]!!.id, page1Data!!.id)
-            assertEquals(createdLayout.html, page1Data.layoutHtml)
 
-            assertEquals(2, page1Data.properties?.size)
-            val propertyData1 = page1Data.properties?.find { it.key == "question" }
-            val propertyData2 = page1Data.properties?.find { it.key == "answers" }
-            assertEquals(PagePropertyType.TEXT, propertyData1?.type)
-            assertEquals("question 1", propertyData1?.value)
-            assertEquals(PagePropertyType.OPTIONS, propertyData2?.type)
-            assertEquals("[\"answerOption1\", \"answerOption2\"]", propertyData2?.value)
+            // verify page properties
+            assertEquals(1, page1Data.properties?.size)
+            val propertyData1 = page1Data.properties?.find { it.key == "htmlVariable" }
+            assertEquals("value 1", propertyData1?.value)
+
+            //verify page layout
+            assertEquals(createdLayout.html, page1Data.layoutHtml)
+            assertEquals(1, page1Data.layoutVariables?.size)
+            assertEquals(createdLayout.layoutVariables!![0].key, page1Data.layoutVariables!![0].key)
+            assertEquals(createdLayout.layoutVariables[0].type, page1Data.layoutVariables[0].type)
+
+            //verify page question
+            val page1Question = page1Data.question
+            assertEquals(PageQuestionType.SINGLE_SELECT, page1Question?.type)
+            assertEquals(1, page1Question?.options?.size)
+            assertEquals("Option 1", page1Question?.options?.get(0)?.questionOptionValue)
 
             tb.manager.deviceData.assertFindFail(401, UUID.randomUUID(), createdDeviceSurvey.id)
             tb.manager.deviceData.assertFindFail(404, deviceId, UUID.randomUUID())

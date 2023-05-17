@@ -2,6 +2,8 @@ package fi.metatavu.oss.api.test.functional.tests
 
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
 import fi.metatavu.oss.test.client.models.Layout
+import fi.metatavu.oss.test.client.models.LayoutVariable
+import fi.metatavu.oss.test.client.models.LayoutVariableType
 import fi.metatavu.oss.test.client.models.Page
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
@@ -39,10 +41,15 @@ class LayoutTestIT: AbstractResourceTest() {
     @Test
     fun testCreateLayout() {
         createTestBuilder().use {
+            val variable = LayoutVariable(
+                type = LayoutVariableType.TEXT,
+                key = "key"
+            )
             val layout = Layout(
                 name = "name",
                 thumbnail = "thumbnail",
-                html = "<html></html>"
+                html = "<html></html>",
+                layoutVariables = arrayOf(variable)
             )
 
             val created = it.manager.layouts.create(
@@ -52,6 +59,9 @@ class LayoutTestIT: AbstractResourceTest() {
             assertEquals(layout.name, created.name)
             assertEquals(layout.thumbnail, created.thumbnail)
             assertEquals(layout.html, created.html)
+            assertEquals(1, created.layoutVariables!!.size)
+            assertEquals(variable.key, created.layoutVariables[0].key)
+            assertEquals(variable.type, created.layoutVariables[0].type)
             assertNotNull(created.id)
             assertNotNull(created.metadata)
 
@@ -87,18 +97,29 @@ class LayoutTestIT: AbstractResourceTest() {
         createTestBuilder().use {
             val created = it.manager.layouts.createDefault()
 
-            val updated = it.manager.layouts.update(
-                layoutId = created.id!!,
-                layout = Layout(
-                    name = "name2",
-                    thumbnail = "thumbnail2",
-                    html = "<html2></html2>"
+            val updateData = Layout(
+                name = "name2",
+                thumbnail = "thumbnail2",
+                html = "<html2></html2>",
+                layoutVariables = arrayOf(
+                    LayoutVariable(
+                        type = LayoutVariableType.TEXT,
+                        key = "newKey"
+                    )
                 )
             )
 
-            assertEquals("name2", updated.name)
-            assertEquals("thumbnail2", updated.thumbnail)
-            assertEquals("<html2></html2>", updated.html)
+            val updated = it.manager.layouts.update(
+                layoutId = created.id!!,
+                layout = updateData
+            )
+
+            assertEquals(updateData.name, updated.name)
+            assertEquals(updateData.thumbnail, updated.thumbnail)
+            assertEquals(updateData.html, updated.html)
+            assertEquals(1, updated.layoutVariables!!.size)
+            assertEquals(updateData.layoutVariables!![0].key, updated.layoutVariables[0].key)
+            assertEquals(updateData.layoutVariables!![0].type, updated.layoutVariables[0].type)
             assertNotNull(updated.id)
             assertNotNull(updated.metadata)
 

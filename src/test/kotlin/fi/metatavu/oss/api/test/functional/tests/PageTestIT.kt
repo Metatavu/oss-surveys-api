@@ -1,14 +1,13 @@
 package fi.metatavu.oss.api.test.functional.tests
 
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
-import fi.metatavu.oss.test.client.models.Page
-import fi.metatavu.oss.test.client.models.PageProperty
-import fi.metatavu.oss.test.client.models.PagePropertyType
+import fi.metatavu.oss.test.client.models.*
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -58,7 +57,6 @@ class PageTestIT: AbstractResourceTest() {
         val textProp = created.properties!!.find { prop -> prop.key == "key" }
         assertEquals(page.properties?.get(0)?.key, textProp!!.key)
         assertEquals(page.properties?.get(0)?.value, textProp.value)
-        assertEquals(page.properties?.get(0)?.type, textProp.type)
 
         //permissions
         it.consumer.pages.assertCreateFail(surveyId = survey.id, layoutId = layout.id, expectedStatus = 403)
@@ -66,6 +64,66 @@ class PageTestIT: AbstractResourceTest() {
         it.empty.pages.assertCreateFail(surveyId = survey.id, layoutId = layout.id, expectedStatus = 401)
 
         it.manager.pages.assertCreateFail(UUID.randomUUID(), layoutId = layout.id, expectedStatus = 404)
+    }
+
+    @Test
+    fun createUpdatePageWithQuestion() = createTestBuilder().use { tb ->
+        val survey = tb.manager.surveys.createDefault()
+        val layout = tb.manager.layouts.createDefault()
+        val page = getTestPage(layoutId = layout.id!!).copy(
+            question = PageQuestion(
+                type = PageQuestionType.SINGLE_SELECT,
+                options = arrayOf(
+                    PageQuestionOption(
+                        questionOptionValue = "Heinz",
+                        orderNumber = 0
+                    ),
+                    PageQuestionOption(
+                        questionOptionValue = "Other",
+                        orderNumber = 1
+                    )
+                )
+            )
+        )
+
+        // test creating page with question
+        val createdPage = tb.manager.pages.create(surveyId = survey.id!!, page = page)
+
+        assertNotNull(createdPage!!.id)
+        assertEquals(page.question!!.type, createdPage.question!!.type)
+        assertEquals(2, createdPage.question.options.size)
+        assertEquals("Heinz", createdPage.question.options[0].questionOptionValue)
+        assertEquals(0, createdPage.question.options[0].orderNumber)
+        assertEquals("Other", createdPage.question.options[1].questionOptionValue)
+        assertEquals(1, createdPage.question.options[1].orderNumber)
+
+        // test modifying the question
+        val questionUpdateData = PageQuestion(
+            type = PageQuestionType.MULTI_SELECT,
+            options = arrayOf(
+                PageQuestionOption(
+                    questionOptionValue = "Heinz",
+                    orderNumber = 0
+                ),
+                PageQuestionOption(
+                    questionOptionValue = "Other",
+                    orderNumber = 1
+                ),
+                PageQuestionOption(
+                    questionOptionValue = "Hunts",
+                    orderNumber = 2
+                )
+            )
+        )
+
+        val updatedPage = tb.manager.pages.update(surveyId = survey.id, pageId = createdPage.id!!, page = page.copy(question = questionUpdateData))
+        assertNotNull(updatedPage.id)
+        val updatedQuestion = updatedPage.question!!
+        assertEquals(questionUpdateData.type, updatedQuestion.type)
+        assertEquals(3, updatedQuestion.options.size)
+        assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Heinz" })
+        assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Other" })
+        assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Hunts" })
     }
 
     @Test
@@ -89,7 +147,9 @@ class PageTestIT: AbstractResourceTest() {
 
     @Test
     fun testUpdatePage() = createTestBuilder().use {
+        val (deviceId, _) = it.manager.devices.setupTestDevice()
         val survey = it.manager.surveys.createDefault()
+        approveSurvey(survey)
         val survey2 = it.manager.surveys.createDefault()
         val layout = it.manager.layouts.createDefault()
         val page = getTestPage(layoutId = layout.id!!)
@@ -107,7 +167,6 @@ class PageTestIT: AbstractResourceTest() {
         val textProp = updatedPage.properties!!.find { prop -> prop.key == "key" }
         assertEquals(page.properties?.get(0)?.key, textProp!!.key)
         assertEquals(page.properties?.get(0)?.value, textProp.value)
-        assertEquals(page.properties?.get(0)?.type, textProp.type)
 
         // permissions
         it.empty.pages.assertUpdateFail(surveyId = survey.id, pageId = createdPage.id, layoutId = layout.id, expectedStatus = 401)
@@ -117,6 +176,19 @@ class PageTestIT: AbstractResourceTest() {
         it.manager.pages.assertUpdateFail(surveyId = UUID.randomUUID(), pageId = createdPage.id, layoutId = layout.id, expectedStatus = 404)
         it.manager.pages.assertUpdateFail(surveyId = survey.id, pageId = UUID.randomUUID(), layoutId = layout.id, expectedStatus = 404)
         it.manager.pages.assertUpdateFail(surveyId = survey2.id!!, pageId = createdPage.id, layoutId = layout.id, expectedStatus = 404)
+
+        //check that cannot be updated after publishing
+        it.manager.deviceSurveys.create(
+            deviceId = deviceId,
+            deviceSurvey = DeviceSurvey(
+                surveyId = survey.id,
+                deviceId = deviceId,
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = OffsetDateTime.now().minusDays(5).toString(),
+                publishEndTime = OffsetDateTime.now().minusDays(1).toString()
+            )
+        )
+        it.manager.pages.assertUpdateFail(surveyId = survey.id, pageId = createdPage.id, layoutId = layout.id, expectedStatus = 400)
     }
 
     @Test
@@ -154,8 +226,8 @@ class PageTestIT: AbstractResourceTest() {
         return Page(
             title = "title",
             properties = arrayOf(
-                PageProperty(key = "key", value = "value", type = PagePropertyType.TEXT),
-                PageProperty(key = "key2", value = "value2", type = PagePropertyType.IMAGE_URL)
+                PageProperty(key = "key", value = "value"),
+                PageProperty(key = "key2", value = "value2")
             ),
             orderNumber = 1,
             layoutId = layoutId

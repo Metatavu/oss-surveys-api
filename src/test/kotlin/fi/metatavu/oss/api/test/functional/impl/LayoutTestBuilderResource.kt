@@ -6,6 +6,8 @@ import fi.metatavu.oss.api.test.functional.settings.ApiTestSettings
 import fi.metatavu.oss.test.client.apis.LayoutsApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.models.Layout
+import fi.metatavu.oss.test.client.models.LayoutVariable
+import fi.metatavu.oss.test.client.models.LayoutVariableType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import java.util.*
@@ -39,7 +41,13 @@ class LayoutTestBuilderResource(
             Layout(
                 thumbnail = "https://example.com/thumbnail.png",
                 name = "name",
-                html = "<html></html>"
+                html = "<html></html>",
+                layoutVariables = arrayOf(
+                    LayoutVariable(
+                        type = LayoutVariableType.IMAGE_URL,
+                        key = "background_image"
+                    )
+                )
             )
         )
         return addClosable(created)

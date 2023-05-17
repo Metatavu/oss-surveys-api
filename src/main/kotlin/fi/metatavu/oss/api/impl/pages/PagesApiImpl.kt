@@ -2,22 +2,26 @@ package fi.metatavu.oss.api.impl.pages
 
 import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.UserRole
+import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.impl.layouts.LayoutController
 import fi.metatavu.oss.api.impl.surveys.SurveyController
+import fi.metatavu.oss.api.model.DeviceSurveyStatus
 import fi.metatavu.oss.api.model.Page
 import fi.metatavu.oss.api.spec.PagesApi
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.asUni
 import io.vertx.kotlin.coroutines.dispatcher
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.async
+import org.eclipse.microprofile.config.inject.ConfigProperty
+import java.time.OffsetDateTime
+import java.util.*
 import javax.annotation.security.RolesAllowed
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
 import javax.ws.rs.core.Response
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.async
-import java.util.*
 
 @RequestScoped
 @Suppress("unused")
@@ -37,7 +41,14 @@ class PagesApiImpl : PagesApi, AbstractApi() {
     lateinit var layoutController: LayoutController
 
     @Inject
+    lateinit var deviceSurveyController: DeviceSurveyController
+
+    @Inject
     lateinit var vertx: io.vertx.core.Vertx
+
+    @Inject
+    @ConfigProperty(name = "environment")
+    protected lateinit var environment: String
 
     @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
@@ -96,6 +107,8 @@ class PagesApiImpl : PagesApi, AbstractApi() {
                 "No layout found!"
             )
 
+            if (hasBeenPublished(existingPage)) return@async createBadRequest("Page is/was published and cannot be updated")
+
             val updatedPage = pagesController.updatePage(
                 existingPage = existingPage,
                 updateData = page,
@@ -119,4 +132,19 @@ class PagesApiImpl : PagesApi, AbstractApi() {
             pagesController.deletePage(existingPage)
             createNoContent()
         }.asUni()
+
+    /**
+     * Checks if page is published anywhere
+     *
+     * @param page page
+     * @return if is published on any device
+     */
+    private suspend fun hasBeenPublished(page: PageEntity): Boolean {
+        if (environment == "staging") return false
+        val belongsToDeviceSurveys = deviceSurveyController.listDeviceSurveysBySurvey(page.survey.id).first
+        return belongsToDeviceSurveys.any {
+            it.status == DeviceSurveyStatus.PUBLISHED ||
+                (it.publishEndTime != null && it.publishEndTime!!.isBefore(OffsetDateTime.now()))
+        }
+    }
 }

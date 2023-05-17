@@ -10,7 +10,7 @@ import javax.inject.Inject
  *
  * @author Jari Nykänen
  */
-abstract class AbstractTranslator<E: DBMetadata, R> {
+abstract class AbstractTranslator<E, R> {
 
     @Inject
     lateinit var metadataTranslator: MetadataTranslator
