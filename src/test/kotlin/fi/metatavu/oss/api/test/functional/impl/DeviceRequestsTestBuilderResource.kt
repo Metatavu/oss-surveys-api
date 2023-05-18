@@ -90,6 +90,18 @@ class DeviceRequestsTestBuilderResource(
     }
 
     /**
+     * Lists device requests
+     *
+     * @param firstResult first result
+     * @param maxResults max result
+     * @return found device requests
+     */
+    fun list(firstResult: Int? = null, maxResults: Int? = null): Array<DeviceRequest> {
+        return api.listDeviceRequests(firstResult, maxResults)
+    }
+
+
+    /**
      * Asserts that creating device request fails with given status code
      *
      * @param serialNumber serial number
