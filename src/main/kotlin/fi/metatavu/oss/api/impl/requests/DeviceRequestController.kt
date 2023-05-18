@@ -73,4 +73,15 @@ class DeviceRequestController {
 
         return deviceRequestRepository.update(deviceRequest = foundDeviceRequest)
     }
+
+    /**
+     * Lists Device Requests
+     *
+     * @param rangeStart range start
+     * @param rangeEnd range end
+     * @return list of device requests and count
+     */
+    suspend fun listDeviceRequests(rangeStart: Int, rangeEnd: Int): Pair<List<DeviceRequestEntity>, Long> {
+        return deviceRequestRepository.list(rangeStart = rangeStart, rangeEnd = rangeEnd)
+    }
 }

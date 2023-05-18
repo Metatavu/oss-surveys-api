@@ -92,6 +92,18 @@ class DeviceRequestsApiImpl: fi.metatavu.oss.api.spec.DeviceRequestsApi, Abstrac
         createForbidden(FORBIDDEN)
     }.asUni()
 
+    @RolesAllowed(UserRole.MANAGER.name)
+    override fun listDeviceRequests(firstResult: Int?, maxResults: Int?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        val (start, end) = firstMaxToRange(firstResult, maxResults)
+
+        val (deviceRequests, count) = deviceRequestController.listDeviceRequests(
+            rangeStart = start,
+            rangeEnd = end
+        )
+
+        createOk(deviceRequestTranslator.translate(deviceRequests), count)
+    }.asUni()
+
     @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
     override fun updateDeviceRequest(requestId: UUID, deviceRequest: DeviceRequest): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {

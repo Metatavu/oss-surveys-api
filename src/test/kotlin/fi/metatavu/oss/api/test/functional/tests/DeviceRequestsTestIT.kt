@@ -17,6 +17,25 @@ import java.util.*
 class DeviceRequestsTestIT: AbstractResourceTest() {
 
     @Test
+    fun testListDeviceRequests() = createTestBuilder().use { testBuilder ->
+        for (i in 0 until 5) {
+            testBuilder.manager.deviceRequests.create(i.toString())
+        }
+
+        val foundDeviceRequests = testBuilder.manager.deviceRequests.list()
+
+        assertEquals(5, foundDeviceRequests.size)
+
+        val foundDeviceRequestsWithMaxResults = testBuilder.manager.deviceRequests.list(maxResults = 2)
+
+        assertEquals(2, foundDeviceRequestsWithMaxResults.size)
+
+        val foundDeviceRequestsWithFirstResult = testBuilder.manager.deviceRequests.list(firstResult = 3)
+
+        assertEquals(2, foundDeviceRequestsWithFirstResult.size)
+    }
+
+    @Test
     fun testCreateDeviceRequest() = createTestBuilder().use { testBuilder ->
         val deviceRequest = testBuilder.manager.deviceRequests.create("123")
 

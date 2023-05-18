@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.requests
 
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.model.DeviceApprovalStatus
+import io.quarkus.panache.common.Sort
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.UUID
 import javax.enterprise.context.ApplicationScoped
@@ -45,5 +46,20 @@ class DeviceRequestRepository: AbstractRepository<DeviceRequestEntity, UUID>() {
      */
     suspend fun update(deviceRequest: DeviceRequestEntity): DeviceRequestEntity {
         return persistSuspending(deviceRequest)
+    }
+
+    /**
+     * Lists Device Requests
+     *
+     * @param rangeStart range start
+     * @param rangeEnd range end
+     * @return list of device requests and count
+     */
+    suspend fun list(rangeStart: Int?, rangeEnd: Int?): Pair<List<DeviceRequestEntity>, Long> {
+        return applyRangeToQuery(
+            query = findAll(Sort.descending("createdAt")),
+            firstIndex = rangeStart,
+            lastIndex = rangeEnd
+        )
     }
 }
