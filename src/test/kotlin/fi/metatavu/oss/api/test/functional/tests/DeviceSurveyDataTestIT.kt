@@ -90,6 +90,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                         orderNumber = i,
                         layoutId = createdLayout.id!!,
                         title = "Page $i",
+                        nextButtonVisible = true,
                         properties = arrayOf(
                             PageProperty(
                                 key = "htmlVariable",
