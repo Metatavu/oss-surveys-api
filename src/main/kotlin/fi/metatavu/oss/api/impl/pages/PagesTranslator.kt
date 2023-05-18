@@ -38,6 +38,7 @@ class PagesTranslator: AbstractTranslator<PageEntity, Page>() {
             },
             layoutId = entity.layout.id,
             orderNumber = entity.orderNumber,
+            nextButtonVisible = entity.nextButtonVisible,
             metadata = translateMetadata(entity)
         )
     }

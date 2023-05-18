@@ -54,6 +54,7 @@ class PageTestIT: AbstractResourceTest() {
         assertNotNull(created!!.id)
         assertEquals(page.title, created.title)
         assertEquals(2, created.properties?.size)
+        assertEquals(true, created.nextButtonVisible)
         val textProp = created.properties!!.find { prop -> prop.key == "key" }
         assertEquals(page.properties?.get(0)?.key, textProp!!.key)
         assertEquals(page.properties?.get(0)?.value, textProp.value)
@@ -96,6 +97,7 @@ class PageTestIT: AbstractResourceTest() {
         assertEquals(0, createdPage.question.options[0].orderNumber)
         assertEquals("Other", createdPage.question.options[1].questionOptionValue)
         assertEquals(1, createdPage.question.options[1].orderNumber)
+        assertEquals(true, createdPage.nextButtonVisible)
 
         // test modifying the question
         val questionUpdateData = PageQuestion(
@@ -116,11 +118,16 @@ class PageTestIT: AbstractResourceTest() {
             )
         )
 
-        val updatedPage = tb.manager.pages.update(surveyId = survey.id, pageId = createdPage.id!!, page = page.copy(question = questionUpdateData))
+        val updatedPage = tb.manager.pages.update(surveyId = survey.id, pageId = createdPage.id!!, page = page.copy(
+            question = questionUpdateData,
+            nextButtonVisible = false
+        ))
+
         assertNotNull(updatedPage.id)
         val updatedQuestion = updatedPage.question!!
         assertEquals(questionUpdateData.type, updatedQuestion.type)
         assertEquals(3, updatedQuestion.options.size)
+        assertEquals(false, updatedPage.nextButtonVisible)
         assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Heinz" })
         assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Other" })
         assertNotNull(updatedQuestion.options.find { it.questionOptionValue == "Hunts" })
@@ -230,7 +237,8 @@ class PageTestIT: AbstractResourceTest() {
                 PageProperty(key = "key2", value = "value2")
             ),
             orderNumber = 1,
-            layoutId = layoutId
+            layoutId = layoutId,
+            nextButtonVisible = true,
         )
     }
 }

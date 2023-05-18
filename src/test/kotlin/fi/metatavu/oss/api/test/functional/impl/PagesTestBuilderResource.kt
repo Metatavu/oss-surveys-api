@@ -43,7 +43,8 @@ class PagesTestBuilderResource(
             surveyId, Page(
                 title = "default page",
                 layoutId = layoutId,
-                orderNumber = orderNumber
+                orderNumber = orderNumber,
+                nextButtonVisible = true
             )
         )
         pageSurveyRelation[created.id!!] = surveyId
@@ -110,7 +111,8 @@ class PagesTestBuilderResource(
                 surveyId, pageId, Page(
                     title = "default page",
                     orderNumber = orderNumber,
-                    layoutId = layoutId
+                    layoutId = layoutId,
+                    nextButtonVisible = false
                 )
             )
             fail("Expected update to fail")

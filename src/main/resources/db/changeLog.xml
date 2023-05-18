@@ -278,4 +278,12 @@
             </column>
         </createTable>
     </changeSet>
+
+    <changeSet id="page_nextbuttonvisible" author="Ville Juutila">
+        <addColumn tableName="page">
+            <column name="nextbuttonvisible" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

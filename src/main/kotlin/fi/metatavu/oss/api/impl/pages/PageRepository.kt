@@ -49,16 +49,26 @@ class PageRepository: AbstractRepository<PageEntity, UUID>() {
      * @param survey survey
      * @param layout layout
      * @param orderNumber order number
+     * @param nextButtonVisible next button visible
      * @param userId user id
      * @return created page
      */
-    suspend fun create(id: UUID, title: String, survey: SurveyEntity, layout: LayoutEntity, orderNumber: Int, userId: UUID): PageEntity {
+    suspend fun create(
+        id: UUID,
+        title: String,
+        survey: SurveyEntity,
+        layout: LayoutEntity,
+        orderNumber: Int,
+        nextButtonVisible: Boolean,
+        userId: UUID
+    ): PageEntity {
         val pageEntity = PageEntity()
         pageEntity.id = id
         pageEntity.title = title
         pageEntity.survey = survey
         pageEntity.layout = layout
         pageEntity.orderNumber = orderNumber
+        pageEntity.nextButtonVisible = nextButtonVisible
         pageEntity.creatorId = userId
         pageEntity.lastModifierId = userId
         return persistSuspending(pageEntity)

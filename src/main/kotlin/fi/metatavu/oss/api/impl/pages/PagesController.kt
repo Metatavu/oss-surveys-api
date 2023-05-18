@@ -39,6 +39,7 @@ class PagesController {
             survey = survey,
             layout = layout,
             orderNumber = page.orderNumber,
+            nextButtonVisible = page.nextButtonVisible,
             userId = userId
         )
 
@@ -104,6 +105,7 @@ class PagesController {
         existingPage.title = updateData.title
         existingPage.orderNumber = updateData.orderNumber
         existingPage.layout = layout
+        existingPage.nextButtonVisible = updateData.nextButtonVisible
         existingPage.lastModifierId = userId
 
         pagePropertyRepository.listByPage(existingPage).forEach { pagePropertyRepository.deleteSuspending(it) }
