@@ -1,0 +1,289 @@
+<?xml version="1.1" encoding="UTF-8" standalone="no"?>
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+		http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-4.9.xsd">
+
+    <changeSet id="surveys" author="katja danilova">
+        <createTable tableName="survey">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creatorid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastmodifierid" type="binary(16)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="device_authentication" author="Ville Juutila">
+        <createTable tableName="device">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(191)"/>
+            <column name="serialnumber" type="varchar(191)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="description" type="varchar(191)"/>
+            <column name="location" type="varchar(191)"/>
+            <column name="devicestatus" type="varchar(191)"/>
+            <column name="devicekey" type="longblob">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creatorid" type="binary(16)"/>
+            <column name="lastmodifierid" type="binary(16)"/>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="devicerequest">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="serialnumber" type="varchar(191)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="approvalstatus" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creatorid" type="binary(16)"/>
+            <column name="lastmodifierid" type="binary(16)"/>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="survey_status" author="Ville Juutila">
+        <addColumn tableName="survey">
+            <column name="status" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>UPDATE survey SET status = 'DRAFT';</sql>
+    </changeSet>
+
+    <changeSet id="survey_pages" author="katja danilova">
+        <createTable tableName="page">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="title" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="html" type="longtext">
+                <constraints nullable="false"/>
+            </column>
+            <column name="survey_id" type="binary(16)">
+                <constraints nullable="false" foreignKeyName="FK_PAGE_SURVEY_ID" referencedTableName="survey" referencedColumnNames="id"/>
+            </column>
+            <column name="creatorid" type="binary(16)"/>
+            <column name="lastmodifierid" type="binary(16)"/>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="pageproperty">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="propertyKey" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="longtext">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="page_id" type="binary(16)">
+                <constraints nullable="false" foreignKeyName="FK_PAGEPROPERTY_PAGE_ID" referencedTableName="page" referencedColumnNames="id"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="device_surveys" author="Ville Juutila">
+        <createTable tableName="devicesurvey">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="survey_id" type="binary(16)">
+                <constraints
+                    nullable="false"
+                    foreignKeyName="FK_DEVICE_SURVEY_SURVEY_ID"
+                    referencedColumnNames="id"
+                    referencedTableName="survey"/>
+            </column>
+            <column name="device_id" type="binary(16)">
+                <constraints
+                    nullable="false"
+                    foreignKeyName="FK_DEVICE_SURVEY_DEVICE_ID"
+                    referencedColumnNames="id"
+                    referencedTableName="device"/>
+            </column>
+            <column name="status" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="publishstarttime" type="datetime(6)"/>
+            <column name="publishendtime" type="datetime(6)"/>
+            <column name="creatorid" type="binary(16)"/>
+            <column name="lastmodifierid" type="binary(16)"/>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="survey_desc_timeout" author="Ville Juutila">
+        <addColumn tableName="survey">
+            <column name="description" type="varchar(191)"/>
+        </addColumn>
+        <addColumn tableName="survey">
+            <column name="timeout" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+        <sql>
+            UPDATE survey SET timeout = 60;
+        </sql>
+    </changeSet>
+
+    <changeSet id="page_layouts" author="katja danilova">
+        <createTable tableName="layout">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="thumbnailurl" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="html" type="longtext">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creatorid" type="binary(16)"/>
+            <column name="lastmodifierid" type="binary(16)"/>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addColumn tableName="page">
+            <column name="layout_id"
+                    type="binary(16)">
+                <constraints
+                        foreignKeyName="FK_PAGE_LAYOUT_ID"
+                        referencedColumnNames="id"
+                        referencedTableName="layout"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="page_ordering" author="katja danilova">
+        <addColumn tableName="page">
+            <column name="ordernumber" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="page_remove_html" author="katja danilova">
+        <dropColumn tableName="page" columnName="html"/>
+    </changeSet>
+
+    <changeSet id="page_prop_refactoring" author="katja danilova">
+        <dropColumn tableName="pageproperty" columnName="type"/>
+
+        <createTable tableName="layoutvariable">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="layout_id" type="binary(16)">
+                <constraints
+                        foreignKeyName="FK_LAYOUTVARIABLE_LAYOUT_ID"
+                        referencedColumnNames="id"
+                        referencedTableName="layout"/>
+            </column>
+            <column name="variabletype" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="variablekey" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+    
+    <changeSet id="page_questions" author="katja danilova">
+        <createTable tableName="pagequestion">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="page_id" type="binary(16)">
+                <constraints
+                        foreignKeyName="FK_QUESTION_PAGE_ID"
+                        referencedColumnNames="id"
+                        referencedTableName="page"/>
+            </column>
+            <column name="type" type="varchar(191)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="questionoption">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="question_id" type="binary(16)">
+                <constraints
+                        foreignKeyName="FK_QUESTIONOPTION_PAGEQUESTION_ID"
+                        referencedColumnNames="id"
+                        referencedTableName="pagequestion"/>
+            </column>
+            <column name="value" type="varchar(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="ordernumber" type="integer">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="page_nextbuttonvisible" author="Ville Juutila">
+        <addColumn tableName="page">
+            <column name="nextbuttonvisible" type="boolean">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+</databaseChangeLog>
