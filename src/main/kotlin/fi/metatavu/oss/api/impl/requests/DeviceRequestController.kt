@@ -69,6 +69,9 @@ class DeviceRequestController {
     ): DeviceRequestEntity {
         foundDeviceRequest.id = foundDeviceRequest.id
         foundDeviceRequest.approvalStatus = updatedDeviceRequest.approvalStatus!!
+        foundDeviceRequest.name = updatedDeviceRequest.name
+        foundDeviceRequest.description = updatedDeviceRequest.description
+        foundDeviceRequest.location = updatedDeviceRequest.location
         foundDeviceRequest.lastModifierId = userId
 
         return deviceRequestRepository.update(deviceRequest = foundDeviceRequest)

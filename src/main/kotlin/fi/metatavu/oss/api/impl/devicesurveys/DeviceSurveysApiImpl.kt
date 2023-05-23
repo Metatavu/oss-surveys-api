@@ -67,6 +67,13 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
             return@async createBadRequest("Device survey schedule is not valid")
         }
 
+        if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {
+            deviceSurveyController.listDeviceSurveysByDevice(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
+                .first
+                .forEach { deviceSurveyController.deleteDeviceSurvey(it) }
+
+        }
+
         val createdDeviceSurvey = deviceSurveyController.createDeviceSurvey(
             deviceSurvey = deviceSurvey,
             device = foundDevice,
@@ -147,6 +154,14 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
 
         if (deviceSurvey.status == DeviceSurveyStatus.SCHEDULED && !deviceSurveyController.validateScheduledDeviceSurvey(deviceSurvey)) {
             return@async createBadRequest("Device survey schedule is not valid")
+        }
+
+        if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {
+            deviceSurveyController.listDeviceSurveysByDevice(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
+                .first
+                .filter { it.id != deviceSurveyId }
+                .forEach { deviceSurveyController.deleteDeviceSurvey(it) }
+
         }
 
         val updatedDeviceSurvey = deviceSurveyController.updateDeviceSurvey(

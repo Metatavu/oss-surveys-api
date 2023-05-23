@@ -23,13 +23,13 @@ class DeviceRequestEntity: DBMetadata() {
     lateinit var approvalStatus: DeviceApprovalStatus
 
     @Column
-    lateinit var name: String
+    var name: String? = null
 
     @Column
-    lateinit var description: String
+    var description: String? = null
 
     @Column
-    lateinit var location: String
+    var location: String? = null
 
     override var creatorId: UUID? = null
     override var lastModifierId: UUID? = null
