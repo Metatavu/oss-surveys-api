@@ -22,6 +22,15 @@ class DeviceRequestEntity: DBMetadata() {
     @Enumerated(EnumType.STRING)
     lateinit var approvalStatus: DeviceApprovalStatus
 
+    @Column
+    lateinit var name: String
+
+    @Column
+    lateinit var description: String
+
+    @Column
+    lateinit var location: String
+
     override var creatorId: UUID? = null
     override var lastModifierId: UUID? = null
 }
