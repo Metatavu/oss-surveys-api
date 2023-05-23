@@ -5,8 +5,7 @@ import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
 import fi.metatavu.oss.test.client.models.*
 import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import java.time.OffsetDateTime
 import java.util.*
@@ -29,6 +28,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             status = DeviceSurveyStatus.PUBLISHED,
         )
         val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
+            addClosable = false,
             deviceId = deviceId,
             deviceSurvey = deviceSurveyToCreate
         )
@@ -42,6 +42,14 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         assertNotNull(createdDeviceSurvey.metadata.modifiedAt)
         assertNotNull(createdDeviceSurvey.metadata.lastModifierId)
         assertEquals(createdDeviceSurvey.metadata.creatorId, createdDeviceSurvey.metadata.lastModifierId)
+
+        // Test that creating a new device survey when device has published surveys deletes the old ones
+        val createdDeviceSurvey2 = testBuilder.manager.deviceSurveys.create(deviceId = deviceId, deviceSurvey = deviceSurveyToCreate)
+        val foundDeviceSurveys = testBuilder.manager.deviceSurveys.list(deviceId)
+
+        assertEquals(1, foundDeviceSurveys.size)
+        assertEquals(createdDeviceSurvey2.id, foundDeviceSurveys[0].id)
+        assertNotEquals(createdDeviceSurvey.id, foundDeviceSurveys[0].id)
 
         // permissions
         testBuilder.consumer.deviceSurveys.assertCreateFail(403, deviceId, deviceSurveyToCreate)
@@ -90,7 +98,9 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 deviceSurvey = DeviceSurvey(
                     surveyId = createdSurvey.id,
                     deviceId = deviceId,
-                    status = DeviceSurveyStatus.PUBLISHED
+                    status = DeviceSurveyStatus.SCHEDULED,
+                    publishStartTime = OffsetDateTime.now().plusDays(1).toString(),
+                    publishEndTime = OffsetDateTime.now().plusDays(2).toString()
                 )
             )
             createdSurveys.add(createdSurvey)
@@ -171,6 +181,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         approveSurvey(createdSurvey)
 
         val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
+            addClosable = false,
             deviceId = deviceId,
             deviceSurvey = DeviceSurvey(
                 surveyId = createdSurvey.id!!,
@@ -178,6 +189,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
                 status = DeviceSurveyStatus.PUBLISHED
             )
         )
+
         val updatedDeviceSurvey = testBuilder.manager.deviceSurveys.update(
             deviceId = deviceId,
             deviceSurveyId = createdDeviceSurvey.id!!,
@@ -193,6 +205,22 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         assertEquals(createdDeviceSurvey.surveyId, updatedDeviceSurvey.surveyId)
         assertEquals(createdDeviceSurvey.status, DeviceSurveyStatus.PUBLISHED)
         assertEquals(updatedDeviceSurvey.status, DeviceSurveyStatus.SCHEDULED)
+
+        // Test that updating a device survey to be published when device has published surveys deletes the old ones
+        testBuilder.manager.deviceSurveys.update(
+            deviceId = deviceId,
+            deviceSurveyId = createdDeviceSurvey.id,
+            deviceSurvey = createdDeviceSurvey.copy(
+                status = DeviceSurveyStatus.PUBLISHED
+            )
+        )
+        val foundDeviceSurveys1 = testBuilder.manager.deviceSurveys.list(deviceId)
+        assertEquals(1, foundDeviceSurveys1.size)
+        val createdDeviceSurvey2 = testBuilder.manager.deviceSurveys.create(deviceId = deviceId, deviceSurvey = createdDeviceSurvey)
+        val foundDeviceSurveys2 = testBuilder.manager.deviceSurveys.list(deviceId)
+
+        assertEquals(1, foundDeviceSurveys2.size)
+        assertEquals(createdDeviceSurvey2.id, foundDeviceSurveys2[0].id)
     }
 
     @Test

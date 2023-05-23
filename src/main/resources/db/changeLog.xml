@@ -286,4 +286,16 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="devicerequest_new_fields" author="Ville Juutila">
+        <addColumn tableName="devicerequest">
+            <column name="name" type="varchar(191)"/>
+        </addColumn>
+        <addColumn tableName="devicerequest">
+            <column name="description" type="varchar(191)"/>
+        </addColumn>
+        <addColumn tableName="devicerequest">
+            <column name="location" type="varchar(191)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>
