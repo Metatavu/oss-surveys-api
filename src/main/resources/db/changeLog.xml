@@ -287,6 +287,18 @@
         </addColumn>
     </changeSet>
 
+    <changeSet id="devicerequest_new_fields" author="Ville Juutila">
+        <addColumn tableName="devicerequest">
+            <column name="name" type="varchar(191)"/>
+        </addColumn>
+        <addColumn tableName="devicerequest">
+            <column name="description" type="varchar(191)"/>
+        </addColumn>
+        <addColumn tableName="devicerequest">
+            <column name="location" type="varchar(191)"/>
+        </addColumn>
+    </changeSet>
+
     <changeSet id="answers" author="katja danilova">
         <createTable tableName="pageanswer">
             <column name="id" type="binary(16)">
@@ -314,7 +326,7 @@
             <column name="creatorid" type="binary(16)"/>
             <column name="lastmodifierid" type="binary(16)"/>
         </createTable>
-        
+
         <!-- extensions to page answers -->
         <createTable tableName="pageanswertext">
             <column name="id" type="binary(16)">

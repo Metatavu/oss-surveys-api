@@ -1,4 +1,4 @@
-package fi.metatavu.plastep.api.migrations
+package fi.metatavu.oss.api.migrations
 
 import io.quarkus.runtime.StartupEvent
 import io.quarkus.runtime.util.ExceptionUtil

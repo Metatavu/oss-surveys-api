@@ -73,13 +73,21 @@ class DeviceRequestsTestIT: AbstractResourceTest() {
 
         val updatedDeviceRequest = testBuilder.manager.deviceRequests.updateDeviceRequest(
             requestId = deviceRequest.id,
-            deviceRequest = deviceRequest.copy(approvalStatus = DeviceApprovalStatus.APPROVED)
+            deviceRequest = deviceRequest.copy(
+                approvalStatus = DeviceApprovalStatus.APPROVED,
+                name = "test-device",
+                location = "test-location",
+                description = "test-description"
+            )
         )
 
         assertEquals(deviceRequest.id, updatedDeviceRequest.id)
         assertEquals(deviceRequest.serialNumber, updatedDeviceRequest.serialNumber)
         assertEquals(OffsetDateTime.parse(deviceRequest.metadata!!.createdAt).toEpochSecond(), OffsetDateTime.parse(updatedDeviceRequest.metadata!!.createdAt).toEpochSecond())
         assertEquals(updatedDeviceRequest.approvalStatus, DeviceApprovalStatus.APPROVED)
+        assertEquals(updatedDeviceRequest.name, "test-device")
+        assertEquals(updatedDeviceRequest.location, "test-location")
+        assertEquals(updatedDeviceRequest.description, "test-description")
 
         // Test that can update only as manager
         testBuilder.empty.deviceRequests.assertUpdateFail(
@@ -108,12 +116,24 @@ class DeviceRequestsTestIT: AbstractResourceTest() {
 
         testBuilder.manager.deviceRequests.updateDeviceRequest(
             requestId = deviceRequest.id,
-            deviceRequest = deviceRequest.copy(approvalStatus = DeviceApprovalStatus.APPROVED)
+            deviceRequest = deviceRequest.copy(
+                approvalStatus = DeviceApprovalStatus.APPROVED,
+                name = "test-device",
+                location = "test-location",
+                description = "test-description"
+            )
         )
 
         val deviceKey = testBuilder.manager.deviceRequests.getDeviceKey(requestId = deviceRequest.id)
 
         assertNotNull(deviceKey)
+
+        val createdDevice = testBuilder.manager.devices.find(deviceRequest.id)
+
+        assertNotNull(createdDevice)
+        assertEquals(createdDevice.name, "test-device")
+        assertEquals(createdDevice.location, "test-location")
+        assertEquals(createdDevice.description, "test-description")
 
         // Test that device request is deleted after key is retrieved (e.g. key can only be retrieved once)
         testBuilder.manager.deviceRequests.assertGetKeyFail(

@@ -63,13 +63,16 @@ class DeviceSurveysTestBuilderResource(
      * @param deviceSurvey device survey to create
      * @return created device survey
      */
-    fun create(deviceId: UUID, deviceSurvey: DeviceSurvey): DeviceSurvey {
-        return addClosable(
-            api.createDeviceSurvey(
-                deviceId = deviceId,
-                deviceSurvey =  deviceSurvey
-            )
+    fun create(deviceId: UUID, deviceSurvey: DeviceSurvey, addClosable: Boolean = true): DeviceSurvey {
+        val created = api.createDeviceSurvey(
+            deviceId = deviceId,
+            deviceSurvey =  deviceSurvey
         )
+        if (!addClosable) {
+         return created
+        }
+
+        return addClosable(created)
     }
 
     /**

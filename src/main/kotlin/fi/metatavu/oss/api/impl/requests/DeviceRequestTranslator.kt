@@ -12,6 +12,9 @@ class DeviceRequestTranslator: AbstractTranslator<DeviceRequestEntity, DeviceReq
             id = entity.id,
             serialNumber = entity.serialNumber,
             approvalStatus = entity.approvalStatus,
+            name = entity.name,
+            description = entity.description,
+            location = entity.location,
             metadata = translateMetadata(entity)
         )
     }
