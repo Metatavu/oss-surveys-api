@@ -95,7 +95,7 @@ class SurveyAnswersApiImpl : SurveyAnswersApi, AbstractApi() {
         pageId: UUID,
         answerId: UUID
     ): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
-        if (!isStaging && !isTest) return@async createForbidden("Not allowed in production environment")
+        if (!isTest) return@async createForbidden("Allowed only for testing purposes")
         val pageOrError = findSurveyPage(
             pageId = pageId,
             surveyId = surveyId
