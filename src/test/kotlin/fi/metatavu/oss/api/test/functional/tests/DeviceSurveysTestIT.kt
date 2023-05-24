@@ -400,7 +400,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         )
         // Survey doesn't exist
         testBuilder.manager.deviceSurveys.assertDeleteFail(
-            expectedStatusCode = 400,
+            expectedStatusCode = 404,
             deviceId = deviceId,
             deviceSurveyId = UUID.randomUUID()
         )
