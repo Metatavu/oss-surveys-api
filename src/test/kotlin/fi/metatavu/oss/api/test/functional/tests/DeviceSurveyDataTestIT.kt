@@ -520,6 +520,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                 ),
                 expectedStatusCode = 401
             )
+            tb.manager.deviceData.setDeviceKey(deviceKey)
         }
     }
 
