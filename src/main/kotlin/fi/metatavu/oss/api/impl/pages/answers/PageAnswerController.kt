@@ -12,7 +12,6 @@ import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerMulti
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerSingle
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerText
 import fi.metatavu.oss.api.impl.pages.answers.repositories.*
-import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
 import fi.metatavu.oss.api.impl.pages.questions.PageQuestionEntity
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionEntity
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionRepository
@@ -29,9 +28,6 @@ import javax.inject.Inject
  */
 @ApplicationScoped
 class PageAnswerController {
-
-    @Inject
-    lateinit var pageQuestionController: PageQuestionController
 
     @Inject
     lateinit var pageOptionRepository: QuestionOptionRepository
@@ -137,11 +133,15 @@ class PageAnswerController {
     suspend fun delete(answer: PageAnswerBaseEntity) {
         when (answer) {
             is PageAnswerMulti -> {
-                pageAnswerMultiToOptionsRepository.listByPageAnswer(answer).forEach {
-                    pageAnswerMultiToOptionsRepository.delete(it).awaitSuspending()
+                val options = pageAnswerMultiToOptionsRepository.listByPageAnswer(answer)
+                for (option in options) {
+                    pageAnswerMultiToOptionsRepository.delete(option).awaitSuspending()
                 }
+
+                pageAnswerMultiToOptionsRepository.flush().awaitSuspending()
             }
         }
+
         pageAnswerRepository.deleteSuspending(answer)
     }
 
