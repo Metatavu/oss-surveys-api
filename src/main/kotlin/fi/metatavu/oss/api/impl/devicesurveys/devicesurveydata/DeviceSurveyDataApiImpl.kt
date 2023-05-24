@@ -102,7 +102,7 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
             id = pageId
         )
 
-        if (page.survey != deviceSurvey.survey) {
+        if (page.survey.id != deviceSurvey.survey.id) {
             return@async createNotFoundWithMessage(
                 target = PAGE,
                 id = pageId)
@@ -113,7 +113,7 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
         )
 
 
-        if (deviceSurvey.device != device) {
+        if (deviceSurvey.device.id != device.id) {
             return@async createBadRequest("Device in path and device survey object does not match")
         }
 

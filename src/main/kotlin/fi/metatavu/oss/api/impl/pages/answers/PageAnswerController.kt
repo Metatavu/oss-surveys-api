@@ -137,8 +137,7 @@ class PageAnswerController {
     suspend fun delete(answer: PageAnswerBaseEntity) {
         when (answer) {
             is PageAnswerMulti -> {
-                val optionns = pageAnswerMultiToOptionsRepository.listByPageAnswer(answer)
-                optionns.forEach {
+                pageAnswerMultiToOptionsRepository.listByPageAnswer(answer).forEach {
                     pageAnswerMultiToOptionsRepository.delete(it).awaitSuspending()
                 }
             }

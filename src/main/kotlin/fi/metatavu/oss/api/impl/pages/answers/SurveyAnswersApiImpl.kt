@@ -141,7 +141,7 @@ class SurveyAnswersApiImpl : SurveyAnswersApi, AbstractApi() {
             id = pageId
         )
 
-        if (page.survey != survey) {
+        if (page.survey.id != survey.id) {
             return null to createNotFoundWithMessage(
                 target = PAGE,
                 id = pageId
