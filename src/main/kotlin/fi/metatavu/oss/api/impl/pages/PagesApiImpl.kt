@@ -86,7 +86,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
             val survey = surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(SURVEY, surveyId)
             val page = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(PAGE, pageId)
 
-            if (page.survey != survey) return@async createNotFoundWithMessage(PAGE, pageId)
+            if (page.survey.id != survey.id) return@async createNotFoundWithMessage(PAGE, pageId)
 
             createOk(pagesTranslator.translate(page))
         }.asUni()
@@ -99,7 +99,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
             val survey = surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(SURVEY, surveyId)
             val existingPage = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(PAGE, pageId)
 
-            if (existingPage.survey != survey) return@async createNotFoundWithMessage(PAGE, pageId)
+            if (existingPage.survey.id != survey.id) return@async createNotFoundWithMessage(PAGE, pageId)
 
             val layout = layoutController.find(page.layoutId) ?: return@async createBadRequest(
                 "No layout found!"
@@ -125,7 +125,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
                 surveyController.findSurvey(surveyId) ?: return@async createNotFoundWithMessage(SURVEY, surveyId)
             val existingPage = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(PAGE, pageId)
 
-            if (existingPage.survey != survey) return@async createNotFoundWithMessage(PAGE, pageId)
+            if (existingPage.survey.id != survey.id) return@async createNotFoundWithMessage(PAGE, pageId)
             canBeModified(existingPage).let { if (it != null) return@async it }
 
             pagesController.deletePage(existingPage)
