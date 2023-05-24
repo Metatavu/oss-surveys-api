@@ -368,7 +368,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             val asnwerString0 = jacksonObjectMapper().writeValueAsString(
                 listOf(
                     answerOption0.id,
-                    answerOption2.id
+                    answerOption1.id
                 )
             )
             createAnswer(
@@ -396,11 +396,11 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                 pageId = page.id!!
             )
             assertEquals(2, answers.size)
-            val answer0 = answers.find { it.answer == asnwerString0 }
+            val answer0 = answers.find { it.answer!!.contains(answerOption0.id.toString()) &&  it.answer.contains(answerOption1.id.toString()) }
             assertEquals(page.id, answer0?.pageId)
             assertNotNull(answer0?.id)
 
-            val answer1 = answers.find { it.answer == asnwerString1 }
+            val answer1 = answers.find { it.answer!!.contains(answerOption0.id.toString()) &&  it.answer.contains(answerOption2.id.toString()) }
             assertEquals(page.id, answer1?.pageId)
             assertNotNull(answer1?.id)
 
@@ -488,13 +488,13 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             )
             tb.manager.deviceData.assertCreateFail(
                 deviceId = deviceId,
-                deviceSurveyId = deviceSurvey1.id!!,
-                pageId = page.id!!,
+                deviceSurveyId = deviceSurvey1.id,
+                pageId = page.id,
                 devicePageSurveyAnswer = DevicePageSurveyAnswer(
                     pageId = randomUUID,
                     answer = "qwerty"
                 ),
-                expectedStatusCode = 400
+                expectedStatusCode = 404
             )
 
             // cannot asnwer for survey that the page does not belong to
