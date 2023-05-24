@@ -6,7 +6,6 @@ import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.impl.layouts.LayoutController
 import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.impl.surveys.SurveyController
-import fi.metatavu.oss.api.model.DeviceSurveyStatus
 import fi.metatavu.oss.api.model.Page
 import fi.metatavu.oss.api.spec.PagesApi
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
@@ -17,7 +16,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import org.eclipse.microprofile.config.inject.ConfigProperty
-import java.time.OffsetDateTime
 import java.util.*
 import javax.annotation.security.RolesAllowed
 import javax.enterprise.context.RequestScoped
@@ -111,7 +109,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
                 "No layout found!"
             )
 
-            if (hasBeenPublished(existingPage)) return@async createBadRequest("Page is/was published and cannot be updated")
+            canBeModified(existingPage).let { if (it != null) return@async it }
 
             val updatedPage = pagesController.updatePage(
                 existingPage = existingPage,
@@ -132,25 +130,32 @@ class PagesApiImpl : PagesApi, AbstractApi() {
             val existingPage = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(PAGE, pageId)
 
             if (existingPage.survey != survey) return@async createNotFoundWithMessage(PAGE, pageId)
-            if (hasBeenPublished(existingPage)) return@async createBadRequest("Page is/was published and cannot be deleted")
+            canBeModified(existingPage).let { if (it != null) return@async it }
 
             pagesController.deletePage(existingPage)
             createNoContent()
         }.asUni()
 
     /**
-     * Checks if page is/was published anywhere
+     * Checks if page can be modified. Does not apply for staging environment
      *
      * @param page page
      * @return if is published on any device
      */
-    private suspend fun hasBeenPublished(page: PageEntity): Boolean {
-        if (environment == "staging") return false
-        val belongsToDeviceSurveys = deviceSurveyController.listDeviceSurveysBySurvey(page.survey.id).first
+    private suspend fun canBeModified(page: PageEntity): Response? {
+        if (environment == "staging") return null
+        val (foundDeviceSurveys) = deviceSurveyController.listDeviceSurveysBySurvey(page.survey.id)
         val hasAnswers = pageAnswerController.list(page)
-        return belongsToDeviceSurveys.any {
-            it.status == DeviceSurveyStatus.PUBLISHED ||
-                (it.publishEndTime != null && it.publishEndTime!!.isBefore(OffsetDateTime.now()))
-        } || hasAnswers.isNotEmpty()
+
+        if (foundDeviceSurveys.isNotEmpty()) {
+            val deviceIds = foundDeviceSurveys.map { it.device.id }.toSet()
+            return createBadRequest("Survey is assigned to devices $deviceIds")
+        }
+
+        if (hasAnswers.isNotEmpty()) {
+            return createBadRequest("There have been answers submitted for this page")
+        }
+
+        return null
     }
 }
