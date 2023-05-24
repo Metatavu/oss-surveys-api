@@ -3,6 +3,7 @@ package fi.metatavu.oss.api.impl
 import fi.metatavu.oss.api.impl.crypto.CryptoController
 import fi.metatavu.oss.api.impl.devices.DeviceController
 import fi.metatavu.oss.api.model.Error
+import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.eclipse.microprofile.jwt.JsonWebToken
 import java.util.*
 import javax.enterprise.context.RequestScoped
@@ -35,6 +36,10 @@ abstract class AbstractApi {
     @Context
     lateinit var httpHeaders: HttpHeaders
 
+    @Inject
+    @ConfigProperty(name = "environment")
+    protected lateinit var environment: String
+
     /**
      * Returns logged user id
      *
@@ -48,6 +53,12 @@ abstract class AbstractApi {
 
             return null
         }
+
+    protected val isStaging: Boolean
+        get() = environment == "staging"
+
+    protected val isTest: Boolean
+        get() = environment == "test"
 
     /**
      * Checks whether incoming request from Device has authorized device key as a header

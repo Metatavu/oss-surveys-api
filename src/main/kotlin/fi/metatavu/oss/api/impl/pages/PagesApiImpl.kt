@@ -48,10 +48,6 @@ class PagesApiImpl : PagesApi, AbstractApi() {
     @Inject
     lateinit var vertx: io.vertx.core.Vertx
 
-    @Inject
-    @ConfigProperty(name = "environment")
-    protected lateinit var environment: String
-
     @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
     override fun listSurveyPages(surveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
@@ -143,7 +139,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
      * @return if is published on any device
      */
     private suspend fun canBeModified(page: PageEntity): Response? {
-        if (environment == "staging") return null
+        if (isStaging || isTest) return null
         val (foundDeviceSurveys) = deviceSurveyController.listDeviceSurveysBySurvey(page.survey.id)
         val hasAnswers = pageAnswerController.list(page)
 

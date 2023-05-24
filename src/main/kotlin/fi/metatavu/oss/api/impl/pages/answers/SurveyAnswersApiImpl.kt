@@ -25,10 +25,6 @@ import javax.ws.rs.core.Response
 class SurveyAnswersApiImpl : SurveyAnswersApi, AbstractApi() {
 
     @Inject
-    @ConfigProperty(name = "environment")
-    protected lateinit var environment: String
-
-    @Inject
     lateinit var surveyController: SurveyController
 
     @Inject
@@ -99,7 +95,7 @@ class SurveyAnswersApiImpl : SurveyAnswersApi, AbstractApi() {
         pageId: UUID,
         answerId: UUID
     ): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
-        if (environment != "staging") return@async createForbidden("Not allowed in production environment")
+        if (!isStaging && !isTest) return@async createForbidden("Not allowed in production environment")
         val pageOrError = findSurveyPage(
             pageId = pageId,
             surveyId = surveyId
