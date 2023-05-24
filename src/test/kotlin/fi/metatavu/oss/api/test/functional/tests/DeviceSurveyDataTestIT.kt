@@ -356,7 +356,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         val answerOption1 = page.question!!.options.find { it.orderNumber == multiOptions[1].orderNumber }!!
         val answerOption2 = page.question.options.find { it.orderNumber == multiOptions[2].orderNumber }!!
 
-        val asnwerString0 = jacksonObjectMapper().writeValueAsString(
+        val answerString0 = jacksonObjectMapper().writeValueAsString(
             listOf(
                 answerOption0.id,
                 answerOption1.id
@@ -367,10 +367,10 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page,
-            answer = asnwerString0
+            answer = answerString0
         )
 
-        val asnwerString1 = jacksonObjectMapper().writeValueAsString(
+        val answerString1 = jacksonObjectMapper().writeValueAsString(
             listOf(
                 answerOption0.id,
                 answerOption2.id
@@ -381,7 +381,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page,
-            answer = asnwerString1
+            answer = answerString1
         )
 
         val answers = testBuilder.manager.surveyAnswers.list(
@@ -423,12 +423,15 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
 
         val deviceSurvey1 = testBuilder.manager.deviceSurveys.createCurrentlyPublishedDeviceSurvey(
             deviceId = deviceId,
-            surveyId = createdSurvey.id!!
+            surveyId = createdSurvey.id!!,
+            addClosable = false // Device survey is cleaned along with the page
         )
+
         val deviceSurvey2 = testBuilder.manager.deviceSurveys.createCurrentlyPublishedDeviceSurvey(
             deviceId = deviceId,
             surveyId = createdSurvey2.id!!
         )
+
         //Create one page with freetext answer
         val page = testBuilder.manager.pages.create(
             surveyId = createdSurvey.id,
@@ -467,6 +470,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             ),
             expectedStatusCode = 404
         )
+
         testBuilder.manager.deviceData.assertCreateFail(
             deviceId = deviceId,
             deviceSurveyId = randomUUID,
@@ -477,6 +481,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             ),
             expectedStatusCode = 404
         )
+
         testBuilder.manager.deviceData.assertCreateFail(
             deviceId = deviceId,
             deviceSurveyId = deviceSurvey1.id,
@@ -488,7 +493,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             expectedStatusCode = 404
         )
 
-        // cannot asnwer for survey that the page does not belong to
+        // cannot answer for survey that the page does not belong to
         testBuilder.manager.deviceData.assertCreateFail(
             deviceId = deviceId,
             deviceSurveyId = deviceSurvey2.id!!,

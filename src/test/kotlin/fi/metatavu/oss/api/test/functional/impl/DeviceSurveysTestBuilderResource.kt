@@ -61,6 +61,7 @@ class DeviceSurveysTestBuilderResource(
      *
      * @param deviceId device id
      * @param deviceSurvey device survey to create
+     * @param addClosable add closable, defaults to true
      * @return created device survey
      */
     fun create(deviceId: UUID, deviceSurvey: DeviceSurvey, addClosable: Boolean = true): DeviceSurvey {
@@ -68,8 +69,9 @@ class DeviceSurveysTestBuilderResource(
             deviceId = deviceId,
             deviceSurvey =  deviceSurvey
         )
+
         if (!addClosable) {
-         return created
+          return created
         }
 
         return addClosable(created)
@@ -80,11 +82,13 @@ class DeviceSurveysTestBuilderResource(
      *
      * @param deviceId device id
      * @param surveyId survey id
+     * @param addClosable add closable
      * @return device survey
      */
     fun createCurrentlyPublishedDeviceSurvey(
         deviceId: UUID,
-        surveyId: UUID
+        surveyId: UUID,
+        addClosable: Boolean = true
     ): DeviceSurvey {
         val now = OffsetDateTime.now()
         return create(deviceId = deviceId,
@@ -94,7 +98,8 @@ class DeviceSurveysTestBuilderResource(
                 status = DeviceSurveyStatus.PUBLISHED,
                 publishStartTime = now.toString(),
                 publishEndTime = now.plusDays(1).toString()
-            )
+            ),
+            addClosable = addClosable
         )
     }
 
