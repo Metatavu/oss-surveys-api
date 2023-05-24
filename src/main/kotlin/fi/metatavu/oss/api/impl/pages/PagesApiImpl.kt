@@ -4,6 +4,7 @@ import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.UserRole
 import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.impl.layouts.LayoutController
+import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.impl.surveys.SurveyController
 import fi.metatavu.oss.api.model.DeviceSurveyStatus
 import fi.metatavu.oss.api.model.Page
@@ -42,6 +43,9 @@ class PagesApiImpl : PagesApi, AbstractApi() {
 
     @Inject
     lateinit var deviceSurveyController: DeviceSurveyController
+
+    @Inject
+    lateinit var pageAnswerController: PageAnswerController
 
     @Inject
     lateinit var vertx: io.vertx.core.Vertx
@@ -128,13 +132,14 @@ class PagesApiImpl : PagesApi, AbstractApi() {
             val existingPage = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(PAGE, pageId)
 
             if (existingPage.survey != survey) return@async createNotFoundWithMessage(PAGE, pageId)
+            if (hasBeenPublished(existingPage)) return@async createBadRequest("Page is/was published and cannot be deleted")
 
             pagesController.deletePage(existingPage)
             createNoContent()
         }.asUni()
 
     /**
-     * Checks if page is published anywhere
+     * Checks if page is/was published anywhere
      *
      * @param page page
      * @return if is published on any device
@@ -142,9 +147,10 @@ class PagesApiImpl : PagesApi, AbstractApi() {
     private suspend fun hasBeenPublished(page: PageEntity): Boolean {
         if (environment == "staging") return false
         val belongsToDeviceSurveys = deviceSurveyController.listDeviceSurveysBySurvey(page.survey.id).first
+        val hasAnswers = pageAnswerController.list(page)
         return belongsToDeviceSurveys.any {
             it.status == DeviceSurveyStatus.PUBLISHED ||
                 (it.publishEndTime != null && it.publishEndTime!!.isBefore(OffsetDateTime.now()))
-        }
+        } || hasAnswers.isNotEmpty()
     }
 }

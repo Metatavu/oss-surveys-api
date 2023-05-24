@@ -1,6 +1,7 @@
 package fi.metatavu.oss.api.impl.devices
 
 import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
+import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.impl.requests.DeviceRequestEntity
 import fi.metatavu.oss.api.model.DeviceStatus
 import io.quarkus.panache.common.Sort
@@ -21,6 +22,9 @@ class DeviceController {
 
     @Inject
     lateinit var deviceSurveyController: DeviceSurveyController
+
+    @Inject
+    lateinit var answerController: PageAnswerController
 
     /**
      * Creates a device
@@ -84,6 +88,9 @@ class DeviceController {
      * @param device device
      */
     suspend fun deleteDevice(device: DeviceEntity) {
+        answerController.list(device).forEach {
+            answerController.unassignFromDevice(it)
+        }
         val (deviceSurveys) = deviceSurveyController.listDeviceSurveysByDevice(device.id)
 
         for (deviceSurvey in deviceSurveys) {

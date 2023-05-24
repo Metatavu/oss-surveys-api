@@ -290,6 +290,7 @@ abstract class AbstractApi {
         const val PAGE = "Page"
         const val DEVICE_SURVEY = "Device Survey"
         const val LAYOUT = "Layout"
+        const val ANSWER = "Answer"
 
         const val deviceKeyHeader = "X-DEVICE-KEY"
     }

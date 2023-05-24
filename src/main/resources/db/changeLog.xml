@@ -286,4 +286,82 @@
             </column>
         </addColumn>
     </changeSet>
+
+    <changeSet id="answers" author="katja danilova">
+        <createTable tableName="pageanswer">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="page_id" type="binary(16)">
+                <constraints
+                        nullable="false"
+                        foreignKeyName="FK_PAGEANSWER_PAGE_ID"
+                        referencedColumnNames="id"
+                        referencedTableName="page"/>
+            </column>
+            <column name="device_id" type="binary(16)">
+                <constraints
+                        foreignKeyName="FK_PAGEANSWER_DEVICE_ID"
+                        referencedColumnNames="id"
+                        referencedTableName="device"/>
+            </column>
+            <column name="createdat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="modifiedat" type="datetime(6)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="creatorid" type="binary(16)"/>
+            <column name="lastmodifierid" type="binary(16)"/>
+        </createTable>
+        
+        <!-- extensions to page answers -->
+        <createTable tableName="pageanswertext">
+            <column name="id" type="binary(16)">
+                <constraints unique="true" nullable="false" primaryKey="true"
+                             foreignKeyName="FK_PAGEANSWERTEXT_PAGEANSWER_ID"
+                             referencedColumnNames="id" referencedTableName="pageanswer"/>
+            </column>
+            <column name="text" type="varchar(255)"/>
+        </createTable>
+
+        <createTable tableName="pageanswersingle">
+            <column name="id" type="binary(16)">
+                <constraints
+                        nullable="false" primaryKey="true"
+                        foreignKeyName="FK_PAGEANSWERSINGLE_PAGEANSWER_ID"
+                        referencedColumnNames="id" referencedTableName="pageanswer"/>
+            </column>
+            <column name="option_id" type="binary(16)">
+                <constraints nullable="false" primaryKey="true"
+                             foreignKeyName="FK_PAGEANSWERSINGLE_OPTION_ID"
+                             referencedColumnNames="id" referencedTableName="questionoption"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="pageanswermulti">
+            <column name="id" type="binary(16)">
+                <constraints
+                        nullable="false" primaryKey="true"
+                        foreignKeyName="FK_PAGEANSWERMULTI_PAGEANSWER_ID"
+                        referencedColumnNames="id" referencedTableName="pageanswer"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="multianswerstooptions">
+            <column name="id" type="binary(16)">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="pageanswermulti_id" type="binary(16)">
+                <constraints nullable="false" primaryKey="true"
+                             foreignKeyName="FK_multianswerstooptions_ANSWERMULTI_ID"
+                             referencedColumnNames="id" referencedTableName="pageanswermulti"/>
+            </column>
+            <column name="questionoption_id" type="binary(16)">
+                <constraints nullable="false" primaryKey="true"
+                             foreignKeyName="FK_multianswerstooptions_OPTION_ID"
+                             referencedColumnNames="id" referencedTableName="questionoption"/>
+            </column>
+        </createTable>
+    </changeSet>
 </databaseChangeLog>

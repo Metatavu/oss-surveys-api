@@ -72,7 +72,8 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
                     },
                     question = pageQuestionController.find(page)?.let { pageQuestion ->
                         pageQuestionTranslator.translate(pageQuestion)
-                    }
+                    },
+                    nextButtonVisible = page.nextButtonVisible
                 )
             },
             metadata = translateMetadata(entity)

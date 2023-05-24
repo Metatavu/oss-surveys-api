@@ -1,15 +1,15 @@
 package fi.metatavu.oss.api.test.functional.impl
 
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
-import fi.metatavu.oss.test.client.models.DeviceSurvey
 import fi.metatavu.oss.api.test.functional.TestBuilder
 import fi.metatavu.oss.api.test.functional.settings.ApiTestSettings
 import fi.metatavu.oss.test.client.apis.DeviceSurveysApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.infrastructure.ClientException
-import fi.metatavu.oss.test.client.models.DeviceApprovalStatus
+import fi.metatavu.oss.test.client.models.DeviceSurvey
 import fi.metatavu.oss.test.client.models.DeviceSurveyStatus
 import org.junit.jupiter.api.fail
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -68,6 +68,29 @@ class DeviceSurveysTestBuilderResource(
             api.createDeviceSurvey(
                 deviceId = deviceId,
                 deviceSurvey =  deviceSurvey
+            )
+        )
+    }
+
+    /**
+     * Creates valid survey with published status
+     *
+     * @param deviceId device id
+     * @param surveyId survey id
+     * @return device survey
+     */
+    fun createCurrentlyPublishedDeviceSurvey(
+        deviceId: UUID,
+        surveyId: UUID
+    ): DeviceSurvey {
+        val now = OffsetDateTime.now()
+        return create(deviceId = deviceId,
+            deviceSurvey = DeviceSurvey(
+                surveyId = surveyId,
+                deviceId = deviceId,
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = now.toString(),
+                publishEndTime = now.plusDays(1).toString()
             )
         )
     }

@@ -3,6 +3,11 @@ package fi.metatavu.oss.api.impl.devicesurveys.devicesurveydata
 import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.devices.DeviceController
 import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
+import fi.metatavu.oss.api.impl.pages.PagesController
+import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
+import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
+import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
+import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.asUni
 import io.vertx.core.Vertx
@@ -31,6 +36,15 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
 
     @Inject
     lateinit var deviceController: DeviceController
+
+    @Inject
+    lateinit var pageAnswerController: PageAnswerController
+
+    @Inject
+    lateinit var pageQuestionController: PageQuestionController
+
+    @Inject
+    lateinit var pagesController: PagesController
 
     @Inject
     lateinit var vertx: Vertx
@@ -63,6 +77,51 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
 
         val ( deviceSurveys, count ) = deviceSurveyController.listDeviceSurveysByDevice(device.id)
         return@async createOk(deviceSurveys.map { deviceSurveyDataTranslator.translate(it) }, count)
+    }.asUni()
+
+    @ReactiveTransactional
+    override fun submitSurveyAnswer(deviceId: UUID, deviceSurveyId: UUID, pageId: UUID, devicePageSurveyAnswer: DevicePageSurveyAnswer): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        if (!isAuthorizedDevice(deviceId)) return@async createUnauthorized(UNAUTHORIZED)
+        if (devicePageSurveyAnswer.answer.isNullOrEmpty()) {
+            return@async createBadRequest("Answer is required")
+        }
+
+        val device = deviceController.findDevice(deviceId) ?: return@async createNotFoundWithMessage(
+            target = DEVICE,
+            id = deviceId
+        )
+
+        val page = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(
+            target = PAGE,
+            id = pageId
+        )
+
+        val question = pageQuestionController.find(page) ?: return@async createNotFound(
+            "No question found for page $pageId"
+        )
+
+        val deviceSurvey = deviceSurveyController.findDeviceSurvey(deviceSurveyId)
+            ?: return@async createNotFoundWithMessage(
+                target = DEVICE_SURVEY,
+                id = deviceSurveyId
+            )
+
+        if (deviceSurvey.device != device) {
+            return@async createBadRequest("Device in path and device survey object does not match")
+        }
+
+        try {
+            pageAnswerController.create(
+                deviceSurvey = deviceSurvey,
+                page = page,
+                pageQuestion = question,
+                answer = devicePageSurveyAnswer
+            )
+        } catch (e: Exception) {
+            return@async createBadRequest("Invalid answer")
+        }
+
+        return@async createAccepted(null)
     }.asUni()
 
 }
