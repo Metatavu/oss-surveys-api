@@ -45,6 +45,8 @@ class SurveyAnswersApiImpl : SurveyAnswersApi, AbstractApi() {
         surveyId: UUID,
         pageId: UUID
     ): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        if (!isTest) return@async createForbidden("Allowed only for testing purposes")
+
         val pageOrError = findSurveyPage(
             pageId = pageId,
             surveyId = surveyId
@@ -66,6 +68,8 @@ class SurveyAnswersApiImpl : SurveyAnswersApi, AbstractApi() {
         pageId: UUID,
         answerId: UUID
     ): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        if (!isTest) return@async createForbidden("Allowed only for testing purposes")
+
         val pageOrError = findSurveyPage(
             pageId = pageId,
             surveyId = surveyId
@@ -117,7 +121,6 @@ class SurveyAnswersApiImpl : SurveyAnswersApi, AbstractApi() {
         pageAnswerController.delete(answer)
         return@async createAccepted(null)
     }.asUni()
-
 
     /**
      * Finds survey page, checking that all entities are present
