@@ -345,7 +345,7 @@
                         referencedColumnNames="id" referencedTableName="pageanswer"/>
             </column>
             <column name="option_id" type="binary(16)">
-                <constraints nullable="false" primaryKey="true"
+                <constraints nullable="false"
                              foreignKeyName="FK_PAGEANSWERSINGLE_OPTION_ID"
                              referencedColumnNames="id" referencedTableName="questionoption"/>
             </column>
@@ -365,13 +365,13 @@
                 <constraints primaryKey="true" nullable="false"/>
             </column>
             <column name="pageanswermulti_id" type="binary(16)">
-                <constraints nullable="false" primaryKey="true"
-                             foreignKeyName="FK_multianswerstooptions_ANSWERMULTI_ID"
+                <constraints nullable="false"
+                             foreignKeyName="FK_MULTIANSWEROPTIONS_ANSWERMULTI_ID"
                              referencedColumnNames="id" referencedTableName="pageanswermulti"/>
             </column>
             <column name="questionoption_id" type="binary(16)">
-                <constraints nullable="false" primaryKey="true"
-                             foreignKeyName="FK_multianswerstooptions_OPTION_ID"
+                <constraints nullable="false"
+                             foreignKeyName="FK_MULTIANSWEROPTIONS_OPTION_ID"
                              referencedColumnNames="id" referencedTableName="questionoption"/>
             </column>
         </createTable>
