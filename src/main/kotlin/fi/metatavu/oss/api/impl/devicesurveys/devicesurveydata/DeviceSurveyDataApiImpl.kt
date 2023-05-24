@@ -91,20 +91,27 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
             id = deviceId
         )
 
-        val page = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(
-            target = PAGE,
-            id = pageId
-        )
-
-        val question = pageQuestionController.find(page) ?: return@async createNotFound(
-            "No question found for page $pageId"
-        )
-
         val deviceSurvey = deviceSurveyController.findDeviceSurvey(deviceSurveyId)
             ?: return@async createNotFoundWithMessage(
                 target = DEVICE_SURVEY,
                 id = deviceSurveyId
             )
+
+        val page = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(
+            target = PAGE,
+            id = pageId
+        )
+
+        if (page.survey != deviceSurvey.survey) {
+            return@async createNotFoundWithMessage(
+                target = PAGE,
+                id = pageId)
+        }
+
+        val question = pageQuestionController.find(page) ?: return@async createNotFound(
+            "No question found for page $pageId"
+        )
+
 
         if (deviceSurvey.device != device) {
             return@async createBadRequest("Device in path and device survey object does not match")

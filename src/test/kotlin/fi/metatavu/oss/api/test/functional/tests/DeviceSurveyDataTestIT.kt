@@ -468,7 +468,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
 
             tb.manager.deviceData.assertCreateFail(
                 deviceId = deviceId,
-                deviceSurveyId = deviceSurvey1.id!!,
+                deviceSurveyId = deviceSurvey1.id,
                 pageId = randomUUID,
                 devicePageSurveyAnswer = DevicePageSurveyAnswer(
                     pageId = page.id,
@@ -501,7 +501,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             tb.manager.deviceData.assertCreateFail(
                 deviceId = deviceId,
                 deviceSurveyId = deviceSurvey2.id!!,
-                pageId = page.id!!,
+                pageId = page.id,
                 devicePageSurveyAnswer = DevicePageSurveyAnswer(
                     pageId = page.id,
                     answer = "qwerty"
@@ -512,13 +512,13 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             tb.manager.deviceData.setDeviceKey("invalid key")
             tb.manager.deviceData.assertCreateFail(
                 deviceId = deviceId,
-                deviceSurveyId = deviceSurvey1.id!!,
+                deviceSurveyId = deviceSurvey1.id,
                 pageId = page.id,
                 devicePageSurveyAnswer = DevicePageSurveyAnswer(
                     pageId = page.id,
                     answer = "qwerty"
                 ),
-                expectedStatusCode = 403
+                expectedStatusCode = 401
             )
         }
     }
