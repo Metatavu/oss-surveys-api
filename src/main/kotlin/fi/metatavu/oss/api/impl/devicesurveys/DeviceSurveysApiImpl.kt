@@ -95,7 +95,7 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
 
         val foundDeviceSurvey = deviceSurveyController
             .findDeviceSurvey(deviceSurveyId)
-            ?: return@async createBadRequest("Device survey not found")
+            ?: return@async createNotFound("Device survey not found")
 
         if (deviceId != foundDeviceSurvey.device.id) {
             return@async createBadRequest("Device id in path and body do not match")

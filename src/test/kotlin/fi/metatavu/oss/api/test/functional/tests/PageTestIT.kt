@@ -183,19 +183,6 @@ class PageTestIT: AbstractResourceTest() {
         it.manager.pages.assertUpdateFail(surveyId = UUID.randomUUID(), pageId = createdPage.id, layoutId = layout.id, expectedStatus = 404)
         it.manager.pages.assertUpdateFail(surveyId = survey.id, pageId = UUID.randomUUID(), layoutId = layout.id, expectedStatus = 404)
         it.manager.pages.assertUpdateFail(surveyId = survey2.id!!, pageId = createdPage.id, layoutId = layout.id, expectedStatus = 404)
-
-        //check that cannot be updated after publishing
-        it.manager.deviceSurveys.create(
-            deviceId = deviceId,
-            deviceSurvey = DeviceSurvey(
-                surveyId = survey.id,
-                deviceId = deviceId,
-                status = DeviceSurveyStatus.PUBLISHED,
-                publishStartTime = OffsetDateTime.now().minusDays(5).toString(),
-                publishEndTime = OffsetDateTime.now().minusDays(1).toString()
-            )
-        )
-        it.manager.pages.assertUpdateFail(surveyId = survey.id, pageId = createdPage.id, layoutId = layout.id, expectedStatus = 400)
     }
 
     @Test

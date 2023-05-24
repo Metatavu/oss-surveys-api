@@ -2,6 +2,8 @@ package fi.metatavu.oss.api.impl.pages.questions
 
 import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.impl.pages.PageEntity
+import fi.metatavu.oss.api.impl.pages.PageRepository
+import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.model.PageQuestion
 import fi.metatavu.oss.api.model.PageQuestionOption
 import java.util.*
@@ -21,7 +23,7 @@ class PageQuestionController {
     lateinit var questionOptionRepository: QuestionOptionRepository
 
     @Inject
-    lateinit var deviceSurveyController: DeviceSurveyController
+    lateinit var answerController: PageAnswerController
 
     /**
      * Finds questions assigned to the page if any
@@ -69,11 +71,14 @@ class PageQuestionController {
     }
 
     /**
-     * Deletes question's options
+     * Deletes question's options as well as all pages answers.
      *
      * @param question question to delete options from
      */
     suspend fun deleteDependentOptions(question: PageQuestionEntity) {
+        answerController.list(question.page).forEach { answer ->
+            answerController.delete(answer)
+        }
         questionOptionRepository.listByQuestion(question).forEach {
             questionOptionRepository.deleteSuspending(it)
         }

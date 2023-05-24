@@ -21,7 +21,8 @@ class PageQuestionTranslator : AbstractTranslator<PageQuestionEntity, PageQuesti
             options = pageQuestionOptionRepository.listByQuestion(entity).map {
                 PageQuestionOption(
                     questionOptionValue = it.value,
-                    orderNumber = it.orderNumber!!
+                    orderNumber = it.orderNumber!!,
+                    id = it.id
                 )
             }
         )

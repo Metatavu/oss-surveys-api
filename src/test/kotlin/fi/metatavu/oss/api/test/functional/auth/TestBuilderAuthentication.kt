@@ -29,7 +29,8 @@ class TestBuilderAuthentication(
     val pages = PagesTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
     val deviceSurveys = DeviceSurveysTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
     val layouts = LayoutTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
-    val deviceData = DeviceSurveyDatasTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val surveyAnswers = SurveyAnswersTestBuilderResource(testBuilder, this.accessTokenProvider, createClient())
+    val deviceData = DeviceSurveyDatasTestBuilderResource(testBuilder, this.accessTokenProvider, createClient(), surveyAnswers)
 
     override fun createClient(authProvider: AccessTokenProvider): ApiClient {
         val result = ApiClient(ApiTestSettings.apiBasePath)

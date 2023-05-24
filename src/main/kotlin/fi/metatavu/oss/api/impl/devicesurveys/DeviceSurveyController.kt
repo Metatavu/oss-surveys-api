@@ -1,6 +1,7 @@
 package fi.metatavu.oss.api.impl.devicesurveys
 
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
+import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.impl.realtime.RealtimeNotificationController
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DeviceSurvey
@@ -23,6 +24,9 @@ class DeviceSurveyController {
 
     @Inject
     lateinit var realtimeNotificationController: RealtimeNotificationController
+
+    @Inject
+    lateinit var answerController: PageAnswerController
 
     /**
      * Lists device surveys by device

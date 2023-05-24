@@ -6,7 +6,7 @@ import fi.metatavu.oss.api.test.functional.settings.ApiTestSettings
 import fi.metatavu.oss.test.client.apis.DeviceDataApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.infrastructure.ClientException
-import fi.metatavu.oss.test.client.models.DeviceApprovalStatus
+import fi.metatavu.oss.test.client.models.DevicePageSurveyAnswer
 import fi.metatavu.oss.test.client.models.DeviceSurvey
 import fi.metatavu.oss.test.client.models.DeviceSurveyData
 import org.junit.jupiter.api.fail
@@ -16,14 +16,19 @@ import java.util.*
  * Test resources fo device survey data
  */
 class DeviceSurveyDatasTestBuilderResource(
-    private val testBuilder: TestBuilder,
+    testBuilder: TestBuilder,
     private val accessTokenProvider: AccessTokenProvider?,
-    apiClient: ApiClient
+    apiClient: ApiClient,
+    private val surveyAnswersResource: SurveyAnswersTestBuilderResource
 ) : ApiTestBuilderResource<DeviceSurvey, ApiClient>(testBuilder, apiClient) {
 
     private var deviceKey: String? = null
+
+    // List to help keep track of which device answers were already added as closable resources
+    private val submittedClosableAnswersIDs = mutableListOf<UUID>()
+
     override fun clean(t: DeviceSurvey?) {
-        // read-only resource
+        // cleaned in survey answers resource instead
     }
 
     override fun getApi(): DeviceDataApi {
@@ -69,6 +74,72 @@ class DeviceSurveyDatasTestBuilderResource(
             deviceId = deviceId,
             deviceSurveyId = deviceSurveyId
         )
+    }
+
+    /**
+     * Submits the answer from the survey
+     *
+     * @param deviceId device id
+     * @param deviceSurveyId device survey id
+     * @param pageId page id
+     * @param devicePageSurveyAnswer device page survey answer
+     * @param surveyId survey id (not needed for actual request)
+     */
+    fun submitSurveyAnswer(
+        deviceId: UUID,
+        deviceSurveyId: UUID,
+        pageId: UUID,
+        devicePageSurveyAnswer: DevicePageSurveyAnswer,
+        surveyId: UUID
+    ) {
+        api.submitSurveyAnswer(
+            deviceId = deviceId,
+            deviceSurveyId = deviceSurveyId,
+            pageId = pageId,
+            devicePageSurveyAnswer = devicePageSurveyAnswer
+        )
+
+        // add it as closable to resource which can delete the answer
+        surveyAnswersResource.list(
+            surveyId = surveyId,
+            pageId = pageId
+        ).forEach {
+            if (submittedClosableAnswersIDs.contains(it.id)) {
+                return@forEach
+            }
+            surveyAnswersResource.addClosable(it)
+            surveyAnswersResource.answerToSurvey[it.id!!] = surveyId
+            submittedClosableAnswersIDs.add(it.id)
+        }
+    }
+
+    /**
+     * Checks that device fails to submit survey answer
+     *
+     * @param deviceId device id
+     * @param deviceSurveyId device survey id
+     * @param pageId page id
+     * @param devicePageSurveyAnswer device page survey answer
+     * @param expectedStatusCode expected status code
+     */
+    fun assertCreateFail(
+        deviceId: UUID,
+        deviceSurveyId: UUID,
+        pageId: UUID,
+        devicePageSurveyAnswer: DevicePageSurveyAnswer,
+        expectedStatusCode: Int
+    ) {
+        try {
+            api.submitSurveyAnswer(
+                deviceId = deviceId,
+                deviceSurveyId = deviceSurveyId,
+                pageId = pageId,
+                devicePageSurveyAnswer = devicePageSurveyAnswer
+            )
+            fail("Crating answer should have failed")
+        } catch (e: ClientException) {
+            assertClientExceptionStatus(expectedStatusCode, e)
+        }
     }
 
     /**

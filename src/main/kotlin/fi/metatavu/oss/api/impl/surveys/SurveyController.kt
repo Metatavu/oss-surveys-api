@@ -1,5 +1,7 @@
 package fi.metatavu.oss.api.impl.surveys
 
+import fi.metatavu.oss.api.impl.pages.PagesController
+import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.model.SurveyStatus
 import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
@@ -15,6 +17,9 @@ class SurveyController {
 
     @Inject
     lateinit var surveyRepository: SurveyRepository
+
+    @Inject
+    lateinit var pageController: PagesController
 
     /**
      * Lists surveys
@@ -63,11 +68,14 @@ class SurveyController {
     }
 
     /**
-     * Deletes a survey
+     * Deletes a survey and its pages
      *
      * @param surveyEntity survey to delete
      */
     suspend fun deleteSurvey(surveyEntity: SurveyEntity) {
+        pageController.listPages(surveyEntity).first.forEach {
+            pageController.deletePage(it)
+        }
         surveyRepository.deleteSuspending(surveyEntity)
     }
 
