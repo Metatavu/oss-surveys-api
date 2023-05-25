@@ -1,8 +1,9 @@
 package fi.metatavu.oss.api.test.functional.tests
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import fi.metatavu.oss.api.test.functional.TestBuilder
 import fi.metatavu.oss.api.test.functional.resources.MqttResource
-import fi.metatavu.oss.test.client.models.Survey
-import fi.metatavu.oss.test.client.models.SurveyStatus
+import fi.metatavu.oss.test.client.models.*
 import io.quarkus.test.common.DevServicesContext
 import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
@@ -46,12 +47,88 @@ abstract class AbstractResourceTest {
     }
 
     /**
+     * Creates an answer for a page
+     *
+     * @param testBuilder test builder
+     * @param deviceSurvey device survey
+     * @param page page
+     * @param answer answer
+     */
+    protected fun createPageAnswer(
+        testBuilder: TestBuilder,
+        deviceSurvey: DeviceSurvey,
+        page: Page,
+        answer: String
+    ) {
+        testBuilder.manager.deviceData.submitSurveyAnswer(
+            deviceId = deviceSurvey.deviceId,
+            deviceSurveyId = deviceSurvey.id!!,
+            pageId = page.id!!,
+            devicePageSurveyAnswer = DevicePageSurveyAnswer(
+                pageId = page.id,
+                answer = answer
+            ),
+            surveyId = deviceSurvey.surveyId
+        )
+    }
+
+    /**
+     * Creates a single select answer for a page
+     *
+     * @param testBuilder test builder
+     * @param deviceSurvey device survey
+     * @param page page
+     * @param optionIndex option index
+     */
+    protected fun createSingleSelectAnswer(
+        testBuilder: TestBuilder,
+        deviceSurvey: DeviceSurvey,
+        page: Page,
+        optionIndex: Int
+    ) {
+        createPageAnswer(
+            testBuilder = testBuilder,
+            deviceSurvey = deviceSurvey,
+            page = page,
+            answer = page.question!!.options.find { it.orderNumber == optionIndex }!!.id.toString()
+        )
+    }
+
+    /**
+     * Creates a multi select answer for a page
+     *
+     * @param testBuilder test builder
+     * @param deviceSurvey device survey
+     * @param page page
+     * @param optionIndices option indices
+     */
+    protected fun createMultiSelectAnswer(
+        testBuilder: TestBuilder,
+        deviceSurvey: DeviceSurvey,
+        page: Page,
+        optionIndices: Array<Int>
+    ) {
+        val answerIds = page.question!!.options
+            .filter { optionIndices.contains(it.orderNumber) }
+            .mapNotNull { it.id }
+
+        val answer = jacksonObjectMapper().writeValueAsString(answerIds)
+
+        createPageAnswer(
+            testBuilder = testBuilder,
+            deviceSurvey = deviceSurvey,
+            page = page,
+            answer = answer
+        )
+    }
+
+    /**
      * Creates new test builder
      *
      * @return new test builder
      */
-    protected fun createTestBuilder(): fi.metatavu.oss.api.test.functional.TestBuilder {
-        return fi.metatavu.oss.api.test.functional.TestBuilder(getConfig())
+    protected fun createTestBuilder(): TestBuilder {
+        return TestBuilder(getConfig())
     }
 
     /**
