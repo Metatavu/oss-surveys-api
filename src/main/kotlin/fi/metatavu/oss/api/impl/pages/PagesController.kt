@@ -1,6 +1,7 @@
 package fi.metatavu.oss.api.impl.pages
 
 import fi.metatavu.oss.api.impl.layouts.LayoutEntity
+import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.Page
@@ -23,6 +24,9 @@ class PagesController {
 
     @Inject
     lateinit var pageQuestionController: PageQuestionController
+
+    @Inject
+    lateinit var pageAnswerController: PageAnswerController
 
     /**
      * Creates a page for the survey and fills in its properties
@@ -127,11 +131,14 @@ class PagesController {
     }
 
     /**
-     * Deletes page and its properties
+     * Deletes page and dependent properties.
+     * Deletes also answers. If page is deleted using the API not in test env. there should not be any answers submitted.
+     * If page is deleted as part of survey deletion, all answers will be removed as well.
      *
      * @param page page to delete
      */
     suspend fun deletePage(page: PageEntity) {
+        pageAnswerController.list(page).forEach { pageAnswerController.delete(it) }
         pageQuestionController.find(page).let { if (it != null) pageQuestionController.delete(it) }
         pagePropertyRepository.listByPage(page).forEach { pagePropertyRepository.deleteSuspending(it) }
         pageRepository.deleteSuspending(page)

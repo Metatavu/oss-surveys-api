@@ -1,9 +1,9 @@
 package fi.metatavu.oss.api.impl.devices
 
 import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
+import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.impl.requests.DeviceRequestEntity
 import fi.metatavu.oss.api.model.DeviceStatus
-import io.quarkus.panache.common.Sort
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.security.PublicKey
 import java.util.*
@@ -21,6 +21,9 @@ class DeviceController {
 
     @Inject
     lateinit var deviceSurveyController: DeviceSurveyController
+
+    @Inject
+    lateinit var answerController: PageAnswerController
 
     /**
      * Creates a device
@@ -40,6 +43,9 @@ class DeviceController {
         newDevice.serialNumber = deviceRequest.serialNumber
         newDevice.deviceKey = deviceKey.encoded
         newDevice.deviceStatus = DeviceStatus.OFFLINE
+        newDevice.name = deviceRequest.name
+        newDevice.description = deviceRequest.description
+        newDevice.location = deviceRequest.location
         newDevice.creatorId = userId
         newDevice.lastModifierId = userId
 
@@ -67,16 +73,6 @@ class DeviceController {
     }
 
     /**
-     * Finds a Device by serial number
-     *
-     * @param serialNumber serial number
-     * @return found device
-     */
-    suspend fun findDevice(serialNumber: String): DeviceEntity? {
-        return deviceRepository.findBySerialNumber(serialNumber)
-    }
-
-    /**
      * Deletes a Device
      *
      * Also deletes associated device surveys
@@ -84,6 +80,9 @@ class DeviceController {
      * @param device device
      */
     suspend fun deleteDevice(device: DeviceEntity) {
+        answerController.list(device).forEach {
+            answerController.unassignFromDevice(it)
+        }
         val (deviceSurveys) = deviceSurveyController.listDeviceSurveysByDevice(device.id)
 
         for (deviceSurvey in deviceSurveys) {

@@ -76,7 +76,6 @@ class DeviceSurveyRepository: AbstractRepository<DeviceSurveyEntity, UUID>() {
         ).first
     }
 
-
     /**
      * Creates a Device Survey
      *

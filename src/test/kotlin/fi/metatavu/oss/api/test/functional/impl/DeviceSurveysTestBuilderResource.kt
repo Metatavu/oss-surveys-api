@@ -1,15 +1,16 @@
 package fi.metatavu.oss.api.test.functional.impl
 
 import fi.metatavu.jaxrs.test.functional.builder.auth.AccessTokenProvider
-import fi.metatavu.oss.test.client.models.DeviceSurvey
 import fi.metatavu.oss.api.test.functional.TestBuilder
 import fi.metatavu.oss.api.test.functional.settings.ApiTestSettings
 import fi.metatavu.oss.test.client.apis.DeviceSurveysApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.infrastructure.ClientException
-import fi.metatavu.oss.test.client.models.DeviceApprovalStatus
+import fi.metatavu.oss.test.client.models.DeviceSurvey
+import fi.metatavu.oss.test.client.models.DeviceSurveyStatistics
 import fi.metatavu.oss.test.client.models.DeviceSurveyStatus
 import org.junit.jupiter.api.fail
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -61,14 +62,45 @@ class DeviceSurveysTestBuilderResource(
      *
      * @param deviceId device id
      * @param deviceSurvey device survey to create
+     * @param addClosable add closable, defaults to true
      * @return created device survey
      */
-    fun create(deviceId: UUID, deviceSurvey: DeviceSurvey): DeviceSurvey {
-        return addClosable(
-            api.createDeviceSurvey(
+    fun create(deviceId: UUID, deviceSurvey: DeviceSurvey, addClosable: Boolean = true): DeviceSurvey {
+        val created = api.createDeviceSurvey(
+            deviceId = deviceId,
+            deviceSurvey =  deviceSurvey
+        )
+
+        if (!addClosable) {
+          return created
+        }
+
+        return addClosable(created)
+    }
+
+    /**
+     * Creates valid survey with published status
+     *
+     * @param deviceId device id
+     * @param surveyId survey id
+     * @param addClosable add closable
+     * @return device survey
+     */
+    fun createCurrentlyPublishedDeviceSurvey(
+        deviceId: UUID,
+        surveyId: UUID,
+        addClosable: Boolean = true
+    ): DeviceSurvey {
+        val now = OffsetDateTime.now()
+        return create(deviceId = deviceId,
+            deviceSurvey = DeviceSurvey(
+                surveyId = surveyId,
                 deviceId = deviceId,
-                deviceSurvey =  deviceSurvey
-            )
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = now.toString(),
+                publishEndTime = now.plusDays(1).toString()
+            ),
+            addClosable = addClosable
         )
     }
 
@@ -122,6 +154,20 @@ class DeviceSurveysTestBuilderResource(
 
             closable.id == deviceSurveyId
         }
+    }
+
+    /**
+     * Returns device survey statistics
+     *
+     * @param deviceId device id
+     * @param deviceSurveyId device survey id
+     * @return device survey statistics
+     */
+    fun getDeviceSurveyStatistics(deviceId: UUID, deviceSurveyId: UUID): DeviceSurveyStatistics {
+        return api.getDeviceSurveyStatistics(
+            deviceId = deviceId,
+            deviceSurveyId = deviceSurveyId
+        )
     }
 
     /**
@@ -229,6 +275,25 @@ class DeviceSurveysTestBuilderResource(
                 deviceSurveyId = deviceSurveyId
             )
             fail("Finding device survey should have failed")
+        } catch (e: ClientException) {
+            assertClientExceptionStatus(expectedStatusCode, e)
+        }
+    }
+
+    /**
+     * Asserts that getting device survey statistics fails with given status code
+     *
+     * @param expectedStatusCode expected status code
+     * @param deviceId device id
+     * @param deviceSurveyId device survey id
+     */
+    fun assertGetDeviceSurveyStatisticsFail(expectedStatusCode: Int, deviceId: UUID, deviceSurveyId: UUID) {
+        try {
+            api.getDeviceSurveyStatistics(
+                deviceId = deviceId,
+                deviceSurveyId = deviceSurveyId
+            )
+            fail("Getting device survey statistics should have failed")
         } catch (e: ClientException) {
             assertClientExceptionStatus(expectedStatusCode, e)
         }

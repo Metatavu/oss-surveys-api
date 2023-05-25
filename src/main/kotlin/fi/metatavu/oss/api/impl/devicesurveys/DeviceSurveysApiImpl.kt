@@ -67,6 +67,13 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
             return@async createBadRequest("Device survey schedule is not valid")
         }
 
+        if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {
+            deviceSurveyController.listDeviceSurveysByDevice(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
+                .first
+                .forEach { deviceSurveyController.deleteDeviceSurvey(it) }
+
+        }
+
         val createdDeviceSurvey = deviceSurveyController.createDeviceSurvey(
             deviceSurvey = deviceSurvey,
             device = foundDevice,
@@ -88,7 +95,7 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
 
         val foundDeviceSurvey = deviceSurveyController
             .findDeviceSurvey(deviceSurveyId)
-            ?: return@async createBadRequest("Device survey not found")
+            ?: return@async createNotFound("Device survey not found")
 
         if (deviceId != foundDeviceSurvey.device.id) {
             return@async createBadRequest("Device id in path and body do not match")
@@ -114,6 +121,21 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
         }
 
         createOk(deviceSurveyTranslator.translate(foundDeviceSurvey))
+    }.asUni()
+
+    @ReactiveTransactional
+    @RolesAllowed(UserRole.MANAGER.name)
+    override fun getDeviceSurveyStatistics(deviceId: UUID, deviceSurveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        val device = deviceController.findDevice(deviceId) ?: return@async createNotFoundWithMessage(target = DEVICE, id = deviceId)
+        val deviceSurvey = deviceSurveyController.findDeviceSurvey(deviceSurveyId) ?: return@async createNotFound("Device survey not found")
+
+        if (deviceSurvey.device.id != device.id) {
+            return@async createBadRequest("Device survey does not belong to device")
+        }
+
+        createOk(deviceSurveyController.getDeviceSurveyStatistics(
+            deviceSurvey = deviceSurvey
+        ))
     }.asUni()
 
     @RolesAllowed(UserRole.MANAGER.name)
@@ -147,6 +169,14 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
 
         if (deviceSurvey.status == DeviceSurveyStatus.SCHEDULED && !deviceSurveyController.validateScheduledDeviceSurvey(deviceSurvey)) {
             return@async createBadRequest("Device survey schedule is not valid")
+        }
+
+        if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {
+            deviceSurveyController.listDeviceSurveysByDevice(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
+                .first
+                .filter { it.id != deviceSurveyId }
+                .forEach { deviceSurveyController.deleteDeviceSurvey(it) }
+
         }
 
         val updatedDeviceSurvey = deviceSurveyController.updateDeviceSurvey(
