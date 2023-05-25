@@ -7,6 +7,7 @@ import fi.metatavu.oss.test.client.apis.DeviceSurveysApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
 import fi.metatavu.oss.test.client.infrastructure.ClientException
 import fi.metatavu.oss.test.client.models.DeviceSurvey
+import fi.metatavu.oss.test.client.models.DeviceSurveyStatistics
 import fi.metatavu.oss.test.client.models.DeviceSurveyStatus
 import org.junit.jupiter.api.fail
 import java.time.OffsetDateTime
@@ -156,6 +157,20 @@ class DeviceSurveysTestBuilderResource(
     }
 
     /**
+     * Returns device survey statistics
+     *
+     * @param deviceId device id
+     * @param deviceSurveyId device survey id
+     * @return device survey statistics
+     */
+    fun getDeviceSurveyStatistics(deviceId: UUID, deviceSurveyId: UUID): DeviceSurveyStatistics {
+        return api.getDeviceSurveyStatistics(
+            deviceId = deviceId,
+            deviceSurveyId = deviceSurveyId
+        )
+    }
+
+    /**
      * Asserts that listing device surveys fails with given status code
      *
      * @param expectedStatusCode expected status code
@@ -260,6 +275,25 @@ class DeviceSurveysTestBuilderResource(
                 deviceSurveyId = deviceSurveyId
             )
             fail("Finding device survey should have failed")
+        } catch (e: ClientException) {
+            assertClientExceptionStatus(expectedStatusCode, e)
+        }
+    }
+
+    /**
+     * Asserts that getting device survey statistics fails with given status code
+     *
+     * @param expectedStatusCode expected status code
+     * @param deviceId device id
+     * @param deviceSurveyId device survey id
+     */
+    fun assertGetDeviceSurveyStatisticsFail(expectedStatusCode: Int, deviceId: UUID, deviceSurveyId: UUID) {
+        try {
+            api.getDeviceSurveyStatistics(
+                deviceId = deviceId,
+                deviceSurveyId = deviceSurveyId
+            )
+            fail("Getting device survey statistics should have failed")
         } catch (e: ClientException) {
             assertClientExceptionStatus(expectedStatusCode, e)
         }

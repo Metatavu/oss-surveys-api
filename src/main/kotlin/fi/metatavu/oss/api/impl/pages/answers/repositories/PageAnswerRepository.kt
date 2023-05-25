@@ -4,6 +4,7 @@ import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerBaseEntity
+import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
@@ -45,4 +46,16 @@ class PageAnswerRepository : AbstractRepository<PageAnswerBaseEntity, UUID>() {
     suspend fun findByPageAndId(page: PageEntity, answerId: UUID): PageAnswerBaseEntity? {
         return find("page = ?1 and id = ?2", page, answerId).firstResult<PageAnswerBaseEntity?>().awaitSuspending()
     }
+
+    /**
+     * Lists answers by device and survey
+     *
+     * @param device device
+     * @param survey survey
+     * @return list of answers
+     */
+    suspend fun listByDeviceAndSurvey(device: DeviceEntity, survey: SurveyEntity): List<PageAnswerBaseEntity> {
+        return list("device = ?1 and page.survey = ?2", device, survey).awaitSuspending()
+    }
+
 }

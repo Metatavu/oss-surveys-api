@@ -1,7 +1,6 @@
 package fi.metatavu.oss.api.test.functional.tests
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
-import fi.metatavu.oss.api.test.functional.TestBuilder
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
 import fi.metatavu.oss.test.client.models.*
 import io.quarkus.test.junit.QuarkusTest
@@ -191,7 +190,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
 
         // submit answer 1
-        createAnswer(
+        createPageAnswer(
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page!!,
@@ -199,7 +198,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
 
         //another answer 2
-        createAnswer(
+        createPageAnswer(
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page,
@@ -274,7 +273,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         val answerOption1 = page.question!!.options.find { it.orderNumber == 1 }!!
 
         // Submit one answer with first option
-        createAnswer(
+        createPageAnswer(
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page,
@@ -282,7 +281,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
 
         // submit another answer with second option
-        createAnswer(
+        createPageAnswer(
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page,
@@ -363,7 +362,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             )
         )
 
-        createAnswer(
+        createPageAnswer(
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page,
@@ -377,7 +376,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             )
         )
 
-        createAnswer(
+        createPageAnswer(
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page,
@@ -519,30 +518,5 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         testBuilder.manager.deviceData.setDeviceKey(deviceKey)
     }
 
-    /**
-     * Creates an answer for a page
-     *
-     * @param testBuilder test builder
-     * @param deviceSurvey device survey
-     * @param page page
-     * @param answer answer
-     */
-    private fun createAnswer(
-        testBuilder: TestBuilder,
-        deviceSurvey: DeviceSurvey,
-        page: Page,
-        answer: String
-    ) {
-        testBuilder.manager.deviceData.submitSurveyAnswer(
-            deviceId = deviceSurvey.deviceId,
-            deviceSurveyId = deviceSurvey.id!!,
-            pageId = page.id!!,
-            devicePageSurveyAnswer = DevicePageSurveyAnswer(
-                pageId = page.id,
-                answer = answer
-            ),
-            surveyId = deviceSurvey.surveyId
-        )
-    }
 
 }

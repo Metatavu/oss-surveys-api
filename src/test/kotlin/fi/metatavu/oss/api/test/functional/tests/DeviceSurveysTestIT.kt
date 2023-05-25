@@ -1,5 +1,6 @@
 package fi.metatavu.oss.api.test.functional.tests
 
+import fi.metatavu.oss.api.test.functional.TestBuilder
 import fi.metatavu.oss.api.test.functional.mqtt.TestMqttClient
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
 import fi.metatavu.oss.test.client.models.*
@@ -7,7 +8,9 @@ import io.quarkus.test.junit.QuarkusTest
 import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import java.time.Instant
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.*
 
 /**
@@ -492,5 +495,286 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         assertEquals(deviceId, updateMessage[0].deviceId)
         assertEquals(createdDeviceSurvey.id, deleteMessage[0].deviceSurveyId)
         assertEquals(DeviceSurveysMessageAction.DELETE, deleteMessage[0].action)
+    }
+
+    @Test
+    fun testDeviceSurveyStatistics() = createTestBuilder().use { testBuilder ->
+        val ( deviceSurvey, pages ) = setupStatisticsEnvironment(testBuilder = testBuilder)
+        val deviceId = deviceSurvey.deviceId
+        val now = Instant.now().atOffset( ZoneOffset.UTC )
+        val currentHour = now.hour
+        val currentDayOfWeek = now.dayOfWeek.value - 1
+
+        // Answer first single select question with option 1 ten times and option 2 five times
+
+        (1..10).forEach { _ ->
+            createSingleSelectAnswer(
+                testBuilder = testBuilder,
+                deviceSurvey = deviceSurvey,
+                page = pages[2],
+                optionIndex = 0
+            )
+        }
+
+        (1..5).forEach { _ ->
+            createSingleSelectAnswer(
+                testBuilder = testBuilder,
+                deviceSurvey = deviceSurvey,
+                page = pages[2],
+                optionIndex = 1
+            )
+        }
+
+        // Answer first multi select option with options 1 for five times, 1 and 2 for five times
+
+        (1..5).forEach { _ ->
+            createMultiSelectAnswer(
+                testBuilder = testBuilder,
+                deviceSurvey = deviceSurvey,
+                page = pages[4],
+                optionIndices = arrayOf(0)
+            )
+        }
+
+        (1..5).forEach { _ ->
+            createMultiSelectAnswer(
+                testBuilder = testBuilder,
+                deviceSurvey = deviceSurvey,
+                page = pages[4],
+                optionIndices = arrayOf(0, 1)
+            )
+        }
+
+        // Ensure that statistics are updated
+
+        val statistics = testBuilder.manager.deviceSurveys.getDeviceSurveyStatistics(
+            deviceId = deviceId,
+            deviceSurveyId = deviceSurvey.id!!
+        )
+
+        assertEquals(25, statistics.totalAnswerCount)
+
+        statistics.averages.hourly.forEachIndexed { hourIndex, hourAverage ->
+            if (hourIndex == currentHour) {
+                assertEquals(100.0, hourAverage)
+            } else {
+                assertEquals(0.0, hourAverage)
+            }
+        }
+
+        statistics.averages.weekDays.forEachIndexed { weekDayIndex, weekDayAverage ->
+            if (weekDayIndex == currentDayOfWeek) {
+                assertEquals(100.0, weekDayAverage)
+            } else {
+                assertEquals(0.0, weekDayAverage)
+            }
+        }
+
+        assertEquals(4, statistics.questions.size)
+
+        statistics.questions.forEachIndexed { questionIndex, questionStatistics ->
+            run {
+                val page = pages[questionIndex + 2]
+                assertEquals(questionStatistics.pageId, page.id)
+                assertEquals(questionStatistics.questionType, page.question?.type)
+                assertEquals(page.question?.options?.size, questionStatistics.options.size)
+
+                questionStatistics.options.forEachIndexed { optionIndex, optionStatistics ->
+                    when (questionIndex) {
+                        0 -> {
+                            when (optionIndex) {
+                                0 -> {
+                                    assertEquals(10, optionStatistics.answerCount)
+                                }
+
+                                1 -> {
+                                    assertEquals(5, optionStatistics.answerCount)
+                                }
+
+                                else -> {
+                                    assertEquals(0, optionStatistics.answerCount)
+                                }
+                            }
+                        }
+                        2 -> {
+                            when (optionIndex) {
+                                0 -> {
+                                    assertEquals(10, optionStatistics.answerCount)
+                                }
+
+                                1 -> {
+                                    assertEquals(5, optionStatistics.answerCount)
+                                }
+
+                                else -> {
+                                    assertEquals(0, optionStatistics.answerCount)
+                                }
+                            }
+                        }
+                        else -> {
+                            assertEquals(0, optionStatistics.answerCount)
+                        }
+                    }
+
+                    assertEquals(page.question?.options?.get(optionIndex)?.questionOptionValue, optionStatistics.questionOptionValue)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testDeviceSurveyStatisticsEmpty() = createTestBuilder().use { testBuilder ->
+        val ( deviceSurvey, pages ) = setupStatisticsEnvironment(testBuilder = testBuilder)
+        val deviceId = deviceSurvey.deviceId
+        val surveyId = deviceSurvey.surveyId
+
+        // Assert that empty statistics are returned if no answers are given
+
+        val emptyStatistics = testBuilder.manager.deviceSurveys.getDeviceSurveyStatistics(
+            deviceId = deviceId,
+            deviceSurveyId = deviceSurvey.id!!
+        )
+
+        assertNotNull(emptyStatistics)
+
+        assertEquals(0, emptyStatistics.totalAnswerCount)
+
+        assertEquals(deviceSurvey.id, emptyStatistics.deviceSurveyId)
+        assertEquals(surveyId, emptyStatistics.surveyId)
+        assertEquals(deviceId, emptyStatistics.deviceId)
+
+        assertEquals(24, emptyStatistics.averages.hourly.size)
+        assertEquals(7, emptyStatistics.averages.weekDays.size)
+        emptyStatistics.averages.hourly.forEach { assertEquals(0.0, it) }
+        emptyStatistics.averages.weekDays.forEach { assertEquals(0.0, it) }
+
+        assertEquals(4, emptyStatistics.questions.size)
+
+        emptyStatistics.questions.forEachIndexed { questionIndex, questionStatistics ->
+            run {
+                val page = pages[questionIndex + 2]
+                assertEquals(questionStatistics.pageId, page.id)
+                assertEquals(questionStatistics.questionType, page.question?.type)
+                assertEquals(page.question?.options?.size, questionStatistics.options.size)
+
+                questionStatistics.options.forEachIndexed{ optionIndex, optionStatistics ->
+                    assertEquals(0, optionStatistics.answerCount)
+                    assertEquals(page.question?.options?.get(optionIndex)?.questionOptionValue, optionStatistics.questionOptionValue)
+                }
+            }
+        }
+    }
+
+    @Test
+    fun testDeviceSurveyStatisticsPermissions() = createTestBuilder().use { testBuilder ->
+        val ( deviceSurvey ) = setupStatisticsEnvironment(testBuilder = testBuilder)
+        val deviceId = deviceSurvey.deviceId
+
+        testBuilder.consumer.deviceSurveys.assertGetDeviceSurveyStatisticsFail(
+            expectedStatusCode = 403,
+            deviceId = deviceId,
+            deviceSurveyId = deviceSurvey.id!!
+        )
+
+        testBuilder.empty.deviceSurveys.assertGetDeviceSurveyStatisticsFail(
+            expectedStatusCode = 401,
+            deviceId = deviceId,
+            deviceSurveyId = deviceSurvey.id
+        )
+
+        testBuilder.notvalid.deviceSurveys.assertGetDeviceSurveyStatisticsFail(
+            expectedStatusCode = 401,
+            deviceId = deviceId,
+            deviceSurveyId = deviceSurvey.id
+        )
+    }
+
+    /**
+     * Setup environment for testing statistics
+     *
+     * @param testBuilder TestBuilder
+     * @return created device survey and pages
+     */
+    private fun setupStatisticsEnvironment(testBuilder: TestBuilder): Pair<DeviceSurvey, List<Page>> {
+        val ( deviceId, deviceKey ) = testBuilder.manager.devices.setupTestDevice()
+
+        val survey = testBuilder.manager.surveys.createDefault()
+        val surveyId = survey.id!!
+
+        approveSurvey(survey)
+
+        val deviceSurvey = testBuilder.manager.deviceSurveys.create(
+            deviceId = deviceId,
+            DeviceSurvey(
+                surveyId = surveyId,
+                deviceId = deviceId,
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = OffsetDateTime.now().toString(),
+                publishEndTime = OffsetDateTime.now().plusDays(1).toString()
+            )
+        )
+
+        val layout = testBuilder.manager.layouts.createDefault()
+
+        // Page 1 and 2 are not a questions
+        // Page 3 and 4 are a single choice questions
+        // Page 5 and 6 are a multiple choice questions
+
+        val pages = (1..6).mapNotNull {
+            val question = if (it <= 2)
+                null
+            else if (it <= 4)
+                PageQuestion(
+                    type = PageQuestionType.SINGLE_SELECT,
+                    options = arrayOf(
+                        PageQuestionOption(
+                            questionOptionValue = "1",
+                            orderNumber = 0
+                        ),
+                        PageQuestionOption(
+                            questionOptionValue = "2",
+                            orderNumber = 1
+                        ),
+                        PageQuestionOption(
+                            questionOptionValue = "3",
+                            orderNumber = 2
+                        )
+                    )
+                )
+            else {
+                PageQuestion(
+                    type = PageQuestionType.MULTI_SELECT,
+                    options = arrayOf(
+                        PageQuestionOption(
+                            questionOptionValue = "1",
+                            orderNumber = 0
+                        ),
+                        PageQuestionOption(
+                            questionOptionValue = "2",
+                            orderNumber = 1
+                        ),
+                        PageQuestionOption(
+                            questionOptionValue = "3",
+                            orderNumber = 2
+                        )
+                    )
+                )
+            }
+
+            testBuilder.manager.pages.create(
+                surveyId = surveyId,
+                page = Page(
+                    orderNumber = it,
+                    title = "title of page $it",
+                    question = question,
+                    layoutId = layout.id!!,
+                    nextButtonVisible = true
+                )
+            )
+        }
+
+        testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+        return Pair(deviceSurvey, pages)
     }
 }
