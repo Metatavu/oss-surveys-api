@@ -294,6 +294,13 @@ class DeviceSurveyController {
         val hourlyCounts: MutableList<Double> = (0..23).map { 0.0 }.toMutableList()
         val weekDayCounts: MutableList<Double> = (0..6).map { 0.0 }.toMutableList()
 
+        if (answers.isEmpty()) {
+            return DeviceSurveyStatisticsAverages(
+                hourly = hourlyCounts,
+                weekDays = weekDayCounts
+            )
+        }
+
         for (answer in answers) {
             val createdAt = answer.createdAt?.toInstant()?.atOffset( ZoneOffset.UTC ) ?: continue
             val hour = createdAt.hour
