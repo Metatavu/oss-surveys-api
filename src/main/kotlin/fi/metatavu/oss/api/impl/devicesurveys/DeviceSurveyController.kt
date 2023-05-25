@@ -1,14 +1,25 @@
 package fi.metatavu.oss.api.impl.devicesurveys
 
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
+import fi.metatavu.oss.api.impl.pages.PagesController
 import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
+import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerBaseEntity
+import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerMulti
+import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerSingle
+import fi.metatavu.oss.api.impl.pages.answers.repositories.MultiAnswersToOptionsRepository
+import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
+import fi.metatavu.oss.api.impl.pages.questions.PageQuestionEntity
+import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionEntity
+import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionRepository
 import fi.metatavu.oss.api.impl.realtime.RealtimeNotificationController
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
-import fi.metatavu.oss.api.model.DeviceSurvey
-import fi.metatavu.oss.api.model.DeviceSurveyStatus
-import fi.metatavu.oss.api.model.DeviceSurveysMessageAction
+import fi.metatavu.oss.api.model.*
 import io.smallrye.mutiny.coroutines.awaitSuspending
+import kotlinx.coroutines.flow.asFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.toList
 import java.time.OffsetDateTime
+import java.time.ZoneOffset
 import java.util.UUID
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -27,6 +38,18 @@ class DeviceSurveyController {
 
     @Inject
     lateinit var answerController: PageAnswerController
+
+    @Inject
+    lateinit var pageQuestionController: PageQuestionController
+
+    @Inject
+    lateinit var pagesController: PagesController
+
+    @Inject
+    lateinit var pageAnswerMultiToOptionsRepository: MultiAnswersToOptionsRepository
+
+    @Inject
+    lateinit var questionOptionRepository: QuestionOptionRepository
 
     /**
      * Lists device surveys by device
@@ -236,4 +259,144 @@ class DeviceSurveyController {
     suspend fun unPublishDeviceSurvey(deviceSurvey: DeviceSurveyEntity) {
         deviceSurveyRepository.deleteSuspending(deviceSurvey)
     }
+
+    /**
+     * Returns device survey statistics
+     *
+     * @param deviceSurvey device survey
+     * @return device survey statistics
+     */
+    suspend fun getDeviceSurveyStatistics(deviceSurvey: DeviceSurveyEntity): DeviceSurveyStatistics {
+        val device = deviceSurvey.device
+        val survey = deviceSurvey.survey
+
+        val answers = answerController.listDeviceSurveyAnswers(
+            deviceSurvey = deviceSurvey
+        )
+
+        return DeviceSurveyStatistics(
+            deviceId = device.id,
+            surveyId = survey.id,
+            deviceSurveyId = deviceSurvey.id,
+            totalAnswerCount = answers.size.toLong(),
+            averages = calculateDeviceSurveyAverages(answers = answers),
+            questions = calculateDeviceSurveyQuestionStatistics(deviceSurvey = deviceSurvey, answers = answers)
+        )
+    }
+
+    /**
+     * Calculates device survey averages
+     *
+     * @param answers device survey answers
+     * @return device survey averages
+     */
+    private suspend fun calculateDeviceSurveyAverages(answers: List<PageAnswerBaseEntity>): DeviceSurveyStatisticsAverages {
+        val hourlyCounts: MutableList<Double> = (0..23).map { 0.0 }.toMutableList()
+        val weekDayCounts: MutableList<Double> = (0..6).map { 0.0 }.toMutableList()
+
+        for (answer in answers) {
+            val createdAt = answer.createdAt?.toInstant()?.atOffset( ZoneOffset.UTC ) ?: continue
+            val hour = createdAt.hour
+            val dayOfWeek = createdAt.dayOfWeek.value
+            hourlyCounts[hour] = hourlyCounts[hour] + 1
+            weekDayCounts[dayOfWeek - 1] = weekDayCounts[dayOfWeek - 1] + 1
+        }
+
+        return DeviceSurveyStatisticsAverages(
+            hourly = hourlyCounts.map { it / answers.size * 100 },
+            weekDays = weekDayCounts.map { it / answers.size * 100 }
+        )
+    }
+
+    /**
+     * Calculates device survey question statistics
+     *
+     * @param deviceSurvey device survey
+     * @param answers answers
+     * @return list of question statistics
+     */
+    private suspend fun calculateDeviceSurveyQuestionStatistics(
+        deviceSurvey: DeviceSurveyEntity,
+        answers: List<PageAnswerBaseEntity>
+    ): List<DeviceSurveyQuestionStatistics> {
+        val ( pages ) = pagesController.listPages(deviceSurvey.survey)
+
+        return pages
+            .mapNotNull { page ->
+                val question = pageQuestionController.find(page) ?: return@mapNotNull null
+                val pageAnswers = answers.filter { it.page.id == page.id }
+
+                DeviceSurveyQuestionStatistics(
+                    pageId = page.id,
+                    pageTitle = page.title,
+                    questionType = question.type,
+                    options = calculateDeviceSurveyQuestionOptionStatistics(
+                        question = question,
+                        pageAnswers = pageAnswers
+                    ),
+                )
+            }
+    }
+
+    /**
+     * Calculates device survey question option statistics
+     *
+     * @param question question
+     * @param pageAnswers page answers
+     * @return list of option statistics
+     */
+    private suspend fun calculateDeviceSurveyQuestionOptionStatistics(
+        question: PageQuestionEntity,
+        pageAnswers: List<PageAnswerBaseEntity>
+    ): List<DeviceSurveyQuestionOptionStatistics> {
+        val options = questionOptionRepository.listByQuestion(question)
+
+        return options
+            .sortedBy { it.orderNumber }
+            .asFlow()
+            .map { option ->
+                DeviceSurveyQuestionOptionStatistics(
+                    questionOptionValue = option.value,
+                    answerCount = countAnswersWithOption(answers = pageAnswers, option = option)
+                )
+            }
+            .toList()
+    }
+
+    /**
+     * Counts answers with given option
+     *
+     * @param answers answers
+     * @param option option
+     * @return answer count
+     */
+    private suspend fun countAnswersWithOption(answers: List<PageAnswerBaseEntity>, option: QuestionOptionEntity): Long {
+        return answers.count { answer ->
+            listAnswerOptions(answer = answer).any { it.id == option.id }
+        }.toLong()
+    }
+
+    /**
+     * Lists answered options for given answer
+     *
+     * @param answer answer
+     * @return list of answered options
+     */
+    private suspend fun listAnswerOptions(answer: PageAnswerBaseEntity): List<QuestionOptionEntity> {
+        return when (answer) {
+            is PageAnswerSingle -> {
+                listOf(answer.option)
+            }
+
+            is PageAnswerMulti -> {
+                pageAnswerMultiToOptionsRepository.listByPageAnswer(answer).map { it.questionOption }
+            }
+
+            else -> {
+                emptyList()
+            }
+        }
+    }
+
+
 }

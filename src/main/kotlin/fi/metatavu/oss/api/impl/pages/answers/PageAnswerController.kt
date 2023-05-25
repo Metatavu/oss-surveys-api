@@ -248,4 +248,17 @@ class PageAnswerController {
         }
     }
 
+    /**
+     * Lists answers for a device survey
+     *
+     * @param deviceSurvey device survey
+     * @return list of answers
+     */
+    suspend fun listDeviceSurveyAnswers(deviceSurvey: DeviceSurveyEntity): List<PageAnswerBaseEntity> {
+        return pageAnswerRepository.listByDeviceAndSurvey(
+            device = deviceSurvey.device,
+            survey = deviceSurvey.survey
+        )
+    }
+
 }

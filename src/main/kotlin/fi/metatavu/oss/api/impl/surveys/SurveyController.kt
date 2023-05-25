@@ -1,7 +1,6 @@
 package fi.metatavu.oss.api.impl.surveys
 
 import fi.metatavu.oss.api.impl.pages.PagesController
-import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.model.SurveyStatus
 import io.quarkus.panache.common.Parameters
 import io.smallrye.mutiny.coroutines.awaitSuspending
