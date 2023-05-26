@@ -5,6 +5,7 @@ import fi.metatavu.oss.api.impl.devices.DeviceEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerSingle
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionEntity
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 
@@ -36,4 +37,14 @@ class PageAnswerSingleRepository : AbstractRepository<PageAnswerSingle, UUID>() 
         pageAnswerSingle.option = option
         return persistSuspending(pageAnswerSingle)
     }
+
+    /**
+     * Deletes suspending
+     *
+     * @param entity entity
+     */
+    override suspend fun deleteSuspending(entity: PageAnswerSingle) {
+        delete(entity).awaitSuspending()
+    }
+
 }
