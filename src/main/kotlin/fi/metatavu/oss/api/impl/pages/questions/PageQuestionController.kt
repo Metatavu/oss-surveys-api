@@ -83,6 +83,11 @@ class PageQuestionController {
             val existingOptions = questionOptionRepository.listByQuestion(questionToUpdate)
             val newOptions = newQuestion.options
 
+            pageQuestionRepository.updateType(
+                pageQuestion = questionToUpdate,
+                type = newQuestion.type
+            )
+
             val removedOptions = existingOptions.filter { existingOption ->
                 newOptions.none { newOption ->
                     newOption.id == existingOption.id
@@ -117,10 +122,14 @@ class PageQuestionController {
             updatedOptions.forEach {
                 val questionOption = questionOptionRepository.findById(it.id!!).awaitSuspending()
 
-                questionOptionRepository.update(
+                questionOptionRepository.updateOrderNumber(
                     questionOption = questionOption,
-                    value = it.questionOptionValue,
                     orderNumber = it.orderNumber
+                )
+
+                questionOptionRepository.updateValue(
+                    questionOption = questionOption,
+                    value = it.questionOptionValue
                 )
             }
         }

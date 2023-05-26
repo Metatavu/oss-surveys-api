@@ -34,6 +34,18 @@ class PageQuestionRepository: AbstractRepository<PageQuestionEntity, UUID>() {
     }
 
     /**
+     * Updates page question type
+     *
+     * @param pageQuestion page question to update
+     * @param type new type
+     * @return updated page question
+     */
+    suspend fun updateType(pageQuestion: PageQuestionEntity, type: PageQuestionType): PageQuestionEntity {
+        pageQuestion.type = type
+        return persistSuspending(pageQuestion)
+    }
+
+    /**
      * Finds page question for the given page
      *
      * @param page page
