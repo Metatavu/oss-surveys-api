@@ -36,6 +36,30 @@ class QuestionOptionRepository: AbstractRepository<QuestionOptionEntity, UUID>()
     }
 
     /**
+     * Updates order number of the question option
+     *
+     * @param questionOption question option to update
+     * @param orderNumber new order number
+     * @return updated question option
+     */
+    suspend fun updateOrderNumber(questionOption: QuestionOptionEntity, orderNumber: Int): QuestionOptionEntity {
+        questionOption.orderNumber = orderNumber
+        return persistSuspending(questionOption)
+    }
+
+    /**
+     * Updates value of the question option
+     *
+     * @param questionOption question option to update
+     * @param value new value
+     * @return updated question option
+     */
+    suspend fun updateValue(questionOption: QuestionOptionEntity, value: String): QuestionOptionEntity {
+        questionOption.value = value
+        return persistSuspending(questionOption)
+    }
+
+    /**
      * Lists answer options by question
      *
      * @param question
@@ -44,4 +68,5 @@ class QuestionOptionRepository: AbstractRepository<QuestionOptionEntity, UUID>()
     suspend fun listByQuestion(question: PageQuestionEntity): List<QuestionOptionEntity> {
         return list("question", Sort.ascending("orderNumber"), question).awaitSuspending()
     }
+
 }

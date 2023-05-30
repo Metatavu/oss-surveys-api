@@ -1,11 +1,9 @@
 package fi.metatavu.oss.api.impl.pages.questions
 
-import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.impl.pages.PageEntity
-import fi.metatavu.oss.api.impl.pages.PageRepository
 import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.model.PageQuestion
-import fi.metatavu.oss.api.model.PageQuestionOption
+import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -48,19 +46,7 @@ class PageQuestionController {
             type = pageQuestion.type
         )
 
-        createDependentOptions(pageQuestion.options, question)
-        return question
-    }
-
-    /**
-     * Creates options of the given question
-     *
-     * @param options options to create from rest objects
-     * @param question question to assign options to
-     * @return created options
-     */
-    suspend fun createDependentOptions(options: List<PageQuestionOption>, question: PageQuestionEntity) {
-        options.forEach { option ->
+        pageQuestion.options.forEach { option ->
             questionOptionRepository.create(
                 id = UUID.randomUUID(),
                 question = question,
@@ -68,20 +54,8 @@ class PageQuestionController {
                 orderNumber = option.orderNumber
             )
         }
-    }
 
-    /**
-     * Deletes question's options as well as all pages answers.
-     *
-     * @param question question to delete options from
-     */
-    suspend fun deleteDependentOptions(question: PageQuestionEntity) {
-        answerController.list(question.page).forEach { answer ->
-            answerController.delete(answer)
-        }
-        questionOptionRepository.listByQuestion(question).forEach {
-            questionOptionRepository.deleteSuspending(it)
-        }
+        return question
     }
 
     /**
@@ -106,20 +80,75 @@ class PageQuestionController {
         } else if (questionToUpdate != null && newQuestion == null) {
             delete(questionToUpdate)
         } else if (questionToUpdate != null && newQuestion != null) {
-            questionToUpdate.type = newQuestion.type
-            pageQuestionRepository.persistSuspending(questionToUpdate)
-            deleteDependentOptions(question = questionToUpdate)
-            createDependentOptions(options = newQuestion.options, question = questionToUpdate)
+            val existingOptions = questionOptionRepository.listByQuestion(questionToUpdate)
+            val newOptions = newQuestion.options
+
+            pageQuestionRepository.updateType(
+                pageQuestion = questionToUpdate,
+                type = newQuestion.type
+            )
+
+            val removedOptions = existingOptions.filter { existingOption ->
+                newOptions.none { newOption ->
+                    newOption.id == existingOption.id
+                }
+            }
+
+            val addedOptions = newOptions.filter { newOption ->
+                existingOptions.none { existingOption ->
+                    newOption.id == existingOption.id
+                }
+            }
+
+            val updatedOptions = newOptions.filter { newOption ->
+                existingOptions.any { existingOption ->
+                    newOption.id == existingOption.id
+                }
+            }
+
+            removedOptions.forEach { removedOption ->
+                questionOptionRepository.deleteSuspending(removedOption)
+            }
+
+            addedOptions.forEach { addedOption ->
+                questionOptionRepository.create(
+                    id = addedOption.id ?: UUID.randomUUID(),
+                    question = questionToUpdate,
+                    value = addedOption.questionOptionValue,
+                    orderNumber = addedOption.orderNumber
+                )
+            }
+
+            updatedOptions.forEach {
+                val questionOption = questionOptionRepository.findById(it.id!!).awaitSuspending()
+
+                questionOptionRepository.updateOrderNumber(
+                    questionOption = questionOption,
+                    orderNumber = it.orderNumber
+                )
+
+                questionOptionRepository.updateValue(
+                    questionOption = questionOption,
+                    value = it.questionOptionValue
+                )
+            }
         }
     }
 
     /**
-     * Deletes a qustion for the page with all the dependent entities
+     * Deletes a question for the page with all the dependent entities
      *
      * @param pageQuestion entity to delete
      */
     suspend fun delete(pageQuestion: PageQuestionEntity) {
-        deleteDependentOptions(pageQuestion)
+        answerController.list(pageQuestion.page).forEach { answer ->
+            answerController.delete(answer)
+        }
+
+        questionOptionRepository.listByQuestion(pageQuestion).forEach {
+            questionOptionRepository.deleteSuspending(it)
+        }
+
         pageQuestionRepository.deleteSuspending(pageQuestion)
     }
 }
