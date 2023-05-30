@@ -160,13 +160,13 @@ class DeviceSurveysTestBuilderResource(
      * Returns device survey statistics
      *
      * @param deviceId device id
-     * @param deviceSurveyId device survey id
+     * @param surveyId survey id
      * @return device survey statistics
      */
-    fun getDeviceSurveyStatistics(deviceId: UUID, deviceSurveyId: UUID): DeviceSurveyStatistics {
+    fun getDeviceSurveyStatistics(deviceId: UUID, surveyId: UUID): DeviceSurveyStatistics {
         return api.getDeviceSurveyStatistics(
             deviceId = deviceId,
-            deviceSurveyId = deviceSurveyId
+            surveyId = surveyId
         )
     }
 
@@ -285,13 +285,13 @@ class DeviceSurveysTestBuilderResource(
      *
      * @param expectedStatusCode expected status code
      * @param deviceId device id
-     * @param deviceSurveyId device survey id
+     * @param surveyId survey id
      */
-    fun assertGetDeviceSurveyStatisticsFail(expectedStatusCode: Int, deviceId: UUID, deviceSurveyId: UUID) {
+    fun assertGetDeviceSurveyStatisticsFail(expectedStatusCode: Int, deviceId: UUID, surveyId: UUID) {
         try {
             api.getDeviceSurveyStatistics(
                 deviceId = deviceId,
-                deviceSurveyId = deviceSurveyId
+                surveyId = surveyId
             )
             fail("Getting device survey statistics should have failed")
         } catch (e: ClientException) {

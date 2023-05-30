@@ -15,6 +15,7 @@ import fi.metatavu.oss.api.impl.pages.answers.repositories.*
 import fi.metatavu.oss.api.impl.pages.questions.PageQuestionEntity
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionEntity
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionRepository
+import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
 import fi.metatavu.oss.api.model.PageQuestionType.*
 import io.smallrye.mutiny.coroutines.awaitSuspending
@@ -251,13 +252,14 @@ class PageAnswerController {
     /**
      * Lists answers for a device survey
      *
-     * @param deviceSurvey device survey
+     * @param device device
+     * @param survey survey
      * @return list of answers
      */
-    suspend fun listDeviceSurveyAnswers(deviceSurvey: DeviceSurveyEntity): List<PageAnswerBaseEntity> {
+    suspend fun listDeviceSurveyAnswers(device: DeviceEntity, survey: SurveyEntity): List<PageAnswerBaseEntity> {
         return pageAnswerRepository.listByDeviceAndSurvey(
-            device = deviceSurvey.device,
-            survey = deviceSurvey.survey
+            device = device,
+            survey = survey
         )
     }
 
