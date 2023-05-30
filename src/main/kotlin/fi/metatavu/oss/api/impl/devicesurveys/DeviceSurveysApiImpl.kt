@@ -125,16 +125,13 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
 
     @ReactiveTransactional
     @RolesAllowed(UserRole.MANAGER.name)
-    override fun getDeviceSurveyStatistics(deviceId: UUID, deviceSurveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+    override fun getDeviceSurveyStatistics(deviceId: UUID, surveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         val device = deviceController.findDevice(deviceId) ?: return@async createNotFoundWithMessage(target = DEVICE, id = deviceId)
-        val deviceSurvey = deviceSurveyController.findDeviceSurvey(deviceSurveyId) ?: return@async createNotFound("Device survey not found")
-
-        if (deviceSurvey.device.id != device.id) {
-            return@async createBadRequest("Device survey does not belong to device")
-        }
+        val survey = surveyController.findSurvey(surveyId) ?: return@async createNotFound("Survey not found")
 
         createOk(deviceSurveyController.getDeviceSurveyStatistics(
-            deviceSurvey = deviceSurvey
+            device = device,
+            survey = survey
         ))
     }.asUni()
 
