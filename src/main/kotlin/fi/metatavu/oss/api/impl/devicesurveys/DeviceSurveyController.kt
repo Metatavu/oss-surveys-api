@@ -263,24 +263,22 @@ class DeviceSurveyController {
     /**
      * Returns device survey statistics
      *
-     * @param deviceSurvey device survey
+     * @param device device
+     * @param survey survey
      * @return device survey statistics
      */
-    suspend fun getDeviceSurveyStatistics(deviceSurvey: DeviceSurveyEntity): DeviceSurveyStatistics {
-        val device = deviceSurvey.device
-        val survey = deviceSurvey.survey
-
+    suspend fun getDeviceSurveyStatistics(device: DeviceEntity, survey: SurveyEntity): DeviceSurveyStatistics {
         val answers = answerController.listDeviceSurveyAnswers(
-            deviceSurvey = deviceSurvey
+            device = device,
+            survey = survey
         )
 
         return DeviceSurveyStatistics(
             deviceId = device.id,
             surveyId = survey.id,
-            deviceSurveyId = deviceSurvey.id,
             totalAnswerCount = answers.size.toLong(),
             averages = calculateDeviceSurveyAverages(answers = answers),
-            questions = calculateDeviceSurveyQuestionStatistics(deviceSurvey = deviceSurvey, answers = answers)
+            questions = calculateDeviceSurveyQuestionStatistics(survey = survey, answers = answers)
         )
     }
 
@@ -318,15 +316,15 @@ class DeviceSurveyController {
     /**
      * Calculates device survey question statistics
      *
-     * @param deviceSurvey device survey
+     * @param survey survey
      * @param answers answers
      * @return list of question statistics
      */
     private suspend fun calculateDeviceSurveyQuestionStatistics(
-        deviceSurvey: DeviceSurveyEntity,
+        survey: SurveyEntity,
         answers: List<PageAnswerBaseEntity>
     ): List<DeviceSurveyQuestionStatistics> {
-        val ( pages ) = pagesController.listPages(deviceSurvey.survey)
+        val ( pages ) = pagesController.listPages(survey)
 
         return pages
             .mapNotNull { page ->

@@ -36,4 +36,5 @@ class PageAnswerSingleRepository : AbstractRepository<PageAnswerSingle, UUID>() 
         pageAnswerSingle.option = option
         return persistSuspending(pageAnswerSingle)
     }
+
 }

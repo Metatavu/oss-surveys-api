@@ -549,7 +549,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
         val statistics = testBuilder.manager.deviceSurveys.getDeviceSurveyStatistics(
             deviceId = deviceId,
-            deviceSurveyId = deviceSurvey.id!!
+            surveyId = deviceSurvey.surveyId
         )
 
         assertEquals(25, statistics.totalAnswerCount)
@@ -632,14 +632,13 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
 
         val emptyStatistics = testBuilder.manager.deviceSurveys.getDeviceSurveyStatistics(
             deviceId = deviceId,
-            deviceSurveyId = deviceSurvey.id!!
+            surveyId = deviceSurvey.surveyId
         )
 
         assertNotNull(emptyStatistics)
 
         assertEquals(0, emptyStatistics.totalAnswerCount)
 
-        assertEquals(deviceSurvey.id, emptyStatistics.deviceSurveyId)
         assertEquals(surveyId, emptyStatistics.surveyId)
         assertEquals(deviceId, emptyStatistics.deviceId)
 
@@ -673,19 +672,19 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         testBuilder.consumer.deviceSurveys.assertGetDeviceSurveyStatisticsFail(
             expectedStatusCode = 403,
             deviceId = deviceId,
-            deviceSurveyId = deviceSurvey.id!!
+            surveyId = deviceSurvey.surveyId
         )
 
         testBuilder.empty.deviceSurveys.assertGetDeviceSurveyStatisticsFail(
             expectedStatusCode = 401,
             deviceId = deviceId,
-            deviceSurveyId = deviceSurvey.id
+            surveyId = deviceSurvey.surveyId
         )
 
         testBuilder.notvalid.deviceSurveys.assertGetDeviceSurveyStatisticsFail(
             expectedStatusCode = 401,
             deviceId = deviceId,
-            deviceSurveyId = deviceSurvey.id
+            surveyId = deviceSurvey.surveyId
         )
     }
 
