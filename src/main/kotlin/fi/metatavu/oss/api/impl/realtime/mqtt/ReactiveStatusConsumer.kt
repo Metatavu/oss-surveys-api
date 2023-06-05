@@ -42,7 +42,7 @@ class ReactiveStatusConsumer {
     @ReactiveTransactional
     fun consumeSurveyStatus(message: ByteArray): Uni<Void> = CoroutineScope(vertx.dispatcher()).async {
         try {
-            val deviceStatusMessage = jacksonObjectMapper().readValue<DeviceStatusMessage>(String(message))
+            val deviceStatusMessage = jacksonObjectMapper().readValue<DeviceStatusMessage>(message)
             val deviceId = deviceStatusMessage.deviceId
             val status = deviceStatusMessage.status
             val foundDevice = deviceController.findDevice(deviceId)
