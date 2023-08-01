@@ -14,7 +14,7 @@ class DeviceTranslator: AbstractTranslator<DeviceEntity, Device>() {
 
     override suspend fun translate(entity: DeviceEntity): Device {
         val deviceLastSeen = entity.lastSeen
-        val deviceStatus = if (OffsetDateTime.now().minusMinutes(5).isBefore(deviceLastSeen)) {
+        val deviceStatus = if (deviceLastSeen.isBefore(OffsetDateTime.now().minusMinutes(5))) {
             DeviceStatus.OFFLINE
         } else {
             entity.deviceStatus
