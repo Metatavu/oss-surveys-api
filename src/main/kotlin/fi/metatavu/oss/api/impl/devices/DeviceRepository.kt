@@ -4,6 +4,7 @@ import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.model.DeviceStatus
 import io.quarkus.panache.common.Sort
 import io.smallrye.mutiny.coroutines.awaitSuspending
+import java.time.OffsetDateTime
 import java.util.UUID
 import javax.enterprise.context.ApplicationScoped
 
@@ -79,7 +80,17 @@ class DeviceRepository: AbstractRepository<DeviceEntity, UUID>() {
      */
     suspend fun updateDeviceStatus(device: DeviceEntity, status: DeviceStatus) {
         device.deviceStatus = status
+        persistSuspending(device)
+    }
 
+    /**
+     * Updates Devices last seen
+     *
+     * @param device device to update
+     * @param lastSeen last seen
+     */
+    suspend fun updateLastSeen(device: DeviceEntity, lastSeen: OffsetDateTime) {
+        device.lastSeen = lastSeen
         persistSuspending(device)
     }
 
