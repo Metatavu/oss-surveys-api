@@ -49,6 +49,7 @@ class DeviceController {
         newDevice.location = deviceRequest.location
         newDevice.creatorId = userId
         newDevice.lastModifierId = userId
+        newDevice.lastSeen = OffsetDateTime.now()
 
         return deviceRepository.create(device = newDevice)
     }
