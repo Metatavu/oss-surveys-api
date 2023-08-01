@@ -6,6 +6,7 @@ import fi.metatavu.oss.api.impl.requests.DeviceRequestEntity
 import fi.metatavu.oss.api.model.DeviceStatus
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.security.PublicKey
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -111,5 +112,6 @@ class DeviceController {
      */
     suspend fun updateDeviceStatus(device: DeviceEntity, status: DeviceStatus) {
         deviceRepository.updateDeviceStatus(device, status)
+        deviceRepository.updateLastSeen(device, OffsetDateTime.now())
     }
 }

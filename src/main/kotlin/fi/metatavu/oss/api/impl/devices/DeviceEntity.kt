@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.impl.devices
 
 import fi.metatavu.oss.api.metadata.DBMetadata
 import fi.metatavu.oss.api.model.DeviceStatus
+import java.time.OffsetDateTime
 import java.util.UUID
 import javax.persistence.*
 
@@ -30,6 +31,9 @@ class DeviceEntity: DBMetadata() {
     @Column
     @Enumerated(EnumType.STRING)
     lateinit var deviceStatus: DeviceStatus
+
+    @Column (nullable = false)
+    lateinit var lastSeen: OffsetDateTime
 
     @Lob
     @Column
