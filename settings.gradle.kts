@@ -5,7 +5,7 @@ pluginManagement {
         mavenLocal()
         mavenCentral()
         gradlePluginPortal()
-        maven("https://us-central1-maven.pkg.dev/metatavu/openapi-generator")
+        maven("https://metatavu.jfrog.io/artifactory/openapi-generator")
     }
     plugins {
         id(quarkusPluginId) version quarkusPluginVersion
