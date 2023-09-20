@@ -387,4 +387,8 @@
         <sql>UPDATE device SET lastseen = modifiedat</sql>
     </changeSet>
 
+    <changeSet id="html-templates" author="Antti Leppä">
+        <sqlFile path="db/html-templates.sql"/>
+    </changeSet>
+
 </databaseChangeLog>
