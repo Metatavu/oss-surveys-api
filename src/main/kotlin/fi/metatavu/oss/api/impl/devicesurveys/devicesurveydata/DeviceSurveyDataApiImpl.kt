@@ -75,7 +75,7 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
             id = deviceId
         )
 
-        val ( deviceSurveys, count ) = deviceSurveyController.listDeviceSurveysByDevice(device.id)
+        val (deviceSurveys, count) = deviceSurveyController.listDeviceSurveys(deviceId = device.id)
         return@async createOk(deviceSurveys.map { deviceSurveyDataTranslator.translate(it) }, count)
     }.asUni()
 

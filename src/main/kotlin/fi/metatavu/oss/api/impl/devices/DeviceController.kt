@@ -85,7 +85,7 @@ class DeviceController {
         answerController.list(device).forEach {
             answerController.unassignFromDevice(it)
         }
-        val (deviceSurveys) = deviceSurveyController.listDeviceSurveysByDevice(device.id)
+        val (deviceSurveys) = deviceSurveyController.listDeviceSurveys(deviceId = device.id)
 
         for (deviceSurvey in deviceSurveys) {
             deviceSurveyController.deleteDeviceSurvey(deviceSurvey)

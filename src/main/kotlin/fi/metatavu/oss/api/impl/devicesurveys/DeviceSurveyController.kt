@@ -59,39 +59,23 @@ class DeviceSurveyController {
      * @param maxResults max results
      * @return list of device surveys and count
      */
-    suspend fun listDeviceSurveysByDevice(
-        deviceId: UUID,
+    suspend fun listDeviceSurveys(
+        deviceId: UUID? = null,
+        surveyId: UUID? = null,
+        status: DeviceSurveyStatus? = null,
+        publishStartTime: OffsetDateTime? = null,
+        publishEndTime: OffsetDateTime? = null,
         firstResult: Int? = null,
-        maxResults: Int? = null,
-        status: DeviceSurveyStatus? = null
+        maxResults: Int? = null
     ): Pair<List<DeviceSurveyEntity>, Long> {
         return deviceSurveyRepository.list(
             deviceId = deviceId,
-            surveyId = null,
-            firstResult = firstResult,
-            maxResults = maxResults
-        )
-    }
-
-    /**
-     * Lists device surveys by survey
-     *
-     * @param surveyId survey id
-     * @param firstResult first result
-     * @param maxResults max results
-     * @return list of device surveys and count
-     */
-    suspend fun listDeviceSurveysBySurvey(
-        surveyId: UUID,
-        firstResult: Int? = null,
-        maxResults: Int? = null,
-        status: DeviceSurveyStatus? = null
-    ): Pair<List<DeviceSurveyEntity>, Long> {
-        return deviceSurveyRepository.list(
-            deviceId = null,
             surveyId = surveyId,
+            publishStartTime = publishStartTime,
+            publishEndTime = publishEndTime,
             firstResult = firstResult,
-            maxResults = maxResults
+            maxResults = maxResults,
+            status = status
         )
     }
 
@@ -237,27 +221,35 @@ class DeviceSurveyController {
     }
 
     /**
+     * Lists device surveys that are scheduled to be unpublished
+     *
+     * @return list of device surveys
+     */
+    suspend fun listDeviceSurveysToUnPublish(): List<DeviceSurveyEntity> {
+        return deviceSurveyRepository.listDeviceSurveysToUnPublish()
+    }
+
+    /**
      * Publishes a Device Survey
      *
      * @param deviceSurvey device survey to publish
      * @return published device survey
      */
     suspend fun publishDeviceSurvey(deviceSurvey: DeviceSurveyEntity): DeviceSurveyEntity {
-        return deviceSurveyRepository.updateStatus(
+        val updatedDeviceSurvey = deviceSurveyRepository.updateStatus(
             deviceSurvey = deviceSurvey,
             status = DeviceSurveyStatus.PUBLISHED,
             publishStartTime = deviceSurvey.publishStartTime,
             publishEndTime = deviceSurvey.publishEndTime
         )
-    }
 
-    /**
-     * Un-publishes a Device Survey
-     *
-     * @param deviceSurvey device survey to un-publish
-     */
-    suspend fun unPublishDeviceSurvey(deviceSurvey: DeviceSurveyEntity) {
-        deviceSurveyRepository.deleteSuspending(deviceSurvey)
+        realtimeNotificationController.notifyDeviceSurveyAction(
+            deviceId = updatedDeviceSurvey.device.id,
+            deviceSurveyId = updatedDeviceSurvey.id,
+            action = DeviceSurveysMessageAction.UPDATE
+        )
+
+        return updatedDeviceSurvey
     }
 
     /**
@@ -402,6 +394,4 @@ class DeviceSurveyController {
             }
         }
     }
-
-
 }

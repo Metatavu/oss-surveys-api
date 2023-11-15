@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "1.7.21"
     kotlin("plugin.allopen") version "1.7.21"
     id("io.quarkus")
-    id("org.openapi.generator") version "6.6.0-kotlin-jaxrs-mutiny-rc1"
+    id("org.openapi.generator") version "7.0.0"
     jacoco
     id("com.github.nbaztec.coveralls-jacoco") version "1.2.14"
 }
