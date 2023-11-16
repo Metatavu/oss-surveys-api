@@ -1,7 +1,7 @@
 package fi.metatavu.oss.api.test.functional.tests
 
 import fi.metatavu.oss.api.test.functional.mqtt.TestMqttClient
-import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
+import fi.metatavu.oss.api.test.functional.resources.SchedulerTestProfile
 import fi.metatavu.oss.test.client.models.DeviceSurvey
 import fi.metatavu.oss.test.client.models.DeviceSurveyMessage
 import fi.metatavu.oss.test.client.models.DeviceSurveyStatus
@@ -19,7 +19,7 @@ import java.util.concurrent.TimeUnit
  * Tests for Scheduler
  */
 @QuarkusTest
-@TestProfile(LocalTestProfile::class)
+@TestProfile(SchedulerTestProfile::class)
 class SchedulerTestIT: AbstractResourceTest() {
 
     @Test

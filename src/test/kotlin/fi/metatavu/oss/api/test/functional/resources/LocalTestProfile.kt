@@ -5,7 +5,9 @@ import io.quarkus.test.junit.QuarkusTestProfile
 /**
  * Local Quarkus test profile
  */
-class LocalTestProfile: QuarkusTestProfile {
+open class LocalTestProfile: QuarkusTestProfile {
+
+    protected open val schedulerEnabled = "false"
 
     override fun getConfigOverrides(): Map<String, String> {
         return mapOf(
@@ -14,7 +16,8 @@ class LocalTestProfile: QuarkusTestProfile {
             "environment" to "test",
             "mqtt.base.topic" to "test",
             "environment" to "test",
-            "scheduled.survey.publish.delay" to "5s"
+            "scheduled.survey.publish.delay" to "5s",
+            "quarkus.scheduler.enabled" to schedulerEnabled
         )
     }
 

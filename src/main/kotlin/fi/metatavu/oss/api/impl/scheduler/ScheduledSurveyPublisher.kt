@@ -40,11 +40,15 @@ class ScheduledSurveyPublisher {
     @ActivateRequestContext
     @ReactiveTransactional
     fun publishScheduledSurveys(): Uni<Void> = CoroutineScope(vertx.dispatcher()).async {
-        val deviceSurveysToPublish = deviceSurveyController.listDeviceSurveysToPublish()
+        logger.info("Un-publishing device surveys...")
         val deviceSurveysToUnPublish = deviceSurveyController.listDeviceSurveysToUnPublish()
-
         unPublishDeviceSurveys(deviceSurveysToUnPublish)
+        logger.info("Finished un-publishing!")
+
+        logger.info("Publishing device surveys...")
+        val deviceSurveysToPublish = deviceSurveyController.listDeviceSurveysToPublish()
         publishDeviceSurveys(deviceSurveysToPublish)
+        logger.info("Finished publishing!")
     }.asUni().replaceWithVoid()
 
     /**
