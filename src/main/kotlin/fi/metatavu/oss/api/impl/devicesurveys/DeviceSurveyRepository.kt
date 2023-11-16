@@ -75,10 +75,11 @@ class DeviceSurveyRepository: AbstractRepository<DeviceSurveyEntity, UUID>() {
      * @return list of device surveys
      */
     suspend fun listDeviceSurveysToPublish(): List<DeviceSurveyEntity> {
-        val queryString = "status = :status AND publishStartTime <= :publishStartTime"
+        val queryString = "status = :status AND publishStartTime <= :publishStartTime AND publishEndTime > :publishEndTime"
         val parameters = Parameters
             .with("status", DeviceSurveyStatus.SCHEDULED)
             .and("publishStartTime", OffsetDateTime.now())
+            .and("publishEndTime", OffsetDateTime.now())
 
         return listWithFilters(
             queryString = queryString,
