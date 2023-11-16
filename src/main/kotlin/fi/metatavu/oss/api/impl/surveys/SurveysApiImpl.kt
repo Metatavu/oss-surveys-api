@@ -106,7 +106,7 @@ class SurveysApiImpl : SurveysApi, AbstractApi() {
             id = surveyId
         )
 
-        val (foundDeviceSurveys) = deviceSurveyController.listDeviceSurveysBySurvey(surveyId)
+        val (foundDeviceSurveys) = deviceSurveyController.listDeviceSurveys(surveyId = surveyId)
 
         if (foundDeviceSurveys.isNotEmpty()) {
             val deviceIds = foundDeviceSurveys.map { it.device.id }.toSet()

@@ -68,7 +68,7 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
         }
 
         if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {
-            deviceSurveyController.listDeviceSurveysByDevice(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
+            deviceSurveyController.listDeviceSurveys(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
                 .first
                 .forEach { deviceSurveyController.deleteDeviceSurvey(it) }
 
@@ -137,7 +137,7 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
 
     @RolesAllowed(UserRole.MANAGER.name)
     override fun listDeviceSurveys(deviceId: UUID, firstResult: Int?, maxResults: Int?, status: DeviceSurveyStatus?): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
-        val (deviceSurveys, count) = deviceSurveyController.listDeviceSurveysByDevice(
+        val (deviceSurveys, count) = deviceSurveyController.listDeviceSurveys(
             deviceId = deviceId,
             firstResult = firstResult,
             maxResults = maxResults,
@@ -169,7 +169,7 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
         }
 
         if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {
-            deviceSurveyController.listDeviceSurveysByDevice(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
+            deviceSurveyController.listDeviceSurveys(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
                 .first
                 .filter { it.id != deviceSurveyId }
                 .forEach { deviceSurveyController.deleteDeviceSurvey(it) }

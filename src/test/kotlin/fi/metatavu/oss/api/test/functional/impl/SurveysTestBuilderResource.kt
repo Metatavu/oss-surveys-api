@@ -44,9 +44,9 @@ class SurveysTestBuilderResource(
     }
 
     fun list(
-        firstResult: Int?,
-        maxResults: Int?,
-        status: SurveyStatus?
+        firstResult: Int? = null,
+        maxResults: Int? = null,
+        status: SurveyStatus? = null
     ): Array<Survey> {
         return api.listSurveys(
             firstResult = firstResult,
