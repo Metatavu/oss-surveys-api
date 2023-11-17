@@ -64,15 +64,16 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
         val foundDevice = deviceController.findDevice(deviceSurvey.deviceId) ?: return@async createBadRequest("Device not found")
 
         if (deviceSurvey.status == DeviceSurveyStatus.SCHEDULED && !deviceSurveyController.validateScheduledDeviceSurvey(deviceSurvey)) {
-            return@async createBadRequest("Device survey schedule is not valid")
+                return@async createBadRequest("Device survey schedule is not valid")
         }
 
         if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {
             deviceSurveyController.listDeviceSurveys(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
                 .first
                 .forEach { deviceSurveyController.deleteDeviceSurvey(it) }
-
         }
+
+        deviceSurveyController.setPublishEndTimes(deviceId, deviceSurvey.publishStartTime)
 
         val createdDeviceSurvey = deviceSurveyController.createDeviceSurvey(
             deviceSurvey = deviceSurvey,
@@ -165,7 +166,7 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
         }
 
         if (deviceSurvey.status == DeviceSurveyStatus.SCHEDULED && !deviceSurveyController.validateScheduledDeviceSurvey(deviceSurvey)) {
-            return@async createBadRequest("Device survey schedule is not valid")
+                return@async createBadRequest("Device survey schedule is not valid")
         }
 
         if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {
@@ -175,6 +176,8 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
                 .forEach { deviceSurveyController.deleteDeviceSurvey(it) }
 
         }
+
+        deviceSurveyController.setPublishEndTimes(deviceId, deviceSurvey.publishStartTime)
 
         val updatedDeviceSurvey = deviceSurveyController.updateDeviceSurvey(
             deviceSurveyToUpdate = foundDeviceSurvey,

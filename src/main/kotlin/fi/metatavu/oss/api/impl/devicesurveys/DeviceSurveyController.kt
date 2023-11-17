@@ -168,6 +168,25 @@ class DeviceSurveyController {
     }
 
     /**
+     * Sets published devices surveys to expire
+     *
+     * @param deviceId device id
+     * @param publishEndTime publish end time
+     */
+    suspend fun setPublishEndTimes(deviceId: UUID, publishEndTime: OffsetDateTime) {
+        val deviceSurveys = deviceSurveyRepository.listDeviceSurveysExpiringInFuture(deviceId = deviceId, publishEndTime = publishEndTime)
+        for (deviceSurvey in deviceSurveys) {
+            deviceSurveyRepository.update(
+                deviceSurveyEntity = deviceSurvey,
+                status = deviceSurvey.status,
+                publishStartTime = deviceSurvey.publishStartTime,
+                publishEndTime = publishEndTime,
+                userId = deviceSurvey.lastModifierId!!
+            )
+        }
+    }
+
+    /**
      * Notifies devices of updates to associated surveys
      *
      * @param surveyId survey id
@@ -196,7 +215,7 @@ class DeviceSurveyController {
      * @return whether valid
      */
     fun validateScheduledDeviceSurvey(deviceSurvey: DeviceSurvey): Boolean {
-        if (deviceSurvey.publishStartTime == null || deviceSurvey.publishEndTime == null) {
+        if (deviceSurvey.publishEndTime == null) {
             return false
         }
 

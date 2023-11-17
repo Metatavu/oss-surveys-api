@@ -28,8 +28,8 @@ class DeviceSurveyEntity: DBMetadata() {
     @Enumerated(EnumType.STRING)
     lateinit var status: DeviceSurveyStatus
 
-    @Column
-    var publishStartTime: OffsetDateTime? = null
+    @Column(nullable = false)
+    lateinit var publishStartTime: OffsetDateTime
 
     @Column
     var publishEndTime: OffsetDateTime? = null
