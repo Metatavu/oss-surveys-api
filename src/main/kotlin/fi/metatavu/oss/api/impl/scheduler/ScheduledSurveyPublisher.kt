@@ -40,15 +40,15 @@ class ScheduledSurveyPublisher {
     @ActivateRequestContext
     @ReactiveTransactional
     fun publishScheduledSurveys(): Uni<Void> = CoroutineScope(vertx.dispatcher()).async {
-        logger.info("Un-publishing device surveys...")
-        val deviceSurveysToUnPublish = deviceSurveyController.listDeviceSurveysToUnPublish()
-        unPublishDeviceSurveys(deviceSurveysToUnPublish)
-        logger.info("Finished un-publishing!")
-
         logger.info("Publishing device surveys...")
         val deviceSurveysToPublish = deviceSurveyController.listDeviceSurveysToPublish()
         publishDeviceSurveys(deviceSurveysToPublish)
         logger.info("Finished publishing!")
+
+        logger.info("Un-publishing device surveys...")
+        val deviceSurveysToUnPublish = deviceSurveyController.listDeviceSurveysToUnPublish()
+        unPublishDeviceSurveys(deviceSurveysToUnPublish)
+        logger.info("Finished un-publishing!")
     }.asUni().replaceWithVoid()
 
     /**
@@ -65,7 +65,7 @@ class ScheduledSurveyPublisher {
             val survey = deviceSurvey.survey
             val device = deviceSurvey.device
             deviceSurveyController.publishDeviceSurvey(deviceSurvey)
-            logger.info("Published device survey ${survey.title} (${survey.id}) for device ${device.name} (${device.id})")
+            logger.info("Published device survey with id ${deviceSurvey.id} - ${survey.title} (${survey.id}) for device ${device.name} (${device.id})")
         }
     }
 
@@ -83,7 +83,7 @@ class ScheduledSurveyPublisher {
             val survey = deviceSurvey.survey
             val device = deviceSurvey.device
             deviceSurveyController.deleteDeviceSurvey(deviceSurvey)
-            logger.info("Un-published device survey ${survey.title} (${survey.id}) for device ${device.name} (${device.id})")
+            logger.info("Un-published device survey with id ${deviceSurvey.id} - ${survey.title} (${survey.id}) for device ${device.name} (${device.id})")
         }
     }
 }

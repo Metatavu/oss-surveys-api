@@ -387,4 +387,8 @@
         <sql>UPDATE device SET lastseen = modifiedat</sql>
     </changeSet>
 
+    <changeSet id="add_publishendtimes_to_surveys" author="Ville Juutila">
+        <sql>UPDATE devicesurvey set publishstarttime = now() where publishstarttime is null</sql>
+        <addNotNullConstraint tableName="devicesurvey" columnName="publishstarttime" columnDataType="datetime(6)"/>
+    </changeSet>
 </databaseChangeLog>

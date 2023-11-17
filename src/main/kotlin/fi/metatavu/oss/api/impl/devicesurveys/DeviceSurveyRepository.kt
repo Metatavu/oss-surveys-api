@@ -70,12 +70,33 @@ class DeviceSurveyRepository: AbstractRepository<DeviceSurveyEntity, UUID>() {
     }
 
     /**
+     * Lists device surveys by device where publish end time is after given time or null
+     *
+     * @param deviceId device id
+     * @param publishEndTime publish end time
+     * @return list of device surveys
+     */
+    suspend fun listDeviceSurveysExpiringInFuture(deviceId: UUID, publishEndTime: OffsetDateTime): List<DeviceSurveyEntity> {
+        val queryString = "device_id = :device_id and (publishEndTime > :publishEndTime or publishEndTime is null)"
+        val parameters = Parameters
+            .with("device_id", deviceId)
+            .and("publishEndTime", publishEndTime)
+
+        return listWithFilters(
+            queryString = queryString,
+            parameters = parameters,
+            page = null,
+            pageSize = null
+        ).first
+    }
+
+    /**
      * Lists device surveys that are scheduled to be published
      *
      * @return list of device surveys
      */
     suspend fun listDeviceSurveysToPublish(): List<DeviceSurveyEntity> {
-        val queryString = "status = :status AND publishStartTime <= :publishStartTime AND publishEndTime > :publishEndTime"
+        val queryString = "status = :status AND publishStartTime <= :publishStartTime AND (publishEndTime > :publishEndTime OR publishendtime is null)"
         val parameters = Parameters
             .with("status", DeviceSurveyStatus.SCHEDULED)
             .and("publishStartTime", OffsetDateTime.now())
@@ -91,10 +112,14 @@ class DeviceSurveyRepository: AbstractRepository<DeviceSurveyEntity, UUID>() {
 
     /**
      * Lists device surveys that are scheduled to be unpublished
+     *
+     * @return list of device surveys
      */
     suspend fun listDeviceSurveysToUnPublish(): List<DeviceSurveyEntity> {
-        val queryString = "publishEndTime <= :publishEndTime or publishEndTime is null"
-        val parameters = Parameters.with("publishEndTime", OffsetDateTime.now())
+        val queryString = "status = :status and publishendtime <= :publishendtime"
+        val parameters = Parameters
+            .with("status", DeviceSurveyStatus.PUBLISHED)
+            .and("publishendtime", OffsetDateTime.now())
 
         return listWithFilters(
             queryString = queryString,
@@ -119,7 +144,7 @@ class DeviceSurveyRepository: AbstractRepository<DeviceSurveyEntity, UUID>() {
         device: DeviceEntity,
         survey: SurveyEntity,
         status: DeviceSurveyStatus,
-        publishStartTime: OffsetDateTime?,
+        publishStartTime: OffsetDateTime,
         publishEndTime: OffsetDateTime?,
         userId: UUID
     ): DeviceSurveyEntity {
@@ -148,7 +173,7 @@ class DeviceSurveyRepository: AbstractRepository<DeviceSurveyEntity, UUID>() {
     suspend fun update(
         deviceSurveyEntity: DeviceSurveyEntity,
         status: DeviceSurveyStatus,
-        publishStartTime: OffsetDateTime?,
+        publishStartTime: OffsetDateTime,
         publishEndTime: OffsetDateTime?,
         userId: UUID
     ): DeviceSurveyEntity {
@@ -171,7 +196,7 @@ class DeviceSurveyRepository: AbstractRepository<DeviceSurveyEntity, UUID>() {
     suspend fun updateStatus(
         deviceSurvey: DeviceSurveyEntity,
         status: DeviceSurveyStatus,
-        publishStartTime: OffsetDateTime?,
+        publishStartTime: OffsetDateTime,
         publishEndTime: OffsetDateTime?
     ): DeviceSurveyEntity {
         deviceSurvey.status = status

@@ -119,7 +119,7 @@ class LayoutTestIT: AbstractResourceTest() {
             assertEquals(updateData.html, updated.html)
             assertEquals(1, updated.layoutVariables!!.size)
             assertEquals(updateData.layoutVariables!![0].key, updated.layoutVariables[0].key)
-            assertEquals(updateData.layoutVariables!![0].type, updated.layoutVariables[0].type)
+            assertEquals(updateData.layoutVariables[0].type, updated.layoutVariables[0].type)
             assertNotNull(updated.id)
             assertNotNull(updated.metadata)
 

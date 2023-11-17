@@ -29,6 +29,7 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             surveyId = createdSurvey.id!!,
             deviceId = deviceId,
             status = DeviceSurveyStatus.PUBLISHED,
+            publishStartTime = OffsetDateTime.now().toString()
         )
         val createdDeviceSurvey = testBuilder.manager.deviceSurveys.create(
             addClosable = false,
@@ -80,7 +81,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             deviceSurvey = DeviceSurvey(
                 surveyId = createdSurveyDevice2.id!!,
                 deviceId = deviceId2,
-                status = DeviceSurveyStatus.PUBLISHED
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = OffsetDateTime.now().toString()
             )
         )
 
@@ -141,7 +143,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         val deviceSurveyToCreate = DeviceSurvey(
             surveyId = createdSurvey.id!!,
             deviceId = deviceId,
-            status = DeviceSurveyStatus.PUBLISHED
+            status = DeviceSurveyStatus.PUBLISHED,
+            publishStartTime = OffsetDateTime.now().toString()
         )
         approveSurvey(createdSurvey)
 
@@ -189,7 +192,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             deviceSurvey = DeviceSurvey(
                 surveyId = createdSurvey.id!!,
                 deviceId = deviceId,
-                status = DeviceSurveyStatus.PUBLISHED
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = OffsetDateTime.now().toString()
             )
         )
 
@@ -237,7 +241,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         val deviceSurveyToCreate = DeviceSurvey(
             surveyId = createdSurvey.id,
             deviceId = deviceId,
-            status = DeviceSurveyStatus.PUBLISHED
+            status = DeviceSurveyStatus.PUBLISHED,
+            publishStartTime = OffsetDateTime.now().toString()
         )
         testBuilder.manager.deviceSurveys.create(
             deviceId = deviceId,
@@ -268,7 +273,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         val deviceSurveyToCreate = DeviceSurvey(
             surveyId = createdSurvey.id,
             deviceId = deviceId,
-            status = DeviceSurveyStatus.SCHEDULED
+            status = DeviceSurveyStatus.SCHEDULED,
+            publishStartTime = OffsetDateTime.now().toString()
         )
 
         /// Missing publishStartTime and publishEndTime
@@ -337,7 +343,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             DeviceSurvey(
                 surveyId = createdSurvey.id,
                 deviceId = deviceId,
-                status = DeviceSurveyStatus.PUBLISHED
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = OffsetDateTime.now().toString()
             )
         )
         val foundDeviceSurvey = testBuilder.manager.deviceSurveys.find(
@@ -346,7 +353,10 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         )
 
         assertNotNull(foundDeviceSurvey)
-        assertEquals(foundDeviceSurvey, createdDeviceSurvey)
+        assertEquals(foundDeviceSurvey.deviceId, createdDeviceSurvey.deviceId)
+        assertEquals(foundDeviceSurvey.surveyId, createdDeviceSurvey.surveyId)
+        assertEquals(foundDeviceSurvey.status, createdDeviceSurvey.status)
+        assertOffsetDateTimeEquals(foundDeviceSurvey.publishStartTime, createdDeviceSurvey.publishStartTime)
 
         testBuilder.manager.deviceSurveys.delete(
             deviceId = deviceId,
@@ -363,7 +373,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
         val deviceSurveyToCreate = DeviceSurvey(
             surveyId = createdSurvey.id!!,
             deviceId = deviceId,
-            status = DeviceSurveyStatus.PUBLISHED
+            status = DeviceSurveyStatus.PUBLISHED,
+            publishStartTime = OffsetDateTime.now().toString()
         )
 
         // Device doesn't exist
@@ -465,7 +476,8 @@ class DeviceSurveysTestIT: AbstractResourceTest() {
             DeviceSurvey(
                 surveyId = createdSurvey.id,
                 deviceId = deviceId,
-                status = DeviceSurveyStatus.PUBLISHED
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = OffsetDateTime.now().toString()
             )
         )
         val createMessage = createSubscription.getMessages(1)

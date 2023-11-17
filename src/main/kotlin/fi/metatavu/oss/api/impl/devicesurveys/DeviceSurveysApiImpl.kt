@@ -63,15 +63,18 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
 
         val foundDevice = deviceController.findDevice(deviceSurvey.deviceId) ?: return@async createBadRequest("Device not found")
 
-        if (deviceSurvey.status == DeviceSurveyStatus.SCHEDULED && !deviceSurveyController.validateScheduledDeviceSurvey(deviceSurvey)) {
-            return@async createBadRequest("Device survey schedule is not valid")
+        if (deviceSurvey.status == DeviceSurveyStatus.SCHEDULED) {
+            if (!deviceSurveyController.validateScheduledDeviceSurvey(deviceSurvey)) {
+                return@async createBadRequest("Device survey schedule is not valid")
+            }
+
+            deviceSurveyController.setPublishEndTimes(deviceId, deviceSurvey.publishStartTime)
         }
 
         if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {
             deviceSurveyController.listDeviceSurveys(deviceId = deviceId, status = DeviceSurveyStatus.PUBLISHED)
                 .first
                 .forEach { deviceSurveyController.deleteDeviceSurvey(it) }
-
         }
 
         val createdDeviceSurvey = deviceSurveyController.createDeviceSurvey(
@@ -164,8 +167,12 @@ class DeviceSurveysApiImpl: fi.metatavu.oss.api.spec.DeviceSurveysApi, AbstractA
             return@async createBadRequest("Device id in path and body do not match")
         }
 
-        if (deviceSurvey.status == DeviceSurveyStatus.SCHEDULED && !deviceSurveyController.validateScheduledDeviceSurvey(deviceSurvey)) {
-            return@async createBadRequest("Device survey schedule is not valid")
+        if (deviceSurvey.status == DeviceSurveyStatus.SCHEDULED) {
+            if (!deviceSurveyController.validateScheduledDeviceSurvey(deviceSurvey)) {
+                return@async createBadRequest("Device survey schedule is not valid")
+            }
+
+            deviceSurveyController.setPublishEndTimes(deviceId, deviceSurvey.publishStartTime)
         }
 
         if (deviceSurvey.status == DeviceSurveyStatus.PUBLISHED) {

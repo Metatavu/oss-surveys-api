@@ -8,6 +8,7 @@ import io.quarkus.test.junit.TestProfile
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
+import java.time.OffsetDateTime
 
 /**
  * Tests for surveys API
@@ -161,7 +162,8 @@ class SurveyTestIT : AbstractResourceTest() {
             deviceSurvey = DeviceSurvey(
                 deviceId = deviceId,
                 surveyId = createdSurvey.id,
-                status = DeviceSurveyStatus.PUBLISHED
+                status = DeviceSurveyStatus.PUBLISHED,
+                publishStartTime = OffsetDateTime.now().toString()
             )
         )
 
