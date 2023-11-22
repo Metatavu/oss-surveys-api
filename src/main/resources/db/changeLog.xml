@@ -395,4 +395,15 @@
         <sql>UPDATE devicesurvey set publishstarttime = now() where publishstarttime is null</sql>
         <addNotNullConstraint tableName="devicesurvey" columnName="publishstarttime" columnDataType="datetime(6)"/>
     </changeSet>
+    
+    <changeSet id="deviceversion" author="Antti Leppä">
+        <addColumn tableName="device">
+            <column name="version" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <sql>UPDATE device SET version = 921</sql>
+    </changeSet>
+    
 </databaseChangeLog>

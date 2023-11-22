@@ -16,15 +16,27 @@ class PageQuestionTranslator : AbstractTranslator<PageQuestionEntity, PageQuesti
     lateinit var pageQuestionOptionRepository: QuestionOptionRepository
 
     override suspend fun translate(entity: PageQuestionEntity): PageQuestion {
+        return translate(entity = entity, supportRichText = false)
+    }
+
+    /**
+     * Translates page question JPA to REST objects
+     *
+     * @param entity page question JPA entity
+     * @param supportRichText should rich text be supported
+     * @return translated page question
+     */
+    suspend fun translate(entity: PageQuestionEntity, supportRichText : Boolean): PageQuestion {
         return PageQuestion(
             type = entity.type,
             options = pageQuestionOptionRepository.listByQuestion(entity).map {
                 PageQuestionOption(
-                    questionOptionValue = it.value,
+                    questionOptionValue = processHtmlText(html = it.value, supportRichText = supportRichText),
                     orderNumber = it.orderNumber!!,
                     id = it.id
                 )
             }
         )
     }
+
 }

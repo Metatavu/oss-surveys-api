@@ -17,6 +17,13 @@ import javax.inject.Inject
 @ApplicationScoped
 class DeviceController {
 
+    companion object {
+        /**
+         * The minimum version of the device software that supports rich text
+         */
+        private const val RICH_TEXT_SUPPORT_VERSION = 922L
+    }
+
     @Inject
     lateinit var deviceRepository: DeviceRepository
 
@@ -48,6 +55,7 @@ class DeviceController {
         newDevice.description = deviceRequest.description
         newDevice.location = deviceRequest.location
         newDevice.creatorId = userId
+        newDevice.version = RICH_TEXT_SUPPORT_VERSION
         newDevice.lastModifierId = userId
         newDevice.lastSeen = OffsetDateTime.now()
 
@@ -115,4 +123,12 @@ class DeviceController {
         deviceRepository.updateDeviceStatus(device, status)
         deviceRepository.updateLastSeen(device, OffsetDateTime.now())
     }
+
+    /**
+     * Returns true if device supports html
+     *
+     * @param device device entity
+     * @return true if device supports html
+     */
+    fun supportsHtml(device: DeviceEntity): Boolean = device.version >= RICH_TEXT_SUPPORT_VERSION
 }
