@@ -9,6 +9,9 @@ import io.quarkus.test.common.QuarkusTestResource
 import io.quarkus.test.junit.QuarkusTest
 import org.eclipse.microprofile.config.ConfigProvider
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
+import java.time.OffsetDateTime
+import java.time.temporal.ChronoUnit
 
 /**
  * Abstract base class for resource tests
@@ -18,6 +21,20 @@ import org.junit.jupiter.api.AfterEach
 abstract class AbstractResourceTest {
 
     private var devServicesContext: DevServicesContext? = null
+
+    /**
+     * Asserts offset datetime equals
+     *
+     * @param expectedDateTime expected date time
+     * @param actualDateTime actual date time
+     * @param retention retention
+     */
+    protected fun assertOffsetDateTimeEquals(expectedDateTime: String, actualDateTime: String, retention: ChronoUnit = ChronoUnit.SECONDS) {
+        assertEquals(
+            OffsetDateTime.parse(expectedDateTime).toInstant().truncatedTo(retention),
+            OffsetDateTime.parse(actualDateTime).toInstant().truncatedTo(retention)
+        )
+    }
 
     /**
      * Devices are being created as a side effect from the device fetching its key for the first time,

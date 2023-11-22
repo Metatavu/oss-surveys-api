@@ -2,6 +2,9 @@
   "resources": [
     {
       "pattern": "db/changeLog.xml"
+    },
+    {
+      "pattern": "db/html-templates.sql"
     }
   ]
 }

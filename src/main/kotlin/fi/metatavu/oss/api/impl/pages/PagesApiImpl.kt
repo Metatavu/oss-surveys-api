@@ -15,7 +15,6 @@ import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
-import org.eclipse.microprofile.config.inject.ConfigProperty
 import java.util.*
 import javax.annotation.security.RolesAllowed
 import javax.enterprise.context.RequestScoped
@@ -140,7 +139,7 @@ class PagesApiImpl : PagesApi, AbstractApi() {
      */
     private suspend fun canBeModified(page: PageEntity): Response? {
         if (isStaging || isTest) return null
-        val (foundDeviceSurveys) = deviceSurveyController.listDeviceSurveysBySurvey(page.survey.id)
+        val (foundDeviceSurveys) = deviceSurveyController.listDeviceSurveys(surveyId = page.survey.id)
         val hasAnswers = pageAnswerController.list(page)
 
         if (foundDeviceSurveys.isNotEmpty()) {

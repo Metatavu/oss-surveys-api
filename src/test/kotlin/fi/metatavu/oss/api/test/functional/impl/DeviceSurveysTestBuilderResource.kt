@@ -17,7 +17,7 @@ import java.util.*
  * Test resources fo device surveys
  */
 class DeviceSurveysTestBuilderResource(
-    testBuilder: TestBuilder,
+    val testBuilder: TestBuilder,
     private val accessTokenProvider: AccessTokenProvider?,
     apiClient: ApiClient
 ): ApiTestBuilderResource<DeviceSurvey, ApiClient>(testBuilder, apiClient) {
@@ -35,7 +35,7 @@ class DeviceSurveysTestBuilderResource(
     }
 
     /**
-     * Lists device surveys
+     * Lists device surveys by device id
      *
      * @param deviceId device id
      * @param firstResult first result
@@ -55,6 +55,20 @@ class DeviceSurveysTestBuilderResource(
             maxResults = maxResults,
             status = status
         )
+    }
+
+    /**
+     * Lists all device surveys
+     *
+     * @return list of device surveys
+     */
+    fun list(): Array<DeviceSurvey> {
+        val deviceSurveys = mutableListOf<DeviceSurvey>()
+        val devices = testBuilder.manager.devices.list()
+        for (device in devices) {
+            deviceSurveys.addAll(list(deviceId = device.id!!))
+        }
+        return deviceSurveys.toTypedArray()
     }
 
     /**
