@@ -23,6 +23,9 @@ class DeviceEntity: DBMetadata() {
     lateinit var serialNumber: String
 
     @Column
+    var version: Long = 0
+
+    @Column(nullable = false)
     var description: String? = null
 
     @Column
