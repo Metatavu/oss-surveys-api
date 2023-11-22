@@ -1,5 +1,6 @@
 package fi.metatavu.oss.api.impl.devicesurveys.devicesurveydata
 
+import fi.metatavu.oss.api.impl.devices.DeviceController
 import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyEntity
 import fi.metatavu.oss.api.impl.layouts.LayoutVariableRepository
 import fi.metatavu.oss.api.impl.pages.PagePropertyRepository
@@ -24,6 +25,9 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
     lateinit var surveyController: SurveyController
 
     @Inject
+    lateinit var deviceController: DeviceController
+
+    @Inject
     lateinit var pagesController: PagesController
 
     @Inject
@@ -39,6 +43,7 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
     lateinit var pageQuestionController: PageQuestionController
 
     override suspend fun translate(entity: DeviceSurveyEntity): DeviceSurveyData {
+        val supportRichText = deviceController.supportsHtml(device = entity.device)
         val survey = surveyController.findSurvey(entity.survey.id) ?: throw IllegalArgumentException("Survey not found")
         val (pages) = pagesController.listPages(survey)
         return DeviceSurveyData(
@@ -54,14 +59,14 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
                 DeviceSurveyPageData(
                     id = page.id,
                     metadata = translateMetadata(page),
-                    layoutHtml = page.layout.html,
+                    layoutHtml = processHtmlLayout(html = page.layout.html, supportRichText = supportRichText),
                     pageNumber = page.orderNumber,
                     properties = pagePropertyRepository.listByPage(
                         entity = page
                     ).map { prop ->
                         PageProperty(
                             key = prop.propertyKey,
-                            value = prop.value,
+                            value = processHtmlText(html = prop.value, supportRichText = supportRichText),
                         )
                     },
                     layoutVariables = layoutVariableRepository.listByLayout(page.layout).map { layoutVar ->
@@ -71,7 +76,7 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
                         )
                     },
                     question = pageQuestionController.find(page)?.let { pageQuestion ->
-                        pageQuestionTranslator.translate(pageQuestion)
+                        pageQuestionTranslator.translate(entity = pageQuestion, supportRichText = supportRichText)
                     },
                     nextButtonVisible = page.nextButtonVisible
                 )
@@ -79,4 +84,18 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
             metadata = translateMetadata(entity)
         )
     }
+
+    private fun processHtmlLayout(html: String, supportRichText: Boolean): String {
+        return if (supportRichText) {
+            html
+        } else {
+            val regex = Regex("<div id='([^']*)' data-component='header-container'>(.*?)</div>")
+            html.replace(regex) { matchResult ->
+                val id = matchResult.groupValues[1]
+                val content = matchResult.groupValues[2]
+                "<h1 id='$id' class='title md'>$content</h1>"
+            }
+        }
+    }
+
 }

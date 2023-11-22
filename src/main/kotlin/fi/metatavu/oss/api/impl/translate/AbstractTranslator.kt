@@ -36,4 +36,25 @@ abstract class AbstractTranslator<E, R> {
     open suspend fun translate(entities: List<E>): List<R> {
         return entities.mapNotNull { translate(it) }
     }
+
+    /**
+     * Process html text. If device does not support rich text all html elements are stripped
+     *
+     * @param html html text
+     * @param supportRichText whether device support rich text
+     */
+    protected fun processHtmlText(html: String, supportRichText: Boolean): String {
+        return if (supportRichText) {
+            html
+        } else {
+            stripHtml(html)
+        }
+    }
+
+    /**
+     * Strips HTML from sting
+     */
+    private fun stripHtml(html: String): String {
+        return html.replace(Regex("<[^>]*>"), "")
+    }
 }
