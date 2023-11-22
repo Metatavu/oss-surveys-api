@@ -96,11 +96,18 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
         return if (supportRichText) {
             html
         } else {
-            val regex = Regex("<div id='([^']*)' data-component='header-container'>(.*?)</div>")
-            html.replace(regex) { matchResult ->
-                val id = matchResult.groupValues[1]
-                "<h1 id='$id' class='title md'></h1>"
-            }
+            val titleRegex = Regex("<div id='([^']*)' data-component='header-container'>(.*?)</div>")
+            val paragraphRegex = Regex("<div data-component='text-container' id='([^']*)'>(.*?)</div>")
+
+            html
+                .replace("\n", "")
+                .replace(titleRegex) { matchResult ->
+                    val id = matchResult.groupValues[1]
+                    "<h1 id='$id' class='title md'></h1>"
+                }.replace(paragraphRegex) { matchResult ->
+                    val id = matchResult.groupValues[1]
+                    "<p id='$id'></p>"
+                }
         }
     }
 
