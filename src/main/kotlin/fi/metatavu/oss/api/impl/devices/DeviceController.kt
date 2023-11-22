@@ -21,7 +21,7 @@ class DeviceController {
         /**
          * The minimum version of the device software that supports rich text
          */
-        private const val RICH_TEXT_SUPPORT_VERSION = 922
+        private const val RICH_TEXT_SUPPORT_VERSION = 922L
     }
 
     @Inject
@@ -55,6 +55,7 @@ class DeviceController {
         newDevice.description = deviceRequest.description
         newDevice.location = deviceRequest.location
         newDevice.creatorId = userId
+        newDevice.version = RICH_TEXT_SUPPORT_VERSION
         newDevice.lastModifierId = userId
         newDevice.lastSeen = OffsetDateTime.now()
 
