@@ -85,6 +85,13 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
         )
     }
 
+    /**
+     * Processes html layout for devices without rich text support
+     *
+     * @param html html to process
+     * @param supportRichText should rich text be supported
+     * @return processed html
+     */
     private fun processHtmlLayout(html: String, supportRichText: Boolean): String {
         return if (supportRichText) {
             html
@@ -92,8 +99,7 @@ class DeviceSurveyDataTranslator : AbstractTranslator<DeviceSurveyEntity, Device
             val regex = Regex("<div id='([^']*)' data-component='header-container'>(.*?)</div>")
             html.replace(regex) { matchResult ->
                 val id = matchResult.groupValues[1]
-                val content = matchResult.groupValues[2]
-                "<h1 id='$id' class='title md'>$content</h1>"
+                "<h1 id='$id' class='title md'></h1>"
             }
         }
     }
