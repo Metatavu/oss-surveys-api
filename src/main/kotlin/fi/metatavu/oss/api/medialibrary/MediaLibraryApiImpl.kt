@@ -28,7 +28,7 @@ class MediaLibraryApiImpl: MediaLibraryApi, AbstractApi() {
     lateinit var mediaLibraryController: MediaLibraryController
 
     override fun listMediaFiles(path: String): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
-        val mediaFields = mediaLibraryController.listMediaFiles(path)
+        val mediaFields = mediaLibraryController.listMediaFiles(path) ?: return@async createInternalServerError("Failed listing the files")
         createOk(mediaFields)
     }.asUni()
 }
