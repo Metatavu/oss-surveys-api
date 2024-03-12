@@ -32,6 +32,10 @@ dependencies {
     implementation("io.quarkus:quarkus-reactive-mysql-client")
     implementation("io.quarkus:quarkus-hibernate-reactive-panache")
     implementation("io.quarkus:quarkus-jdbc-mysql")
+
+    implementation("io.quarkiverse.amazonservices:quarkus-amazon-s3")
+    implementation("software.amazon.awssdk:netty-nio-client")
+
     implementation("commons-codec:commons-codec")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8")
@@ -44,6 +48,10 @@ dependencies {
 
     implementation("io.quarkus:quarkus-smallrye-reactive-messaging-mqtt")
     implementation("io.quarkus:quarkus-scheduler")
+
+    testImplementation("software.amazon.awssdk:url-connection-client")
+    testImplementation("org.testcontainers:localstack")
+    testImplementation("com.amazonaws:aws-java-sdk-core:1.12.676")
 
     testImplementation("com.squareup.okhttp3:okhttp")
     testImplementation("fi.metatavu.jaxrs.testbuilder:jaxrs-functional-test-builder:$jaxrsFunctionalTestBuilderVersion")
