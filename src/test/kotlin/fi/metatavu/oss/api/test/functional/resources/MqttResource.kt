@@ -26,6 +26,6 @@ class MqttResource: QuarkusTestResourceLifecycleManager {
     }
 
     companion object {
-        val hivemqContainer = HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce")).withLogLevel(Level.DEBUG)
+        val hivemqContainer = HiveMQContainer(DockerImageName.parse("hivemq/hivemq-ce:2023.7")).withLogLevel(Level.DEBUG)
     }
 }
