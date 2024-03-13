@@ -79,7 +79,7 @@ class AwsResource : QuarkusTestResourceLifecycleManager {
             s3Client.putObject(
                 PutObjectRequest.builder()
                     .bucket(bucketName)
-                    .key("subfolder/"+file2)
+                    .key("subfolder/$file2")
                     .build(), RequestBody.fromInputStream(it, it!!.available().toLong())
             )
         }

@@ -5,8 +5,10 @@ import fi.metatavu.oss.api.test.functional.TestBuilder
 import fi.metatavu.oss.api.test.functional.settings.ApiTestSettings
 import fi.metatavu.oss.test.client.apis.MediaLibraryApi
 import fi.metatavu.oss.test.client.infrastructure.ApiClient
+import fi.metatavu.oss.test.client.infrastructure.ClientException
 import fi.metatavu.oss.test.client.models.MediaFile
 import fi.metatavu.oss.test.client.models.Page
+import org.junit.jupiter.api.fail
 
 /**
  * Test builder resource for MediaLibrary API
@@ -28,5 +30,14 @@ class MediaLibraryTestBuilderResource(
 
     fun list(path: String): Array<MediaFile> {
         return api.listMediaFiles(path)
+    }
+
+    fun assertListFail(expectedStatus: Int) {
+        try {
+            api.listMediaFiles("")
+            fail("Listing media library entries should have failed")
+        } catch (e: ClientException) {
+            assertClientExceptionStatus(expectedStatus, e)
+        }
     }
 }

@@ -34,5 +34,9 @@ class MediaLibraryTestIT: AbstractResourceTest() {
         assertEquals(1, mediaFiles2.size)
         assertEquals("file2.txt", mediaFiles2[0].name)
         assertEquals("subfolder/file2.txt", mediaFiles2[0].path)
+
+        testBuilder.consumer.mediaLibrary.assertListFail(403)
+        testBuilder.empty.mediaLibrary.assertListFail(401)
+        testBuilder.notvalid.mediaLibrary.assertListFail(401)
     }
 }
