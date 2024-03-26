@@ -24,7 +24,7 @@ class MediaLibraryTestIT: AbstractResourceTest() {
     fun testMediaLibrary() = createTestBuilder().use { testBuilder ->
         val mediaFiles = testBuilder.manager.mediaLibrary.list("")
         assertTrue(mediaFiles.isNotEmpty())
-        assertEquals(2, mediaFiles.size)
+        assertEquals(3, mediaFiles.size)
 
         val mediaFiles1 = testBuilder.manager.mediaLibrary.list("invalid")
         assertTrue(mediaFiles1.isEmpty())
@@ -34,6 +34,12 @@ class MediaLibraryTestIT: AbstractResourceTest() {
         assertEquals(1, mediaFiles2.size)
         assertEquals("file2.txt", mediaFiles2[0].name)
         assertEquals("subfolder/file2.txt", mediaFiles2[0].path)
+
+        val mediaFiles3 = testBuilder.manager.mediaLibrary.list("special-characters")
+        assertTrue(mediaFiles3.isNotEmpty())
+        assertEquals(1, mediaFiles3.size)
+        assertEquals("fileäöå.txt", mediaFiles3[0].name)
+        assertEquals("special-characters/fileäöå.txt", mediaFiles3[0].path)
 
         testBuilder.consumer.mediaLibrary.assertListFail(403)
         testBuilder.empty.mediaLibrary.assertListFail(401)

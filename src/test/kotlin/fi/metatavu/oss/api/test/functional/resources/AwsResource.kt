@@ -66,6 +66,7 @@ class AwsResource : QuarkusTestResourceLifecycleManager {
         )
         val file1 = "file1.txt"
         val file2 = "file2.txt"
+        val file3 = "fileäöå.txt"
 
         loadResource(file1).use {
             s3Client.putObject(
@@ -80,6 +81,14 @@ class AwsResource : QuarkusTestResourceLifecycleManager {
                 PutObjectRequest.builder()
                     .bucket(bucketName)
                     .key("subfolder/$file2")
+                    .build(), RequestBody.fromInputStream(it, it!!.available().toLong())
+            )
+        }
+        loadResource(file3).use {
+            s3Client.putObject(
+                PutObjectRequest.builder()
+                    .bucket(bucketName)
+                    .key("special-characters/$file3")
                     .build(), RequestBody.fromInputStream(it, it!!.available().toLong())
             )
         }
