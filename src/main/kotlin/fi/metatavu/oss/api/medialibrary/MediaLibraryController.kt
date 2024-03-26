@@ -5,6 +5,7 @@ import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import org.eclipse.microprofile.config.inject.ConfigProperty
 import org.slf4j.Logger
+import org.yaml.snakeyaml.util.UriEncoder
 import software.amazon.awssdk.services.s3.S3AsyncClient
 import software.amazon.awssdk.services.s3.model.ListObjectsRequest
 import javax.enterprise.context.ApplicationScoped
@@ -47,9 +48,10 @@ class MediaLibraryController {
         return if (resp.hasContents()) {
             resp.contents()
                 .map {
+                    val encodedKey = UriEncoder.encode(it.key())
                     MediaFile(
                         name = it.key().substringAfterLast("/"),
-                        path = Path(it.key()).normalize().toString()
+                        path = UriEncoder.decode(Path(encodedKey).normalize().toString())
                     )
                 }
         } else {
