@@ -118,7 +118,7 @@ class DeviceTestIT: AbstractResourceTest() {
         assertEquals(1, foundDeviceAfterStatusChange.size)
         assertEquals(deviceId, foundDeviceAfterStatusChange[0].id)
         assertEquals(DeviceStatus.ONLINE, foundDeviceAfterStatusChange[0].deviceStatus)
-        assertEquals(921, foundDeviceAfterStatusChange[0].versionCode)
+        assertEquals(foundDevice.versionCode, foundDeviceAfterStatusChange[0].versionCode)
         assertEquals(2, foundDeviceAfterStatusChange[0].unsentAnswersCount)
     }
 
