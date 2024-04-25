@@ -405,5 +405,15 @@
 
         <sql>UPDATE device SET version = 921</sql>
     </changeSet>
-    
+
+    <changeSet id="unsentAnswersCount" author="Antti Leppä">
+        <addColumn tableName="device">
+            <column name="unsentAnswersCount" type="bigint">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+
+        <sql>UPDATE device SET unsentAnswersCount = 0</sql>
+    </changeSet>
+
 </databaseChangeLog>

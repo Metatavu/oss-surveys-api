@@ -38,6 +38,9 @@ class DeviceEntity: DBMetadata() {
     @Column (nullable = false)
     lateinit var lastSeen: OffsetDateTime
 
+    @Column (nullable = false)
+    var unsentAnswersCount: Long = 0
+
     @Lob
     @Column
     lateinit var deviceKey: ByteArray
