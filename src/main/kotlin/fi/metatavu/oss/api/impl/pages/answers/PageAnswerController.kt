@@ -54,7 +54,6 @@ class PageAnswerController {
     @Inject
     lateinit var objectMapper: ObjectMapper
 
-
     /**
      * Lists answers for a page
      *
@@ -92,12 +91,30 @@ class PageAnswerController {
         pageQuestion: PageQuestionEntity,
         answer: DevicePageSurveyAnswer
     ): PageAnswerBaseEntity {
+        val answerKey = createAnswerKey(
+            device = deviceSurvey.device,
+            page = page,
+            answer = answer
+        )
+
+        if (answerKey != null) {
+            val existingAnswer = pageAnswerRepository.findByAnswerKey(answerKey)
+            if (existingAnswer != null) {
+                return existingAnswer
+            }
+        }
+
         val answerStringOriginal = answer.answer!!      // was verified to not be empty at the api impl level
         return when (pageQuestion.type) {
             SINGLE_SELECT -> {
                 val option = parseOption(answerStringOriginal)
                     ?: throw IllegalArgumentException("Invalid option id $answerStringOriginal")
-                createSingleSelectAnswer(deviceSurvey, page, option)
+                createSingleSelectAnswer(
+                    answerKey = answerKey,
+                    deviceSurvey = deviceSurvey,
+                    page = page,
+                    option = option
+                )
             }
 
             MULTI_SELECT -> {
@@ -105,10 +122,20 @@ class PageAnswerController {
                 val options = ids.map {
                     parseOption(it.trim()) ?: throw IllegalArgumentException("Invalid option id $it")
                 }
-                createMultiSelectAnswer(deviceSurvey, page, options)
+                createMultiSelectAnswer(
+                    answerKey = answerKey,
+                    deviceSurvey = deviceSurvey,
+                    page = page,
+                    options = options
+                )
             }
 
-            FREETEXT -> createFreetextAnswer(deviceSurvey, page, answerStringOriginal)
+            FREETEXT -> createFreetextAnswer(
+                answerKey = answerKey,
+                deviceSurvey= deviceSurvey,
+                page = page,
+                answerStringOriginal = answerStringOriginal
+            )
         }
     }
 
@@ -149,18 +176,21 @@ class PageAnswerController {
     /**
      * Creates answer for a freetext question
      *
+     * @param answerKey unique key for the answer
      * @param deviceSurvey device survey where the answer was published
      * @param page page where the answer was published
      * @param answerStringOriginal answer as a string
      * @return created answer
      */
     private suspend fun createFreetextAnswer(
+        answerKey: String?,
         deviceSurvey: DeviceSurveyEntity,
         page: PageEntity,
         answerStringOriginal: String
     ): PageAnswerText {
         return pageAnswerFreetextRepository.create(
             id = UUID.randomUUID(),
+            answerKey = answerKey,
             page = page,
             deviceEntity = deviceSurvey.device,
             text = answerStringOriginal
@@ -170,18 +200,21 @@ class PageAnswerController {
     /**
      * Creates answer to multi select question
      *
+     * @param answerKey unique key for the answer
      * @param deviceSurvey device survey where the answer was published
      * @param page page where the answer was published
      * @param options which options were selected
      * @return created answer
      */
     private suspend fun createMultiSelectAnswer(
+        answerKey: String?,
         deviceSurvey: DeviceSurveyEntity,
         page: PageEntity,
         options: List<QuestionOptionEntity>
     ): PageAnswerMulti {
         val answer = pageAnswerMultiRepository.create(
             id = UUID.randomUUID(),
+            answerKey = answerKey,
             page = page,
             deviceEntity = deviceSurvey.device
         )
@@ -199,18 +232,21 @@ class PageAnswerController {
     /**
      * Creates a single select answer
      *
+     * @param answerKey unique key for the answer
      * @param deviceSurvey where it was published
      * @param page which page it was answered on
      * @param option which option was selected
      * @return created answer
      */
     private suspend fun createSingleSelectAnswer(
+        answerKey: String?,
         deviceSurvey: DeviceSurveyEntity,
         page: PageEntity,
         option: QuestionOptionEntity
     ): PageAnswerSingle {
         return pageAnswerSingleRepository.create(
             id = UUID.randomUUID(),
+            answerKey = answerKey,
             page = page,
             option = option,
             deviceEntity = deviceSurvey.device
@@ -261,6 +297,25 @@ class PageAnswerController {
             device = device,
             survey = survey
         )
+    }
+
+    /**
+     * Creates a unique answer key for the answer.
+     *
+     * If the answer does not have an id, returns null
+     *
+     * @param device device
+     * @param page page
+     * @param answer answer
+     *
+     * @return answer key or null if the answer does not have an id
+     */
+    private fun createAnswerKey(device: DeviceEntity, page: PageEntity, answer: DevicePageSurveyAnswer): String? {
+        val deviceAnswerId = answer.deviceAnswerId ?: return null
+        val deviceId = device.id
+        val pageId = page.id
+
+        return "$deviceId-$pageId-$deviceAnswerId"
     }
 
 }

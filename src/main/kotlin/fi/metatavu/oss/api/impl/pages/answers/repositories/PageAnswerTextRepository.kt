@@ -20,6 +20,7 @@ class PageAnswerTextRepository: AbstractRepository<PageAnswerText, UUID>() {
      * Creates page answer text
      *
      * @param id id
+     * @param answerKey unique key for the answer
      * @param page page
      * @param deviceEntity device entity
      * @param text text
@@ -27,12 +28,14 @@ class PageAnswerTextRepository: AbstractRepository<PageAnswerText, UUID>() {
      */
     suspend fun create(
         id: UUID,
+        answerKey: String?,
         page: PageEntity,
         deviceEntity: DeviceEntity,
         text: String
     ): PageAnswerText {
         val pageAnswerText = PageAnswerText()
         pageAnswerText.id = id
+        pageAnswerText.answerKey = answerKey
         pageAnswerText.page = page
         pageAnswerText.device = deviceEntity
         pageAnswerText.text = text
