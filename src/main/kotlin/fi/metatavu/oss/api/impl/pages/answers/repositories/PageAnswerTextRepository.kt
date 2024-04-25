@@ -2,12 +2,9 @@ package fi.metatavu.oss.api.impl.pages.answers.repositories
 
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
-import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerText
-import fi.metatavu.oss.api.impl.surveys.SurveyEntity
-import io.smallrye.mutiny.coroutines.awaitSuspending
-import java.util.UUID
+import java.util.*
 import javax.enterprise.context.ApplicationScoped
 
 /**
