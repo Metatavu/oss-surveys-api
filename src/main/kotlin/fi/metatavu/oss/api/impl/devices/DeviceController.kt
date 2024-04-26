@@ -119,7 +119,20 @@ class DeviceController {
      * @param device device to update
      * @param status status
      */
-    suspend fun updateDeviceStatus(device: DeviceEntity, status: DeviceStatus) {
+    suspend fun updateDeviceStatus(
+        device: DeviceEntity,
+        status: DeviceStatus,
+        versionCode: Long?,
+        unsentAnswersCount: Long?
+    ) {
+        if (versionCode != null) {
+            deviceRepository.updateVersion(device, versionCode)
+        }
+
+        if (unsentAnswersCount != null) {
+            deviceRepository.updateUnsentAnswersCount(device, unsentAnswersCount)
+        }
+
         deviceRepository.updateDeviceStatus(device, status)
         deviceRepository.updateLastSeen(device, OffsetDateTime.now())
     }
