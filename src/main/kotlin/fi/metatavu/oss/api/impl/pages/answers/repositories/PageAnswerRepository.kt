@@ -48,6 +48,16 @@ class PageAnswerRepository : AbstractRepository<PageAnswerBaseEntity, UUID>() {
     }
 
     /**
+     * Find page answer by answer key
+     *
+     * @param answerKey answer key
+     * @return found page answer or null if not found
+     */
+    suspend fun findByAnswerKey(answerKey: String): PageAnswerBaseEntity? {
+        return find("answerKey = ?1", answerKey).firstResult<PageAnswerBaseEntity?>().awaitSuspending()
+    }
+
+    /**
      * Lists answers by device and survey
      *
      * @param device device

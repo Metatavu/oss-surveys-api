@@ -15,6 +15,7 @@ import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import org.slf4j.Logger
 import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
@@ -27,6 +28,9 @@ import javax.ws.rs.core.Response
 @Suppress("unused")
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractApi() {
+
+    @Inject
+    lateinit var logger: Logger
 
     @Inject
     lateinit var deviceSurveyController: DeviceSurveyController
@@ -125,6 +129,7 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
                 answer = devicePageSurveyAnswer
             )
         } catch (e: Exception) {
+            logger.error("Failed to create page answer", e)
             return@async createBadRequest("Invalid answer")
         }
 

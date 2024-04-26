@@ -70,12 +70,14 @@ abstract class AbstractResourceTest {
      * @param deviceSurvey device survey
      * @param page page
      * @param answer answer
+     * @param deviceAnswerId device answer id (optional)
      */
     protected fun createPageAnswer(
         testBuilder: TestBuilder,
         deviceSurvey: DeviceSurvey,
         page: Page,
-        answer: String
+        answer: String,
+        deviceAnswerId: Long? = null
     ) {
         testBuilder.manager.deviceData.submitSurveyAnswer(
             deviceId = deviceSurvey.deviceId,
@@ -83,7 +85,8 @@ abstract class AbstractResourceTest {
             pageId = page.id!!,
             devicePageSurveyAnswer = DevicePageSurveyAnswer(
                 pageId = page.id,
-                answer = answer
+                answer = answer,
+                deviceAnswerId = deviceAnswerId
             ),
             surveyId = deviceSurvey.surveyId
         )

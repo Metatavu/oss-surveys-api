@@ -416,4 +416,16 @@
         <sql>UPDATE device SET unsentAnswersCount = 0</sql>
     </changeSet>
 
+    <changeSet id="answerkey" author="Antti Leppä">
+        <addColumn tableName="pageanswer">
+            <column name="answerkey" type="varchar(191)"/>
+        </addColumn>
+        
+        <addUniqueConstraint
+            tableName="pageanswer"
+            columnNames="answerkey"
+            constraintName="UQ_PAGEANSWER_ANSWERKEY"
+        />
+    </changeSet>
+
 </databaseChangeLog>

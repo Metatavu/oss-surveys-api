@@ -23,6 +23,9 @@ class PageAnswerBaseEntity : DBMetadata() {
     @ManyToOne
     var device: DeviceEntity? = null
 
+    @Column(unique = true)
+    var answerKey: String? = null
+
     override var creatorId: UUID? = null
     override var lastModifierId: UUID? = null
 }

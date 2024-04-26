@@ -1,6 +1,7 @@
 package fi.metatavu.oss.api.test.functional.tests
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
+import com.fasterxml.jackson.module.kotlin.readValue
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
 import fi.metatavu.oss.test.client.models.*
 import io.quarkus.test.junit.QuarkusTest
@@ -267,17 +268,18 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                 layoutId = layout.id!!,
                 nextButtonVisible = true
             )
-        )
+        )!!
+
         // Get IDs of the options to fill in the answers
-        val answerOption0 = page!!.question!!.options.find { it.orderNumber == 0 }!!
-        val answerOption1 = page.question!!.options.find { it.orderNumber == 1 }!!
+        val answerOption0 = getOptionValueByOrderNumber(page = page, orderNumber = 0)
+        val answerOption1 = getOptionValueByOrderNumber(page = page, orderNumber = 1)
 
         // Submit one answer with first option
         createPageAnswer(
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page,
-            answer = answerOption0.id.toString()
+            answer = answerOption0
         )
 
         // submit another answer with second option
@@ -285,7 +287,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
             page = page,
-            answer = answerOption1.id.toString()
+            answer = answerOption1
         )
 
         val answers = testBuilder.manager.surveyAnswers.list(
@@ -294,11 +296,11 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
 
         assertEquals(2, answers.size)
-        val answer0 = answers.find { it.answer == answerOption0.id.toString() }
+        val answer0 = answers.find { it.answer == answerOption0 }
         assertEquals(page.id, answer0?.pageId)
         assertNotNull(answer0?.id)
 
-        val answer1 = answers.find { it.answer == answerOption0.id.toString() }
+        val answer1 = answers.find { it.answer == answerOption0 }
         assertEquals(page.id, answer1?.pageId)
         assertNotNull(answer1?.id)
 
@@ -517,6 +519,348 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
         testBuilder.manager.deviceData.setDeviceKey(deviceKey)
     }
+
+    /**
+     * Tests whether duplicate answer detection works with text answers
+     */
+    @Test
+    fun testSubmitDuplicateTextAnswers() = createTestBuilder().use { testBuilder ->
+        // Setup two devices with same survey published
+
+        val devices = arrayOf(
+            testBuilder.manager.devices.setupTestDevice(serialNumber = "1234"),
+            testBuilder.manager.devices.setupTestDevice(serialNumber = "5678")
+        )
+
+        val createdSurvey = testBuilder.manager.surveys.createDefault()
+        val layout = testBuilder.manager.layouts.createDefault()
+        approveSurvey(createdSurvey)
+
+        // Two pages with text questions
+        val pages = arrayOf("best beer in the world?", "best beer in the universe?").map { title ->
+            testBuilder.manager.pages.create(
+                surveyId = createdSurvey.id!!,
+                page = Page(
+                    orderNumber = 0,
+                    title = title,
+                    question = PageQuestion(
+                        type = PageQuestionType.FREETEXT,
+                        options = emptyArray()
+                    ),
+                    layoutId = layout.id!!,
+                    nextButtonVisible = true
+                )
+            )!!
+        }
+
+        for (device in devices) {
+            val (deviceId, deviceKey) = device
+
+            testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+            val deviceSurvey = testBuilder.manager.deviceSurveys.createCurrentlyPublishedDeviceSurvey(
+                deviceId = deviceId,
+                surveyId = createdSurvey.id!!
+            )
+
+            for (page in pages) {
+                // Submit answer 1 three times (without deviceAnswerId simulating direct submission)
+
+                for (i in 1..3) {
+                    createPageAnswer(
+                        testBuilder = testBuilder,
+                        deviceSurvey = deviceSurvey,
+                        page = page,
+                        answer = "Hoptinen Illuusio",
+                        deviceAnswerId = null
+                    )
+                }
+
+                // Submit answer 2 three times (with deviceAnswerId simulating postponed submission from device)
+                for (i in 1..3) {
+                    createPageAnswer(
+                        testBuilder = testBuilder,
+                        deviceSurvey = deviceSurvey,
+                        page = page,
+                        answer = "Sumurai",
+                        deviceAnswerId = 5
+                    )
+                }
+
+                // Submit answer 3 three times (with deviceAnswerId simulating postponed submission from device)
+                for (i in 1..3) {
+                    createPageAnswer(
+                        testBuilder = testBuilder,
+                        deviceSurvey = deviceSurvey,
+                        page = page,
+                        answer = "Pyöveli",
+                        deviceAnswerId = 6
+                    )
+                }
+            }
+        }
+
+        // Assert that both devices have expected answers
+        for (page in pages) {
+            val answers = testBuilder.manager.surveyAnswers.list(
+                surveyId = createdSurvey.id!!,
+                pageId = page.id!!
+            )
+
+            // Assert that there is three answers from both devices with answer "Hoptinen Illuusio"
+            assertEquals(6, answers.filter { it.answer == "Hoptinen Illuusio" }.size)
+
+            // ... and one with answer "Sumurai" from both devices
+            assertEquals(2, answers.filter { it.answer == "Sumurai" }.size)
+
+            // ...and one with answer "Pyöveli" from both devices
+            assertEquals(2, answers.filter { it.answer == "Pyöveli" }.size)
+        }
+    }
+
+    /**
+     * Tests whether duplicate answer detection works with single select answers
+     */
+    @Test
+    fun testSubmitDuplicateSingleSelectAnswers() = createTestBuilder().use { testBuilder ->
+        // Setup two devices with same survey published
+
+        val devices = arrayOf(
+            testBuilder.manager.devices.setupTestDevice(serialNumber = "1234"),
+            testBuilder.manager.devices.setupTestDevice(serialNumber = "5678")
+        )
+
+        val createdSurvey = testBuilder.manager.surveys.createDefault()
+        val layout = testBuilder.manager.layouts.createDefault()
+        approveSurvey(createdSurvey)
+
+        val singleOptions = (0..2).map {
+            PageQuestionOption(
+                orderNumber = it,
+                questionOptionValue = "Option $it"
+            )
+        }.toTypedArray()
+
+        val pages = arrayOf("best beer in the world?", "best beer in the universe?").map { title ->
+            testBuilder.manager.pages.create(
+                surveyId = createdSurvey.id!!,
+                page = Page(
+                    orderNumber = 0,
+                    title = title,
+                    question = PageQuestion(
+                        type = PageQuestionType.SINGLE_SELECT,
+                        options = singleOptions
+                    ),
+                    layoutId = layout.id!!,
+                    nextButtonVisible = true
+                )
+            )!!
+        }
+
+        for (device in devices) {
+            val (deviceId, deviceKey) = device
+
+            testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+            val deviceSurvey = testBuilder.manager.deviceSurveys.createCurrentlyPublishedDeviceSurvey(
+                deviceId = deviceId,
+                surveyId = createdSurvey.id!!
+            )
+
+            for (page in pages) {
+                // Submit answer 1 three times (without deviceAnswerId simulating direct submission)
+
+                for (i in 1..3) {
+                    createPageAnswer(
+                        testBuilder = testBuilder,
+                        deviceSurvey = deviceSurvey,
+                        page = page,
+                        answer = getOptionValueByOrderNumber(page = page, orderNumber = 0),
+                        deviceAnswerId = null
+                    )
+                }
+
+                // Submit answer 2 three times (with deviceAnswerId simulating postponed submission from device)
+                for (i in 1..3) {
+                    createPageAnswer(
+                        testBuilder = testBuilder,
+                        deviceSurvey = deviceSurvey,
+                        page = page,
+                        answer = getOptionValueByOrderNumber(page = page, orderNumber = 1),
+                        deviceAnswerId = 5
+                    )
+                }
+
+                // Submit answer 3 three times (with deviceAnswerId simulating postponed submission from device)
+                for (i in 1..3) {
+                    createPageAnswer(
+                        testBuilder = testBuilder,
+                        deviceSurvey = deviceSurvey,
+                        page = page,
+                        answer = getOptionValueByOrderNumber(page = page, orderNumber = 2),
+                        deviceAnswerId = 6
+                    )
+                }
+            }
+        }
+
+        // Assert that both devices have expected answers
+        for (page in pages) {
+            val answers = testBuilder.manager.surveyAnswers.list(
+                surveyId = createdSurvey.id!!,
+                pageId = page.id!!
+            )
+
+            // Assert that there is three answers from both devices with answer 0
+            assertEquals(6, answers.filter { it.answer == getOptionValueByOrderNumber(page = page, orderNumber = 0) }.size)
+
+            // ... and one with answer 1 from both devices
+            assertEquals(2, answers.filter { it.answer == getOptionValueByOrderNumber(page = page, orderNumber = 1) }.size)
+
+            // ...and one with answer 2 from both devices
+            assertEquals(2, answers.filter { it.answer == getOptionValueByOrderNumber(page = page, orderNumber = 2) }.size)
+        }
+    }
+
+    /**
+     * Tests whether duplicate answer detection works with multi select answers
+     */
+    @Test
+    fun testSubmitDuplicateMultiSelectAnswers() = createTestBuilder().use { testBuilder ->
+        // Setup two devices with same survey published
+
+        val devices = arrayOf(
+            testBuilder.manager.devices.setupTestDevice(serialNumber = "1234"),
+            testBuilder.manager.devices.setupTestDevice(serialNumber = "5678")
+        )
+
+        val createdSurvey = testBuilder.manager.surveys.createDefault()
+        val layout = testBuilder.manager.layouts.createDefault()
+        approveSurvey(createdSurvey)
+
+        val singleOptions = (0..2).map {
+            PageQuestionOption(
+                orderNumber = it,
+                questionOptionValue = "Option $it"
+            )
+        }.toTypedArray()
+
+        val pages = arrayOf("best beer in the world?", "best beer in the universe?").map { title ->
+            testBuilder.manager.pages.create(
+                surveyId = createdSurvey.id!!,
+                page = Page(
+                    orderNumber = 0,
+                    title = title,
+                    question = PageQuestion(
+                        type = PageQuestionType.MULTI_SELECT,
+                        options = singleOptions
+                    ),
+                    layoutId = layout.id!!,
+                    nextButtonVisible = true
+                )
+            )!!
+        }
+
+        for (device in devices) {
+            val (deviceId, deviceKey) = device
+
+            testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+            val deviceSurvey = testBuilder.manager.deviceSurveys.createCurrentlyPublishedDeviceSurvey(
+                deviceId = deviceId,
+                surveyId = createdSurvey.id!!
+            )
+
+            for (page in pages) {
+                // Submit answer 1 three times (without deviceAnswerId simulating direct submission)
+
+                for (i in 1..3) {
+                    createPageAnswer(
+                        testBuilder = testBuilder,
+                        deviceSurvey = deviceSurvey,
+                        page = page,
+                        answer = jacksonObjectMapper().writeValueAsString(listOf(
+                            getOptionValueByOrderNumber(page = page, orderNumber = 0),
+                            getOptionValueByOrderNumber(page = page, orderNumber = 1)
+                        )),
+                        deviceAnswerId = null
+                    )
+                }
+
+                // Submit answer 2 three times (with deviceAnswerId simulating postponed submission from device)
+                for (i in 1..3) {
+                    createPageAnswer(
+                        testBuilder = testBuilder,
+                        deviceSurvey = deviceSurvey,
+                        page = page,
+                        answer = jacksonObjectMapper().writeValueAsString(listOf(
+                            getOptionValueByOrderNumber(page = page, orderNumber = 1)
+                        )),
+                        deviceAnswerId = 5
+                    )
+                }
+
+                // Submit answer 3 three times (with deviceAnswerId simulating postponed submission from device)
+                for (i in 1..3) {
+                    createPageAnswer(
+                        testBuilder = testBuilder,
+                        deviceSurvey = deviceSurvey,
+                        page = page,
+                        answer = jacksonObjectMapper().writeValueAsString(listOf(
+                            getOptionValueByOrderNumber(page = page, orderNumber = 0),
+                            getOptionValueByOrderNumber(page = page, orderNumber = 2)
+                        )),
+                        deviceAnswerId = 6
+                    )
+                }
+            }
+        }
+
+        // Assert that both devices have expected answers
+        for (page in pages) {
+            val answers = testBuilder.manager.surveyAnswers.list(
+                surveyId = createdSurvey.id!!,
+                pageId = page.id!!
+            )
+
+            val answerValues = answers.map { jacksonObjectMapper().readValue<Array<String>>(it.answer!!) }
+
+            // Assert that there is three answers from both devices with answer 0
+            assertEquals(6, countMultiValues(page = page, answerValues = answerValues, orderNumbers = arrayOf(0, 1)))
+
+            // ... and one with answer 1 from both devices
+            assertEquals(2, countMultiValues(page = page, answerValues = answerValues, orderNumbers = arrayOf(1)))
+
+            // ...and one with answer 2 from both devices
+            assertEquals(2, countMultiValues(page = page, answerValues = answerValues, orderNumbers = arrayOf(0, 2)))
+        }
+    }
+
+    /**
+     * Counts the amount of answers that contain all the given order numbers
+     *
+     * @param page page
+     * @param answerValues list of answer values
+     * @param orderNumbers array of order numbers
+     * @return amount of answers that contain all the given order numbers
+     */
+    private fun countMultiValues(
+        page: Page,
+        answerValues: List<Array<String>>,
+        orderNumbers: Array<Int>
+    ): Int {
+        val expectedIds = orderNumbers.map { getOptionValueByOrderNumber(page = page, orderNumber = it) }
+        return answerValues.filter { it.sorted() == expectedIds.sorted() }.size
+    }
+
+    /**
+     * Resolves the option value by order number
+     *
+     * @param page page
+     * @param orderNumber order number
+     * @return option value
+     */
+    private fun getOptionValueByOrderNumber(page: Page, orderNumber: Int): String = page.question!!.options.find { it.orderNumber == orderNumber }?.id?.toString()!!
 
 
 }

@@ -18,6 +18,7 @@ class PageAnswerSingleRepository : AbstractRepository<PageAnswerSingle, UUID>() 
      * Creates page answer single
      *
      * @param id id
+     * @param answerKey unique key for the answer
      * @param page page
      * @param deviceEntity device entity
      * @param option option
@@ -25,12 +26,14 @@ class PageAnswerSingleRepository : AbstractRepository<PageAnswerSingle, UUID>() 
      */
     suspend fun create(
         id: UUID,
+        answerKey: String?,
         page: PageEntity,
         deviceEntity: DeviceEntity,
         option: QuestionOptionEntity
     ): PageAnswerSingle {
         val pageAnswerSingle = PageAnswerSingle()
         pageAnswerSingle.id = id
+        pageAnswerSingle.answerKey = answerKey
         pageAnswerSingle.page = page
         pageAnswerSingle.device = deviceEntity
         pageAnswerSingle.option = option

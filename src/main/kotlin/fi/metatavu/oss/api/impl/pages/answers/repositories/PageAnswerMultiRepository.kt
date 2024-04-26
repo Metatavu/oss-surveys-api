@@ -17,17 +17,20 @@ class PageAnswerMultiRepository : AbstractRepository<PageAnswerMulti, UUID>() {
      * Creates new PageAnswerMulti entity
      *
      * @param id id
+     * @param answerKey unique key for the answer
      * @param deviceEntity device entity
      * @param page page
      * @return created PageAnswerMulti entity
      */
     suspend fun create(
         id: UUID,
+        answerKey: String?,
         deviceEntity: DeviceEntity,
         page: PageEntity
     ): PageAnswerMulti {
         val pageAnswerMulti = PageAnswerMulti()
         pageAnswerMulti.id = id
+        pageAnswerMulti.answerKey = answerKey
         pageAnswerMulti.page = page
         pageAnswerMulti.device = deviceEntity
         return persistSuspending(pageAnswerMulti)
