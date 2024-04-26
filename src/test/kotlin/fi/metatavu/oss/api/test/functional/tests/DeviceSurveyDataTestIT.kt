@@ -849,11 +849,8 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         answerValues: List<Array<String>>,
         orderNumbers: Array<Int>
     ): Int {
-        return answerValues.filter {
-            orderNumbers.map { orderNumber ->
-                getOptionValueByOrderNumber(page = page, orderNumber = orderNumber)
-            }.all { optionValue -> it.contains(optionValue) }
-        }.size
+        val expectedIds = orderNumbers.map { getOptionValueByOrderNumber(page = page, orderNumber = it) }
+        return answerValues.filter { it.sorted() == expectedIds.sorted() }.size
     }
 
     /**
