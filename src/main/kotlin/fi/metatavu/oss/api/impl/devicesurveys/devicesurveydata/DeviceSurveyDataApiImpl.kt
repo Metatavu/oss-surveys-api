@@ -6,6 +6,7 @@ import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.impl.pages.PagesController
 import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
+import fi.metatavu.oss.api.impl.surveys.SurveyController
 import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
 import io.smallrye.mutiny.Uni
@@ -51,6 +52,9 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
     lateinit var pagesController: PagesController
 
     @Inject
+    lateinit var surveyController: SurveyController
+
+    @Inject
     lateinit var vertx: Vertx
 
     override fun findDeviceDataSurvey(deviceId: UUID, deviceSurveyId: UUID): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
@@ -84,6 +88,7 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
     }.asUni()
 
     @ReactiveTransactional
+    @Deprecated("Use submitSurveyAnswerV2 instead")
     override fun submitSurveyAnswer(deviceId: UUID, deviceSurveyId: UUID, pageId: UUID, devicePageSurveyAnswer: DevicePageSurveyAnswer): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         if (!isAuthorizedDevice(deviceId)) return@async createUnauthorized(UNAUTHORIZED)
         if (devicePageSurveyAnswer.answer.isNullOrEmpty()) {
@@ -123,7 +128,53 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
 
         try {
             pageAnswerController.create(
-                deviceSurvey = deviceSurvey,
+                device = deviceSurvey.device,
+                page = page,
+                pageQuestion = question,
+                answer = devicePageSurveyAnswer
+            )
+        } catch (e: Exception) {
+            logger.error("Failed to create page answer", e)
+            return@async createBadRequest("Invalid answer")
+        }
+
+        return@async createAccepted(null)
+    }.asUni()
+
+    @ReactiveTransactional
+    override fun submitSurveyAnswerV2(
+        deviceId: UUID,
+        devicePageSurveyAnswer: DevicePageSurveyAnswer
+    ): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        if (!isAuthorizedDevice(deviceId)) return@async createUnauthorized(UNAUTHORIZED)
+        if (devicePageSurveyAnswer.answer.isNullOrEmpty()) {
+            return@async createBadRequest("Answer is required")
+        }
+
+        val device = deviceController.findDevice(deviceId) ?: return@async createNotFoundWithMessage(
+            target = DEVICE,
+            id = deviceId
+        )
+
+        val pageId = devicePageSurveyAnswer.pageId ?: return@async createBadRequest("Page ID is required")
+
+        val page = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(
+            target = PAGE,
+            id = pageId
+        )
+
+        surveyController.findSurvey(page.survey.id) ?: return@async createNotFoundWithMessage(
+            target = SURVEY,
+            id = page.survey.id
+        )
+
+        val question = pageQuestionController.find(page) ?: return@async createNotFound(
+            "No question found for page $pageId"
+        )
+
+        try {
+            pageAnswerController.create(
+                device = device,
                 page = page,
                 pageQuestion = question,
                 answer = devicePageSurveyAnswer

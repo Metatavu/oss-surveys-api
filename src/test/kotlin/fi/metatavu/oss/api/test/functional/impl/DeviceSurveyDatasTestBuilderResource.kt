@@ -77,6 +77,39 @@ class DeviceSurveyDatasTestBuilderResource(
     }
 
     /**
+     * Submits the answer from the survey using the V2 API
+     *
+     * @param deviceId device id
+     * @param devicePageSurveyAnswer device page survey answer
+     * @param surveyId survey id (not needed for actual request)
+     * @param pageId page id (not needed for actual request)
+     */
+    fun submitSurveyAnswer(
+        deviceId: UUID,
+        devicePageSurveyAnswer: DevicePageSurveyAnswer,
+        surveyId: UUID,
+        pageId: UUID
+    ) {
+        api.submitSurveyAnswerV2(
+            deviceId = deviceId,
+            devicePageSurveyAnswer = devicePageSurveyAnswer
+        )
+
+        // add it as closable to resource which can delete the answer
+        surveyAnswersResource.list(
+            surveyId = surveyId,
+            pageId = pageId
+        ).forEach {
+            if (submittedClosableAnswersIDs.contains(it.id)) {
+                return@forEach
+            }
+            surveyAnswersResource.addClosable(it)
+            surveyAnswersResource.answerToSurvey[it.id!!] = surveyId
+            submittedClosableAnswersIDs.add(it.id)
+        }
+    }
+
+    /**
      * Submits the answer from the survey
      *
      * @param deviceId device id

@@ -5,7 +5,6 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
-import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerBaseEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerMulti
@@ -77,7 +76,7 @@ class PageAnswerController {
     /**
      * Creates a new page answer for the page
      *
-     * @param deviceSurvey device survey
+     * @param device device
      * @param page page
      * @param pageQuestion question that was answered
      * @param answer answer as a string
@@ -86,13 +85,13 @@ class PageAnswerController {
      * @throws JsonMappingException
      */
     suspend fun create(
-        deviceSurvey: DeviceSurveyEntity,
+        device: DeviceEntity,
         page: PageEntity,
         pageQuestion: PageQuestionEntity,
         answer: DevicePageSurveyAnswer
     ): PageAnswerBaseEntity {
         val answerKey = createAnswerKey(
-            device = deviceSurvey.device,
+            device = device,
             page = page,
             answer = answer
         )
@@ -111,7 +110,7 @@ class PageAnswerController {
                     ?: throw IllegalArgumentException("Invalid option id $answerStringOriginal")
                 createSingleSelectAnswer(
                     answerKey = answerKey,
-                    deviceSurvey = deviceSurvey,
+                    device = device,
                     page = page,
                     option = option
                 )
@@ -124,7 +123,7 @@ class PageAnswerController {
                 }
                 createMultiSelectAnswer(
                     answerKey = answerKey,
-                    deviceSurvey = deviceSurvey,
+                    device = device,
                     page = page,
                     options = options
                 )
@@ -132,7 +131,7 @@ class PageAnswerController {
 
             FREETEXT -> createFreetextAnswer(
                 answerKey = answerKey,
-                deviceSurvey= deviceSurvey,
+                device = device,
                 page = page,
                 answerStringOriginal = answerStringOriginal
             )
@@ -177,14 +176,14 @@ class PageAnswerController {
      * Creates answer for a freetext question
      *
      * @param answerKey unique key for the answer
-     * @param deviceSurvey device survey where the answer was published
+     * @param device device where the answer was published
      * @param page page where the answer was published
      * @param answerStringOriginal answer as a string
      * @return created answer
      */
     private suspend fun createFreetextAnswer(
         answerKey: String?,
-        deviceSurvey: DeviceSurveyEntity,
+        device: DeviceEntity,
         page: PageEntity,
         answerStringOriginal: String
     ): PageAnswerText {
@@ -192,7 +191,7 @@ class PageAnswerController {
             id = UUID.randomUUID(),
             answerKey = answerKey,
             page = page,
-            deviceEntity = deviceSurvey.device,
+            deviceEntity = device,
             text = answerStringOriginal
         )
     }
@@ -201,14 +200,14 @@ class PageAnswerController {
      * Creates answer to multi select question
      *
      * @param answerKey unique key for the answer
-     * @param deviceSurvey device survey where the answer was published
+     * @param device device where the answer was published
      * @param page page where the answer was published
      * @param options which options were selected
      * @return created answer
      */
     private suspend fun createMultiSelectAnswer(
         answerKey: String?,
-        deviceSurvey: DeviceSurveyEntity,
+        device: DeviceEntity,
         page: PageEntity,
         options: List<QuestionOptionEntity>
     ): PageAnswerMulti {
@@ -216,7 +215,7 @@ class PageAnswerController {
             id = UUID.randomUUID(),
             answerKey = answerKey,
             page = page,
-            deviceEntity = deviceSurvey.device
+            deviceEntity = device
         )
         options.forEach { answerOption ->
             pageAnswerMultiToOptionsRepository.create(
@@ -233,14 +232,14 @@ class PageAnswerController {
      * Creates a single select answer
      *
      * @param answerKey unique key for the answer
-     * @param deviceSurvey where it was published
+     * @param device where it was published
      * @param page which page it was answered on
      * @param option which option was selected
      * @return created answer
      */
     private suspend fun createSingleSelectAnswer(
         answerKey: String?,
-        deviceSurvey: DeviceSurveyEntity,
+        device: DeviceEntity,
         page: PageEntity,
         option: QuestionOptionEntity
     ): PageAnswerSingle {
@@ -249,7 +248,7 @@ class PageAnswerController {
             answerKey = answerKey,
             page = page,
             option = option,
-            deviceEntity = deviceSurvey.device
+            deviceEntity = device
         )
     }
 
