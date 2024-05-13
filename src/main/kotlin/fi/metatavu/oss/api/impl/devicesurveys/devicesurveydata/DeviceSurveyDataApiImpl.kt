@@ -88,6 +88,7 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
     }.asUni()
 
     @ReactiveTransactional
+    @Deprecated("Use submitSurveyAnswerV2 instead")
     override fun submitSurveyAnswer(deviceId: UUID, deviceSurveyId: UUID, pageId: UUID, devicePageSurveyAnswer: DevicePageSurveyAnswer): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         if (!isAuthorizedDevice(deviceId)) return@async createUnauthorized(UNAUTHORIZED)
         if (devicePageSurveyAnswer.answer.isNullOrEmpty()) {
