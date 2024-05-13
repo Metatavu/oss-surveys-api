@@ -131,7 +131,7 @@ class PageAnswerController {
 
             FREETEXT -> createFreetextAnswer(
                 answerKey = answerKey,
-                device= device,
+                device = device,
                 page = page,
                 answerStringOriginal = answerStringOriginal
             )
