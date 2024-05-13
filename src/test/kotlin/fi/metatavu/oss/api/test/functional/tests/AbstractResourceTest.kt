@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
+import java.util.*
 
 /**
  * Abstract base class for resource tests
@@ -89,6 +90,36 @@ abstract class AbstractResourceTest {
                 deviceAnswerId = deviceAnswerId
             ),
             surveyId = deviceSurvey.surveyId
+        )
+    }
+
+    /**
+     * Creates an answer for a page using V2 API
+     *
+     * @param testBuilder test builder
+     * @param deviceId device id
+     * @param page page
+     * @param answer answer
+     * @param deviceAnswerId device answer id (optional
+     * @param surveyId survey id
+     */
+    protected fun createPageAnswer(
+        testBuilder: TestBuilder,
+        deviceId: UUID,
+        page: Page,
+        answer: String,
+        deviceAnswerId: Long? = null,
+        surveyId: UUID
+    ) {
+        testBuilder.manager.deviceData.submitSurveyAnswer(
+            deviceId = deviceId,
+            devicePageSurveyAnswer = DevicePageSurveyAnswer(
+                pageId = page.id,
+                answer = answer,
+                deviceAnswerId = deviceAnswerId
+            ),
+            surveyId = surveyId,
+            pageId = page.id!!
         )
     }
 

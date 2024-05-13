@@ -564,7 +564,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             )
 
             for (page in pages) {
-                // Submit answer 1 three times (without deviceAnswerId simulating direct submission)
+                // Submit answer 1 three times (without deviceAnswerId simulating direct submission using v1 API)
 
                 for (i in 1..3) {
                     createPageAnswer(
@@ -576,23 +576,25 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                     )
                 }
 
-                // Submit answer 2 three times (with deviceAnswerId simulating postponed submission from device)
+                // Submit answer 2 three times (with deviceAnswerId simulating postponed submission from device using v2 API)
                 for (i in 1..3) {
                     createPageAnswer(
                         testBuilder = testBuilder,
-                        deviceSurvey = deviceSurvey,
+                        deviceId = deviceId,
+                        surveyId = createdSurvey.id,
                         page = page,
                         answer = "Sumurai",
                         deviceAnswerId = 5
                     )
                 }
 
-                // Submit answer 3 three times (with deviceAnswerId simulating postponed submission from device)
+                // Submit answer 3 three times (with deviceAnswerId simulating postponed submission from device using v2 API)
                 for (i in 1..3) {
                     createPageAnswer(
                         testBuilder = testBuilder,
-                        deviceSurvey = deviceSurvey,
+                        deviceId = deviceId,
                         page = page,
+                        surveyId = createdSurvey.id,
                         answer = "Pyöveli",
                         deviceAnswerId = 6
                     )
@@ -668,7 +670,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             )
 
             for (page in pages) {
-                // Submit answer 1 three times (without deviceAnswerId simulating direct submission)
+                // Submit answer 1 three times (without deviceAnswerId simulating direct submission using v1 API)
 
                 for (i in 1..3) {
                     createPageAnswer(
@@ -680,24 +682,26 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                     )
                 }
 
-                // Submit answer 2 three times (with deviceAnswerId simulating postponed submission from device)
+                // Submit answer 2 three times (with deviceAnswerId simulating postponed submission from device using v2 API)
                 for (i in 1..3) {
                     createPageAnswer(
                         testBuilder = testBuilder,
-                        deviceSurvey = deviceSurvey,
+                        deviceId = deviceId,
                         page = page,
                         answer = getOptionValueByOrderNumber(page = page, orderNumber = 1),
+                        surveyId = createdSurvey.id,
                         deviceAnswerId = 5
                     )
                 }
 
-                // Submit answer 3 three times (with deviceAnswerId simulating postponed submission from device)
+                // Submit answer 3 three times (with deviceAnswerId simulating postponed submission from device using v2 API)
                 for (i in 1..3) {
                     createPageAnswer(
                         testBuilder = testBuilder,
-                        deviceSurvey = deviceSurvey,
+                        deviceId = deviceId,
                         page = page,
                         answer = getOptionValueByOrderNumber(page = page, orderNumber = 2),
+                        surveyId = createdSurvey.id,
                         deviceAnswerId = 6
                     )
                 }
@@ -772,7 +776,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             )
 
             for (page in pages) {
-                // Submit answer 1 three times (without deviceAnswerId simulating direct submission)
+                // Submit answer 1 three times (without deviceAnswerId simulating direct submission using v1 API)
 
                 for (i in 1..3) {
                     createPageAnswer(
@@ -787,12 +791,13 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                     )
                 }
 
-                // Submit answer 2 three times (with deviceAnswerId simulating postponed submission from device)
+                // Submit answer 2 three times (with deviceAnswerId simulating postponed submission from device using v2 API)
                 for (i in 1..3) {
                     createPageAnswer(
                         testBuilder = testBuilder,
-                        deviceSurvey = deviceSurvey,
+                        deviceId = deviceId,
                         page = page,
+                        surveyId = createdSurvey.id,
                         answer = jacksonObjectMapper().writeValueAsString(listOf(
                             getOptionValueByOrderNumber(page = page, orderNumber = 1)
                         )),
@@ -800,11 +805,12 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                     )
                 }
 
-                // Submit answer 3 three times (with deviceAnswerId simulating postponed submission from device)
+                // Submit answer 3 three times (with deviceAnswerId simulating postponed submission from device using v2 API)
                 for (i in 1..3) {
                     createPageAnswer(
                         testBuilder = testBuilder,
-                        deviceSurvey = deviceSurvey,
+                        deviceId = deviceId,
+                        surveyId = createdSurvey.id,
                         page = page,
                         answer = jacksonObjectMapper().writeValueAsString(listOf(
                             getOptionValueByOrderNumber(page = page, orderNumber = 0),
