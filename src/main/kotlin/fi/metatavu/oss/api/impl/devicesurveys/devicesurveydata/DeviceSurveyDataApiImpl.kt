@@ -17,6 +17,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
 import org.slf4j.Logger
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
@@ -131,7 +132,8 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
                 device = deviceSurvey.device,
                 page = page,
                 pageQuestion = question,
-                answer = devicePageSurveyAnswer
+                answer = devicePageSurveyAnswer,
+                createdAt = OffsetDateTime.now()
             )
         } catch (e: Exception) {
             logger.error("Failed to create page answer", e)
@@ -144,7 +146,8 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
     @ReactiveTransactional
     override fun submitSurveyAnswerV2(
         deviceId: UUID,
-        devicePageSurveyAnswer: DevicePageSurveyAnswer
+        devicePageSurveyAnswer: DevicePageSurveyAnswer,
+        overrideCreatedAt: OffsetDateTime?
     ): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         if (!isAuthorizedDevice(deviceId)) return@async createUnauthorized(UNAUTHORIZED)
         if (devicePageSurveyAnswer.answer.isNullOrEmpty()) {
@@ -177,7 +180,8 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
                 device = device,
                 page = page,
                 pageQuestion = question,
-                answer = devicePageSurveyAnswer
+                answer = devicePageSurveyAnswer,
+                createdAt = overrideCreatedAt ?: OffsetDateTime.now()
             )
         } catch (e: Exception) {
             logger.error("Failed to create page answer", e)

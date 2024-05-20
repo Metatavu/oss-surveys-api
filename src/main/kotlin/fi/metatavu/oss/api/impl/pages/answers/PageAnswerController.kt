@@ -19,6 +19,7 @@ import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
 import fi.metatavu.oss.api.model.PageQuestionType.*
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import org.slf4j.Logger
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -88,7 +89,8 @@ class PageAnswerController {
         device: DeviceEntity,
         page: PageEntity,
         pageQuestion: PageQuestionEntity,
-        answer: DevicePageSurveyAnswer
+        answer: DevicePageSurveyAnswer,
+        createdAt: OffsetDateTime
     ): PageAnswerBaseEntity {
         val answerKey = createAnswerKey(
             device = device,
@@ -112,7 +114,8 @@ class PageAnswerController {
                     answerKey = answerKey,
                     device = device,
                     page = page,
-                    option = option
+                    option = option,
+                    createdAt = createdAt
                 )
             }
 
@@ -125,7 +128,8 @@ class PageAnswerController {
                     answerKey = answerKey,
                     device = device,
                     page = page,
-                    options = options
+                    options = options,
+                    createdAt = createdAt
                 )
             }
 
@@ -133,7 +137,8 @@ class PageAnswerController {
                 answerKey = answerKey,
                 device = device,
                 page = page,
-                answerStringOriginal = answerStringOriginal
+                answerStringOriginal = answerStringOriginal,
+                createdAt = createdAt
             )
         }
     }
@@ -179,20 +184,23 @@ class PageAnswerController {
      * @param device device where the answer was published
      * @param page page where the answer was published
      * @param answerStringOriginal answer as a string
+     * @param createdAt when the answer was created
      * @return created answer
      */
     private suspend fun createFreetextAnswer(
         answerKey: String?,
         device: DeviceEntity,
         page: PageEntity,
-        answerStringOriginal: String
+        answerStringOriginal: String,
+        createdAt: OffsetDateTime
     ): PageAnswerText {
         return pageAnswerFreetextRepository.create(
             id = UUID.randomUUID(),
             answerKey = answerKey,
             page = page,
             deviceEntity = device,
-            text = answerStringOriginal
+            text = answerStringOriginal,
+            createdAt = createdAt
         )
     }
 
@@ -203,19 +211,22 @@ class PageAnswerController {
      * @param device device where the answer was published
      * @param page page where the answer was published
      * @param options which options were selected
+     * @param createdAt when the answer was created
      * @return created answer
      */
     private suspend fun createMultiSelectAnswer(
         answerKey: String?,
         device: DeviceEntity,
         page: PageEntity,
-        options: List<QuestionOptionEntity>
+        options: List<QuestionOptionEntity>,
+        createdAt: OffsetDateTime
     ): PageAnswerMulti {
         val answer = pageAnswerMultiRepository.create(
             id = UUID.randomUUID(),
             answerKey = answerKey,
             page = page,
-            deviceEntity = device
+            deviceEntity = device,
+            createdAt = createdAt
         )
         options.forEach { answerOption ->
             pageAnswerMultiToOptionsRepository.create(
@@ -235,20 +246,23 @@ class PageAnswerController {
      * @param device where it was published
      * @param page which page it was answered on
      * @param option which option was selected
+     * @param createdAt when the answer was created
      * @return created answer
      */
     private suspend fun createSingleSelectAnswer(
         answerKey: String?,
         device: DeviceEntity,
         page: PageEntity,
-        option: QuestionOptionEntity
+        option: QuestionOptionEntity,
+        createdAt: OffsetDateTime
     ): PageAnswerSingle {
         return pageAnswerSingleRepository.create(
             id = UUID.randomUUID(),
             answerKey = answerKey,
             page = page,
             option = option,
-            deviceEntity = device
+            deviceEntity = device,
+            createdAt = createdAt
         )
     }
 

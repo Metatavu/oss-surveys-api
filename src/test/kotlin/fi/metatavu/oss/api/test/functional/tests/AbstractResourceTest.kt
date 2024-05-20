@@ -26,14 +26,28 @@ abstract class AbstractResourceTest {
     /**
      * Asserts offset datetime equals
      *
-     * @param expectedDateTime expected date time
-     * @param actualDateTime actual date time
+     * @param expectedDateTime expected date time as string
+     * @param actualDateTime actual date time as string
      * @param retention retention
      */
     protected fun assertOffsetDateTimeEquals(expectedDateTime: String, actualDateTime: String, retention: ChronoUnit = ChronoUnit.SECONDS) {
         assertEquals(
             OffsetDateTime.parse(expectedDateTime).toInstant().truncatedTo(retention),
             OffsetDateTime.parse(actualDateTime).toInstant().truncatedTo(retention)
+        )
+    }
+
+    /**
+     * Asserts offset datetime equals
+     *
+     * @param expectedDateTime expected date time as offset date time
+     * @param actualDateTime actual date time as offset date time
+     * @param retention retention
+     */
+    protected fun assertOffsetDateTimeEquals(expectedDateTime: OffsetDateTime, actualDateTime: OffsetDateTime, retention: ChronoUnit = ChronoUnit.SECONDS) {
+        assertEquals(
+            expectedDateTime.toInstant().truncatedTo(retention),
+            actualDateTime.toInstant().truncatedTo(retention)
         )
     }
 
@@ -102,6 +116,7 @@ abstract class AbstractResourceTest {
      * @param answer answer
      * @param deviceAnswerId device answer id (optional
      * @param surveyId survey id
+     * @param overrideCreatedAt override created at (optional)
      */
     protected fun createPageAnswer(
         testBuilder: TestBuilder,
@@ -109,17 +124,20 @@ abstract class AbstractResourceTest {
         page: Page,
         answer: String,
         deviceAnswerId: Long? = null,
-        surveyId: UUID
+        surveyId: UUID,
+        overrideCreatedAt: OffsetDateTime? = null
     ) {
         testBuilder.manager.deviceData.submitSurveyAnswer(
             deviceId = deviceId,
             devicePageSurveyAnswer = DevicePageSurveyAnswer(
                 pageId = page.id,
                 answer = answer,
-                deviceAnswerId = deviceAnswerId
+                deviceAnswerId = deviceAnswerId,
             ),
             surveyId = surveyId,
-            pageId = page.id!!
+            pageId = page.id!!,
+            overrideCreatedAt = overrideCreatedAt
+
         )
     }
 

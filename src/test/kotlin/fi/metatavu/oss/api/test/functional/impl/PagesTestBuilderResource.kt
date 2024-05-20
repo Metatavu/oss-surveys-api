@@ -32,7 +32,7 @@ class PagesTestBuilderResource(
         return PagesApi(ApiTestSettings.apiBasePath)
     }
 
-    fun create(surveyId: UUID, page: Page): Page? {
+    fun create(surveyId: UUID, page: Page): Page {
         val created = api.createSurveyPage(surveyId, page)
         pageSurveyRelation[created.id!!] = surveyId
         return addClosable(created)
