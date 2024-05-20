@@ -1069,13 +1069,17 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
 
         // Submit an answer without answer via the V2 API (simulate postponed submission from device with malformed answer data)
-        for (i in 0..10) {
+        for (i in 0..9) {
             createPageAnswer(
                 testBuilder = testBuilder,
                 deviceId = deviceId,
                 page = page,
                 surveyId = survey.id,
-                answer = null,
+                answer = if (i % 2 == 0) {
+                    jacksonObjectMapper().writeValueAsString(listOf(getOptionValueByOrderNumber(page = page, orderNumber = 0)))
+                } else {
+                    null
+                },
                 deviceAnswerId = i.toLong()
             )
         }
@@ -1083,6 +1087,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             surveyId = survey.id,
             pageId = page.id!!
         )
+
         val pageWithFailsafeOption = testBuilder.manager.pages.find(surveyId = survey.id, pageId = page.id)
         val failsafeOptions = pageWithFailsafeOption.question?.options?.filter { it.questionOptionValue == PageQuestionController.FAILSAFE_NO_SELECTION_OPTION_VALUE}
 
@@ -1090,11 +1095,11 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         assertEquals(1, failsafeOptions?.size)
 
         val failsafeOption = failsafeOptions?.first()
+        val answersWithFailsafeOption = answers.filter { it.answer == jacksonObjectMapper().writeValueAsString(listOf(failsafeOption?.id)) }
+        val answersWithoutFailsafeOption = answers.filter { it.answer != jacksonObjectMapper().writeValueAsString(listOf(failsafeOption?.id)) }
 
-        // Assert that the answers are created with the failsafe option id
-        for (answer in answers) {
-            assertEquals(answer.answer, jacksonObjectMapper().writeValueAsString(listOf(failsafeOption?.id)))
-        }
+        assertEquals(5, answersWithFailsafeOption.size)
+        assertEquals(5, answersWithoutFailsafeOption.size)
     }
 
     @Test
@@ -1123,13 +1128,17 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
 
         // Submit answers without answer via the V2 API (simulate postponed submission from device with malformed answer data)
-        for (i in 0..10) {
+        for (i in 0..9) {
             createPageAnswer(
                 testBuilder = testBuilder,
                 deviceId = deviceId,
                 page = page,
                 surveyId = survey.id,
-                answer = null,
+                answer = if (i % 2 == 0) {
+                    getOptionValueByOrderNumber(page = page, orderNumber = 0)
+                } else {
+                    null
+                },
                 deviceAnswerId = i.toLong()
             )
         }
@@ -1145,13 +1154,11 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         assertEquals(1, failsafeOptions?.size)
 
         val failsafeOption = failsafeOptions?.first()
+        val answersWithFailsafeOption = answers.filter { it.answer == failsafeOption?.id.toString() }
+        val answersWithoutFailsafeOption = answers.filter { it.answer != failsafeOption?.id.toString() }
 
-        // Assert that all answers are set to the same failsafe option
-        for (answer in answers) {
-            assertEquals(answer.answer, failsafeOption?.id.toString())
-        }
-
-
+        assertEquals(5, answersWithFailsafeOption.size)
+        assertEquals(5, answersWithoutFailsafeOption.size)
     }
 
     @Test

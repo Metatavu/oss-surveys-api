@@ -196,7 +196,7 @@ class PageAnswerController {
      *
      * @param it answer to disconnect
      */
-    suspend fun unAssignFromDevice(it: PageAnswerBaseEntity) {
+    suspend fun unassignFromDevice(it: PageAnswerBaseEntity) {
         it.device = null
         when (it) {
             is PageAnswerMulti -> pageAnswerMultiRepository.persistSuspending(it)
@@ -352,15 +352,14 @@ class PageAnswerController {
      * @return answer with failsafe value
      */
     private suspend fun getFailsafeQuestionOption(pageQuestion: PageQuestionEntity, answer: DevicePageSurveyAnswer): DevicePageSurveyAnswer {
-        val dummyAnswer = questionOptionRepository.findFailsafeQuestionOption(pageQuestion.id) ?: createFailsafeQuestionOption(pageQuestion)
-
         if (pageQuestion.type == FREETEXT) {
             return answer.copy(answer = "")
         }
+        val failsafeAnswer = questionOptionRepository.findFailsafeQuestionOption(pageQuestion.id) ?: createFailsafeQuestionOption(pageQuestion)
 
         return answer.copy(answer =  when (pageQuestion.type) {
-            MULTI_SELECT -> objectMapper.writeValueAsString(listOf(dummyAnswer.id.toString()))
-            SINGLE_SELECT -> dummyAnswer.id.toString()
+            MULTI_SELECT -> objectMapper.writeValueAsString(listOf(failsafeAnswer.id.toString()))
+            SINGLE_SELECT -> failsafeAnswer.id.toString()
             else -> throw IllegalArgumentException("Invalid question type")
         })
     }
