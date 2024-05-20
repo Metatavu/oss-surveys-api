@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerBaseEntity
@@ -11,11 +12,14 @@ import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerMulti
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerSingle
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerText
 import fi.metatavu.oss.api.impl.pages.answers.repositories.*
+import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
 import fi.metatavu.oss.api.impl.pages.questions.PageQuestionEntity
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionEntity
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionRepository
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
+import fi.metatavu.oss.api.model.PageQuestionOption
+import fi.metatavu.oss.api.model.PageQuestionType
 import fi.metatavu.oss.api.model.PageQuestionType.*
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import org.slf4j.Logger
@@ -56,6 +60,9 @@ class PageAnswerController {
     @Inject
     lateinit var objectMapper: ObjectMapper
 
+    @Inject
+    lateinit var pageQuestionController: PageQuestionController
+
     /**
      * Lists answers for a page
      *
@@ -77,6 +84,15 @@ class PageAnswerController {
     }
 
     /**
+     * Assigns a dummy answer id to the answer in case it doesn't have one
+     *
+     *
+     */
+    private suspend fun assignDummyyAnswerId(): DevicePageSurveyAnswer {
+
+    }
+
+    /**
      * Creates a new page answer for the page
      *
      * @param device device
@@ -93,10 +109,27 @@ class PageAnswerController {
         pageQuestion: PageQuestionEntity,
         answer: DevicePageSurveyAnswer
     ): PageAnswerBaseEntity {
+        val answerToSubmit = if (answer.answer.isNullOrEmpty()) {
+            val options = pageOptionRepository.listByQuestion(pageQuestion)
+            val maxOrderNumber = options.maxOfOrNull { it.orderNumber ?: 0 } ?: 0
+            val dummyAnswer = pageQuestionController.addOption(
+                option = PageQuestionOption(
+                    questionOptionValue = PageQuestionController.DUMMY_ANSWER_OPTION_VALUE,
+                    orderNumber = maxOrderNumber + 1,
+                ),
+                question = pageQuestion
+            )
+            answer.copy(answer =  when (pageQuestion.type) {
+                MULTI_SELECT -> jacksonObjectMapper().writeValueAsString(listOf(dummyAnswer.id.toString()))
+                else -> dummyAnswer.id.toString()
+            })
+        } else {
+            answer
+        }
         val answerKey = createAnswerKey(
             device = device,
             page = page,
-            answer = answer
+            answer = answerToSubmit
         )
 
         if (answerKey != null) {
@@ -106,7 +139,7 @@ class PageAnswerController {
             }
         }
 
-        val answerStringOriginal = answer.answer!!      // was verified to not be empty at the api impl level
+        val answerStringOriginal = answerToSubmit.answer!!      // was verified to not be empty at the api impl level
         val answerCreatedAt = if (answer.timestamp !== null) {
             OffsetDateTime.ofInstant(Instant.ofEpochSecond(answer.timestamp), ZoneOffset.UTC)
         } else {

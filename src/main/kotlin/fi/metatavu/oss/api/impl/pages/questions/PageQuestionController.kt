@@ -3,6 +3,7 @@ package fi.metatavu.oss.api.impl.pages.questions
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.model.PageQuestion
+import fi.metatavu.oss.api.model.PageQuestionOption
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
@@ -14,6 +15,10 @@ import javax.inject.Inject
 @ApplicationScoped
 class PageQuestionController {
 
+    companion object {
+        const val DUMMY_ANSWER_OPTION_VALUE = "Ei valintaa"
+    }
+
     @Inject
     lateinit var pageQuestionRepository: PageQuestionRepository
 
@@ -22,6 +27,18 @@ class PageQuestionController {
 
     @Inject
     lateinit var answerController: PageAnswerController
+
+    /**
+     * TODO: Add docs
+     */
+    suspend fun addOption(option: PageQuestionOption, question: PageQuestionEntity): QuestionOptionEntity {
+        return questionOptionRepository.create(
+            id = UUID.randomUUID(),
+            question = question,
+            value = option.questionOptionValue,
+            orderNumber = option.orderNumber
+        )
+    }
 
     /**
      * Finds questions assigned to the page if any
