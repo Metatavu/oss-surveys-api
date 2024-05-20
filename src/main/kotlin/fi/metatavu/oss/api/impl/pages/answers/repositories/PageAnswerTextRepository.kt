@@ -4,6 +4,7 @@ import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerText
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 
@@ -21,6 +22,7 @@ class PageAnswerTextRepository: AbstractRepository<PageAnswerText, UUID>() {
      * @param page page
      * @param deviceEntity device entity
      * @param text text
+     * @param createdAt creation time
      * @return created page answer text
      */
     suspend fun create(
@@ -28,7 +30,8 @@ class PageAnswerTextRepository: AbstractRepository<PageAnswerText, UUID>() {
         answerKey: String?,
         page: PageEntity,
         deviceEntity: DeviceEntity,
-        text: String
+        text: String,
+        createdAt: OffsetDateTime
     ): PageAnswerText {
         val pageAnswerText = PageAnswerText()
         pageAnswerText.id = id
@@ -36,6 +39,8 @@ class PageAnswerTextRepository: AbstractRepository<PageAnswerText, UUID>() {
         pageAnswerText.page = page
         pageAnswerText.device = deviceEntity
         pageAnswerText.text = text
+        pageAnswerText.createdAt = createdAt
+        pageAnswerText.modifiedAt = createdAt
         return persistSuspending(pageAnswerText)
     }
 }

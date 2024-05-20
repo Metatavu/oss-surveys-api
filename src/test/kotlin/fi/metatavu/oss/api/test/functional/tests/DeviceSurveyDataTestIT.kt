@@ -132,7 +132,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         assertEquals(3, foundSurveyData.pages?.size)
         val page1Data = foundSurveyData.pages?.get(0)
         assertNotNull(page1Data)
-        assertEquals(createdPages[0]!!.id, page1Data!!.id)
+        assertEquals(createdPages[0].id, page1Data!!.id)
 
         // verify page properties
         assertEquals(1, page1Data.properties?.size)
@@ -194,7 +194,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         createPageAnswer(
             testBuilder = testBuilder,
             deviceSurvey = deviceSurvey,
-            page = page!!,
+            page = page,
             answer = "Karhu"
         )
 
@@ -268,7 +268,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                 layoutId = layout.id!!,
                 nextButtonVisible = true
             )
-        )!!
+        )
 
         // Get IDs of the options to fill in the answers
         val answerOption0 = getOptionValueByOrderNumber(page = page, orderNumber = 0)
@@ -353,8 +353,8 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                 nextButtonVisible = true
             )
         )
-        val answerOption0 = page!!.question!!.options.find { it.orderNumber == multiOptions[0].orderNumber }!!
-        val answerOption1 = page.question!!.options.find { it.orderNumber == multiOptions[1].orderNumber }!!
+        val answerOption0 = page.question!!.options.find { it.orderNumber == multiOptions[0].orderNumber }!!
+        val answerOption1 = page.question.options.find { it.orderNumber == multiOptions[1].orderNumber }!!
         val answerOption2 = page.question.options.find { it.orderNumber == multiOptions[2].orderNumber }!!
 
         val answerString0 = jacksonObjectMapper().writeValueAsString(
@@ -453,7 +453,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         testBuilder.manager.deviceData.assertCreateFail(
             deviceId = randomUUID,
             deviceSurveyId = deviceSurvey1.id!!,
-            pageId = page!!.id!!,
+            pageId = page.id!!,
             devicePageSurveyAnswer = DevicePageSurveyAnswer(
                 pageId = page.id,
                 answer = "qwerty"
@@ -475,7 +475,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         testBuilder.manager.deviceData.assertCreateFail(
             deviceId = deviceId,
             deviceSurveyId = randomUUID,
-            pageId = page.id!!,
+            pageId = page.id,
             devicePageSurveyAnswer = DevicePageSurveyAnswer(
                 pageId = page.id,
                 answer = "qwerty"
@@ -550,7 +550,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                     layoutId = layout.id!!,
                     nextButtonVisible = true
                 )
-            )!!
+            )
         }
 
         for (device in devices) {
@@ -656,7 +656,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                     layoutId = layout.id!!,
                     nextButtonVisible = true
                 )
-            )!!
+            )
         }
 
         for (device in devices) {
@@ -762,7 +762,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
                     layoutId = layout.id!!,
                     nextButtonVisible = true
                 )
-            )!!
+            )
         }
 
         for (device in devices) {
@@ -840,6 +840,206 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             // ...and one with answer 2 from both devices
             assertEquals(2, countMultiValues(page = page, answerValues = answerValues, orderNumbers = arrayOf(0, 2)))
         }
+    }
+
+    @Test
+    fun testSubmitFreeTextAnswerWithTimestamp() = createTestBuilder().use { testBuilder ->
+        val (deviceId, deviceKey) = testBuilder.manager.devices.setupTestDevice(serialNumber = "1234")
+
+        testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+        val survey = testBuilder.manager.surveys.createDefault()
+        val layout = testBuilder.manager.layouts.createDefault()
+
+        approveSurvey(survey)
+
+        val deviceSurvey = testBuilder.manager.deviceSurveys.createCurrentlyPublishedDeviceSurvey(
+            deviceId = deviceId,
+            surveyId = survey.id!!
+        )
+        val page = testBuilder.manager.pages.create(
+            surveyId = survey.id,
+            page = Page(
+                orderNumber = 0,
+                title = "Question title",
+                question = PageQuestion(
+                    type = PageQuestionType.FREETEXT,
+                    options = emptyArray()
+                ),
+                layoutId = layout.id!!,
+                nextButtonVisible = false
+            )
+        )
+        val monthAgo = OffsetDateTime.now().minusMonths(1)
+
+        // Submit an answer with timestamp via the V2 API (simulate postponed submission from device)
+        createPageAnswer(
+            testBuilder = testBuilder,
+            deviceId = deviceId,
+            page = page,
+            surveyId = survey.id,
+            answer = "free text answer",
+            deviceAnswerId = 1,
+            timestamp = monthAgo
+        )
+        val (answer) = testBuilder.manager.surveyAnswers.list(
+            surveyId = survey.id,
+            pageId = page.id!!
+        )
+
+        // Assert that the answers createdAt timestamp is the same as the one provided
+        assertEquals(monthAgo.toEpochSecond(), OffsetDateTime.parse(answer.metadata!!.createdAt).toEpochSecond())
+
+        // Submit an answer without timestamp via the V1 API (simulate postponed submission from device)
+        createPageAnswer(
+            testBuilder = testBuilder,
+            deviceSurvey = deviceSurvey,
+            page = page,
+            answer = "Hoptinen Illuusio",
+            deviceAnswerId = null
+        )
+        val (answer2) = testBuilder.manager.surveyAnswers.list(
+            surveyId = survey.id,
+            pageId = page.id
+        ).filter { it.id != answer.id }
+
+        // Assert that the answers createdAt timestamp is set to the time of the submission when no timestamp is provided.
+        // Uses LocalDate comparison to avoid second precision problems
+        assertEquals(OffsetDateTime.now().toLocalDate(), OffsetDateTime.parse(answer2.metadata!!.createdAt).toLocalDate())
+    }
+
+    @Test
+    fun testSubmitSingleSelectAnswerWithTimestamp() = createTestBuilder().use { testBuilder ->
+        val (deviceId, deviceKey) = testBuilder.manager.devices.setupTestDevice(serialNumber = "1234")
+
+        testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+        val survey = testBuilder.manager.surveys.createDefault()
+        val layout = testBuilder.manager.layouts.createDefault()
+
+        approveSurvey(survey)
+
+        val deviceSurvey = testBuilder.manager.deviceSurveys.createCurrentlyPublishedDeviceSurvey(
+            deviceId = deviceId,
+            surveyId = survey.id!!
+        )
+
+        val page = testBuilder.manager.pages.create(
+            surveyId = survey.id,
+            page = Page(
+                orderNumber = 0,
+                title = "Question title",
+                question = PageQuestion(
+                    type = PageQuestionType.SINGLE_SELECT,
+                    options = arrayOf(PageQuestionOption(orderNumber = 0, questionOptionValue = "option 1"))
+                ),
+                layoutId = layout.id!!,
+                nextButtonVisible = false
+            )
+        )
+        val monthAgo = OffsetDateTime.now().minusMonths(1)
+
+        // Submit an answer with timestamp via the V2 API (simulate postponed submission from device)
+        createPageAnswer(
+            testBuilder = testBuilder,
+            deviceId = deviceId,
+            page = page,
+            surveyId = survey.id,
+            answer = getOptionValueByOrderNumber(page = page, orderNumber = 0),
+            deviceAnswerId = 1,
+            timestamp = monthAgo
+        )
+        val (answer) = testBuilder.manager.surveyAnswers.list(
+            surveyId = survey.id,
+            pageId = page.id!!
+        )
+
+        // Assert that the answers createdAt timestamp is the same as the one provided
+        assertEquals(monthAgo.toEpochSecond(), OffsetDateTime.parse(answer.metadata!!.createdAt).toEpochSecond())
+
+        // Submit an answer without timestamp via the V1 API (simulate postponed submission from device)
+        createPageAnswer(
+            testBuilder = testBuilder,
+            deviceSurvey = deviceSurvey,
+            page = page,
+            answer = getOptionValueByOrderNumber(page = page, orderNumber = 0),
+            deviceAnswerId = null
+        )
+        val (answer2) = testBuilder.manager.surveyAnswers.list(
+            surveyId = survey.id,
+            pageId = page.id
+        ).filter { it.id != answer.id }
+
+        // Assert that the answers createdAt timestamp is set to the time of the submission when no timestamp is provided.
+        // Uses LocalDate comparison to avoid second precision problems
+        assertEquals(OffsetDateTime.now().toLocalDate(), OffsetDateTime.parse(answer2.metadata!!.createdAt).toLocalDate())
+    }
+
+    @Test
+    fun testSubmitMultiSelectAnswerWithTimestamp() = createTestBuilder().use { testBuilder ->
+        val (deviceId, deviceKey) = testBuilder.manager.devices.setupTestDevice(serialNumber = "1234")
+
+        testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+        val survey = testBuilder.manager.surveys.createDefault()
+        val layout = testBuilder.manager.layouts.createDefault()
+
+        approveSurvey(survey)
+
+        val deviceSurvey = testBuilder.manager.deviceSurveys.createCurrentlyPublishedDeviceSurvey(
+            deviceId = deviceId,
+            surveyId = survey.id!!
+        )
+
+        val page = testBuilder.manager.pages.create(
+            surveyId = survey.id,
+            page = Page(
+                orderNumber = 0,
+                title = "Question title",
+                question = PageQuestion(
+                    type = PageQuestionType.MULTI_SELECT,
+                    options = arrayOf(PageQuestionOption(orderNumber = 0, questionOptionValue = "option 1"))
+                ),
+                layoutId = layout.id!!,
+                nextButtonVisible = false
+            )
+        )
+        val monthAgo = OffsetDateTime.now().minusMonths(1)
+
+        // Submit an answer with timestamp via the V2 API (simulate postponed submission from device)
+        createPageAnswer(
+            testBuilder = testBuilder,
+            deviceId = deviceId,
+            page = page,
+            surveyId = survey.id,
+            answer = jacksonObjectMapper().writeValueAsString(listOf(getOptionValueByOrderNumber(page = page, orderNumber = 0))),
+            deviceAnswerId = 1,
+            timestamp = monthAgo
+        )
+        val (answer) = testBuilder.manager.surveyAnswers.list(
+            surveyId = survey.id,
+            pageId = page.id!!
+        )
+
+        // Assert that the answers createdAt timestamp is the same as the one provided
+        assertEquals(monthAgo.toEpochSecond(), OffsetDateTime.parse(answer.metadata!!.createdAt).toEpochSecond())
+
+        // Submit an answer without timestamp via the V1 API (simulate postponed submission from device)
+        createPageAnswer(
+            testBuilder = testBuilder,
+            deviceSurvey = deviceSurvey,
+            page = page,
+            answer = jacksonObjectMapper().writeValueAsString(listOf(getOptionValueByOrderNumber(page = page, orderNumber = 0))),
+            deviceAnswerId = null
+        )
+        val (answer2) = testBuilder.manager.surveyAnswers.list(
+            surveyId = survey.id,
+            pageId = page.id
+        ).filter { it.id != answer.id }
+
+        // Assert that the answers createdAt timestamp is set to the time of the submission when no timestamp is provided.
+        // Uses LocalDate comparison to avoid second precision problems
+        assertEquals(OffsetDateTime.now().toLocalDate(), OffsetDateTime.parse(answer2.metadata!!.createdAt).toLocalDate())
     }
 
     /**

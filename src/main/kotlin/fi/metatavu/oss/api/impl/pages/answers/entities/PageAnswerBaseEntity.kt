@@ -2,7 +2,7 @@ package fi.metatavu.oss.api.impl.pages.answers.entities
 
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
-import fi.metatavu.oss.api.metadata.DBMetadata
+import java.time.OffsetDateTime
 import java.util.*
 import javax.persistence.*
 
@@ -12,7 +12,7 @@ import javax.persistence.*
 @Entity
 @Table(name = "pageanswer")
 @Inheritance(strategy = InheritanceType.JOINED)
-class PageAnswerBaseEntity : DBMetadata() {
+class PageAnswerBaseEntity {
 
     @Id
     lateinit var id: UUID
@@ -26,6 +26,15 @@ class PageAnswerBaseEntity : DBMetadata() {
     @Column(unique = true)
     var answerKey: String? = null
 
-    override var creatorId: UUID? = null
-    override var lastModifierId: UUID? = null
+    @Column
+    var creatorId: UUID? = null
+
+    @Column
+    var lastModifierId: UUID? = null
+
+    @Column(nullable = false)
+    var createdAt: OffsetDateTime? = null
+
+    @Column(nullable = false)
+    var modifiedAt: OffsetDateTime? = null
 }

@@ -109,14 +109,16 @@ abstract class AbstractResourceTest {
         page: Page,
         answer: String,
         deviceAnswerId: Long? = null,
-        surveyId: UUID
+        surveyId: UUID,
+        timestamp: OffsetDateTime? = null
     ) {
         testBuilder.manager.deviceData.submitSurveyAnswer(
             deviceId = deviceId,
             devicePageSurveyAnswer = DevicePageSurveyAnswer(
                 pageId = page.id,
                 answer = answer,
-                deviceAnswerId = deviceAnswerId
+                deviceAnswerId = deviceAnswerId,
+                timestamp = timestamp?.toEpochSecond()
             ),
             surveyId = surveyId,
             pageId = page.id!!

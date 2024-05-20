@@ -5,6 +5,7 @@ import fi.metatavu.oss.api.impl.devices.DeviceEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerSingle
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionEntity
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 
@@ -22,6 +23,7 @@ class PageAnswerSingleRepository : AbstractRepository<PageAnswerSingle, UUID>() 
      * @param page page
      * @param deviceEntity device entity
      * @param option option
+     * @param createdAt creation time
      * @return created page answer single
      */
     suspend fun create(
@@ -29,7 +31,8 @@ class PageAnswerSingleRepository : AbstractRepository<PageAnswerSingle, UUID>() 
         answerKey: String?,
         page: PageEntity,
         deviceEntity: DeviceEntity,
-        option: QuestionOptionEntity
+        option: QuestionOptionEntity,
+        createdAt: OffsetDateTime
     ): PageAnswerSingle {
         val pageAnswerSingle = PageAnswerSingle()
         pageAnswerSingle.id = id
@@ -37,6 +40,8 @@ class PageAnswerSingleRepository : AbstractRepository<PageAnswerSingle, UUID>() 
         pageAnswerSingle.page = page
         pageAnswerSingle.device = deviceEntity
         pageAnswerSingle.option = option
+        pageAnswerSingle.createdAt = createdAt
+        pageAnswerSingle.modifiedAt = createdAt
         return persistSuspending(pageAnswerSingle)
     }
 

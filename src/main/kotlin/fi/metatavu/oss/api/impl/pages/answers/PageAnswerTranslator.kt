@@ -8,6 +8,7 @@ import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerText
 import fi.metatavu.oss.api.impl.pages.answers.repositories.MultiAnswersToOptionsRepository
 import fi.metatavu.oss.api.impl.translate.AbstractTranslator
 import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
+import fi.metatavu.oss.api.model.Metadata
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
 
@@ -42,7 +43,12 @@ class PageAnswerTranslator : AbstractTranslator<PageAnswerBaseEntity, DevicePage
             id = entity.id,
             answer = answerString,
             pageId = entity.page.id,
-            metadata = translateMetadata(entity)
+            metadata = Metadata(
+                createdAt = entity.createdAt,
+                modifiedAt = entity.modifiedAt,
+                creatorId = entity.creatorId,
+                lastModifierId = entity.lastModifierId
+            )
         )
     }
 }
