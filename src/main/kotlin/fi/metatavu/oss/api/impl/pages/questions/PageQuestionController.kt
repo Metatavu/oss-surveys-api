@@ -16,7 +16,12 @@ import javax.inject.Inject
 class PageQuestionController {
 
     companion object {
-        const val DUMMY_ANSWER_OPTION_VALUE = "Ei valintaa"
+        /**
+         * Failsafe option value for no selection
+         *
+         * This value is used when no selection is made or the data is malformed in the device application
+         */
+        const val FAILSAFE_NO_SELECTION_OPTION_VALUE = "Ei valintaa"
     }
 
     @Inject
@@ -29,7 +34,11 @@ class PageQuestionController {
     lateinit var answerController: PageAnswerController
 
     /**
-     * TODO: Add docs
+     * Adds a new option to the question
+     *
+     * @param option option to add
+     * @param question question the option belongs to
+     * @return created option
      */
     suspend fun addOption(option: PageQuestionOption, question: PageQuestionEntity): QuestionOptionEntity {
         return questionOptionRepository.create(

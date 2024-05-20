@@ -1,6 +1,7 @@
 package fi.metatavu.oss.api.impl.pages.questions
 
 import fi.metatavu.oss.api.impl.abstracts.AbstractRepository
+import io.quarkus.panache.common.Parameters
 import io.quarkus.panache.common.Sort
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import java.util.UUID
@@ -67,6 +68,21 @@ class QuestionOptionRepository: AbstractRepository<QuestionOptionEntity, UUID>()
      */
     suspend fun listByQuestion(question: PageQuestionEntity): List<QuestionOptionEntity> {
         return list("question", Sort.ascending("orderNumber"), question).awaitSuspending()
+    }
+
+    /**
+     * Finds failsafe dummy answer option
+     *
+     * @param questionId question id
+     * @return dummy answer option
+     */
+    suspend fun findFailsafeQuestionOption(questionId: UUID): QuestionOptionEntity? {
+        val queryString = "question_id = :questionId AND value = :value"
+        val parameters = Parameters
+            .with("questionId", questionId)
+            .and("value", PageQuestionController.FAILSAFE_NO_SELECTION_OPTION_VALUE)
+
+        return find(queryString, parameters).firstResult<QuestionOptionEntity?>().awaitSuspending()
     }
 
 }

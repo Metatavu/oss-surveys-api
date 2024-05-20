@@ -18,7 +18,6 @@ import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionRepository
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
 import fi.metatavu.oss.api.model.PageQuestionOption
-import fi.metatavu.oss.api.model.PageQuestionType
 import fi.metatavu.oss.api.model.PageQuestionType.*
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import org.slf4j.Logger
@@ -60,6 +59,9 @@ class PageAnswerController {
     @Inject
     lateinit var pageQuestionController: PageQuestionController
 
+    @Inject
+    lateinit var questionOptionRepository: QuestionOptionRepository
+
     /**
      * Lists answers for a page
      *
@@ -81,15 +83,6 @@ class PageAnswerController {
     }
 
     /**
-     * Assigns a dummy answer id to the answer in case it doesn't have one
-     *
-     *
-     */
-    private suspend fun assignDummyAnswerId(): DevicePageSurveyAnswer {
-
-    }
-
-    /**
      * Creates a new page answer for the page
      *
      * @param device device
@@ -108,19 +101,7 @@ class PageAnswerController {
         createdAt: OffsetDateTime
     ): PageAnswerBaseEntity {
         val answerToSubmit = if (answer.answer.isNullOrEmpty()) {
-            val options = pageOptionRepository.listByQuestion(pageQuestion)
-            val maxOrderNumber = options.maxOfOrNull { it.orderNumber ?: 0 } ?: 0
-            val dummyAnswer = pageQuestionController.addOption(
-                option = PageQuestionOption(
-                    questionOptionValue = PageQuestionController.DUMMY_ANSWER_OPTION_VALUE,
-                    orderNumber = maxOrderNumber + 1,
-                ),
-                question = pageQuestion
-            )
-            answer.copy(answer =  when (pageQuestion.type) {
-                MULTI_SELECT -> objectMapper.writeValueAsString(listOf(dummyAnswer.id.toString()))
-                else -> dummyAnswer.id.toString()
-            })
+            getFailsafeQuestionOption(pageQuestion, answer)
         } else {
             answer
         }
@@ -207,6 +188,35 @@ class PageAnswerController {
         }
 
         pageAnswerRepository.deleteSuspending(answer)
+    }
+
+    /**
+     * Disconnects answer from device. To be used when devices are being removed in order to not lose
+     * the submitted answers
+     *
+     * @param it answer to disconnect
+     */
+    suspend fun unAssignFromDevice(it: PageAnswerBaseEntity) {
+        it.device = null
+        when (it) {
+            is PageAnswerMulti -> pageAnswerMultiRepository.persistSuspending(it)
+            is PageAnswerSingle -> pageAnswerSingleRepository.persistSuspending(it)
+            is PageAnswerText -> pageAnswerFreetextRepository.persistSuspending(it)
+        }
+    }
+
+    /**
+     * Lists answers for a device survey
+     *
+     * @param device device
+     * @param survey survey
+     * @return list of answers
+     */
+    suspend fun listDeviceSurveyAnswers(device: DeviceEntity, survey: SurveyEntity): List<PageAnswerBaseEntity> {
+        return pageAnswerRepository.listByDeviceAndSurvey(
+            device = device,
+            survey = survey
+        )
     }
 
     /**
@@ -316,35 +326,6 @@ class PageAnswerController {
     }
 
     /**
-     * Disconnects answer from device. To be used when devices are being removed in order to not lose
-     * the submitted answers
-     *
-     * @param it answer to disconnect
-     */
-    suspend fun unassignFromDevice(it: PageAnswerBaseEntity) {
-        it.device = null
-        when (it) {
-            is PageAnswerMulti -> pageAnswerMultiRepository.persistSuspending(it)
-            is PageAnswerSingle -> pageAnswerSingleRepository.persistSuspending(it)
-            is PageAnswerText -> pageAnswerFreetextRepository.persistSuspending(it)
-        }
-    }
-
-    /**
-     * Lists answers for a device survey
-     *
-     * @param device device
-     * @param survey survey
-     * @return list of answers
-     */
-    suspend fun listDeviceSurveyAnswers(device: DeviceEntity, survey: SurveyEntity): List<PageAnswerBaseEntity> {
-        return pageAnswerRepository.listByDeviceAndSurvey(
-            device = device,
-            survey = survey
-        )
-    }
-
-    /**
      * Creates a unique answer key for the answer.
      *
      * If the answer does not have an id, returns null
@@ -361,6 +342,46 @@ class PageAnswerController {
         val pageId = page.id
 
         return "$deviceId-$pageId-$deviceAnswerId"
+    }
+
+    /**
+     * Assigns a failsafe answer value to the answer in case it doesn't have one e.g. the answer is malformed
+     *
+     * @param pageQuestion question to get failsafe option for
+     * @param answer answer submitted from the device with malformed data
+     * @return answer with failsafe value
+     */
+    private suspend fun getFailsafeQuestionOption(pageQuestion: PageQuestionEntity, answer: DevicePageSurveyAnswer): DevicePageSurveyAnswer {
+        val dummyAnswer = questionOptionRepository.findFailsafeQuestionOption(pageQuestion.id) ?: createFailsafeQuestionOption(pageQuestion)
+
+        if (pageQuestion.type == FREETEXT) {
+            return answer.copy(answer = "")
+        }
+
+        return answer.copy(answer =  when (pageQuestion.type) {
+            MULTI_SELECT -> objectMapper.writeValueAsString(listOf(dummyAnswer.id.toString()))
+            SINGLE_SELECT -> dummyAnswer.id.toString()
+            else -> throw IllegalArgumentException("Invalid question type")
+        })
+    }
+
+    /**
+     * Creates a new failsafe failsafe question option for the question
+     *
+     * @param pageQuestion question to create failsafe option for
+     * @return created failsafe option
+     */
+    private suspend fun createFailsafeQuestionOption(pageQuestion: PageQuestionEntity): QuestionOptionEntity {
+        val options = pageOptionRepository.listByQuestion(pageQuestion)
+        val maxOrderNumber = options.maxOfOrNull { it.orderNumber ?: 0 } ?: 0
+
+        return pageQuestionController.addOption(
+            option = PageQuestionOption(
+                questionOptionValue = PageQuestionController.FAILSAFE_NO_SELECTION_OPTION_VALUE,
+                orderNumber = maxOrderNumber + 1,
+            ),
+            question = pageQuestion
+        )
     }
 
 }

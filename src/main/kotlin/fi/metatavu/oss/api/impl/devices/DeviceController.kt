@@ -91,7 +91,7 @@ class DeviceController {
      */
     suspend fun deleteDevice(device: DeviceEntity) {
         answerController.list(device).forEach {
-            answerController.unassignFromDevice(it)
+            answerController.unAssignFromDevice(it)
         }
         val (deviceSurveys) = deviceSurveyController.listDeviceSurveys(deviceId = device.id)
 
