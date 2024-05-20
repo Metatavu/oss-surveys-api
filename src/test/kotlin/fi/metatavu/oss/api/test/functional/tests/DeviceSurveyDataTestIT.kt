@@ -880,7 +880,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             surveyId = survey.id,
             answer = "free text answer",
             deviceAnswerId = 1,
-            timestamp = monthAgo
+            overrideCreatedAt = monthAgo
         )
         val (answer) = testBuilder.manager.surveyAnswers.list(
             surveyId = survey.id,
@@ -888,7 +888,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
 
         // Assert that the answers createdAt timestamp is the same as the one provided
-        assertEquals(monthAgo.toEpochSecond(), OffsetDateTime.parse(answer.metadata!!.createdAt).toEpochSecond())
+        assertOffsetDateTimeEquals(monthAgo, OffsetDateTime.parse(answer.metadata!!.createdAt))
 
         // Submit an answer without timestamp via the V1 API (simulate postponed submission from device)
         createPageAnswer(
@@ -905,7 +905,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
 
         // Assert that the answers createdAt timestamp is set to the time of the submission when no timestamp is provided.
         // Uses LocalDate comparison to avoid second precision problems
-        assertEquals(OffsetDateTime.now().toLocalDate(), OffsetDateTime.parse(answer2.metadata!!.createdAt).toLocalDate())
+        assertOffsetDateTimeEquals(OffsetDateTime.now(), OffsetDateTime.parse(answer2.metadata!!.createdAt))
     }
 
     @Test
@@ -947,7 +947,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             surveyId = survey.id,
             answer = getOptionValueByOrderNumber(page = page, orderNumber = 0),
             deviceAnswerId = 1,
-            timestamp = monthAgo
+            overrideCreatedAt = monthAgo
         )
         val (answer) = testBuilder.manager.surveyAnswers.list(
             surveyId = survey.id,
@@ -955,7 +955,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
 
         // Assert that the answers createdAt timestamp is the same as the one provided
-        assertEquals(monthAgo.toEpochSecond(), OffsetDateTime.parse(answer.metadata!!.createdAt).toEpochSecond())
+        assertOffsetDateTimeEquals(monthAgo, OffsetDateTime.parse(answer.metadata!!.createdAt))
 
         // Submit an answer without timestamp via the V1 API (simulate postponed submission from device)
         createPageAnswer(
@@ -972,7 +972,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
 
         // Assert that the answers createdAt timestamp is set to the time of the submission when no timestamp is provided.
         // Uses LocalDate comparison to avoid second precision problems
-        assertEquals(OffsetDateTime.now().toLocalDate(), OffsetDateTime.parse(answer2.metadata!!.createdAt).toLocalDate())
+        assertOffsetDateTimeEquals(OffsetDateTime.now(), OffsetDateTime.parse(answer2.metadata!!.createdAt))
     }
 
     @Test
@@ -1014,7 +1014,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
             surveyId = survey.id,
             answer = jacksonObjectMapper().writeValueAsString(listOf(getOptionValueByOrderNumber(page = page, orderNumber = 0))),
             deviceAnswerId = 1,
-            timestamp = monthAgo
+            overrideCreatedAt = monthAgo
         )
         val (answer) = testBuilder.manager.surveyAnswers.list(
             surveyId = survey.id,
@@ -1022,7 +1022,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         )
 
         // Assert that the answers createdAt timestamp is the same as the one provided
-        assertEquals(monthAgo.toEpochSecond(), OffsetDateTime.parse(answer.metadata!!.createdAt).toEpochSecond())
+        assertOffsetDateTimeEquals(monthAgo, OffsetDateTime.parse(answer.metadata!!.createdAt))
 
         // Submit an answer without timestamp via the V1 API (simulate postponed submission from device)
         createPageAnswer(
@@ -1039,7 +1039,7 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
 
         // Assert that the answers createdAt timestamp is set to the time of the submission when no timestamp is provided.
         // Uses LocalDate comparison to avoid second precision problems
-        assertEquals(OffsetDateTime.now().toLocalDate(), OffsetDateTime.parse(answer2.metadata!!.createdAt).toLocalDate())
+        assertOffsetDateTimeEquals(OffsetDateTime.now(), OffsetDateTime.parse(answer2.metadata!!.createdAt))
     }
 
     /**

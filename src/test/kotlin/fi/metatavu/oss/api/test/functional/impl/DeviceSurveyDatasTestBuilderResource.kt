@@ -10,6 +10,7 @@ import fi.metatavu.oss.test.client.models.DevicePageSurveyAnswer
 import fi.metatavu.oss.test.client.models.DeviceSurvey
 import fi.metatavu.oss.test.client.models.DeviceSurveyData
 import org.junit.jupiter.api.fail
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -83,16 +84,19 @@ class DeviceSurveyDatasTestBuilderResource(
      * @param devicePageSurveyAnswer device page survey answer
      * @param surveyId survey id (not needed for actual request)
      * @param pageId page id (not needed for actual request)
+     * @param overrideCreatedAt override created at (optional)
      */
     fun submitSurveyAnswer(
         deviceId: UUID,
         devicePageSurveyAnswer: DevicePageSurveyAnswer,
         surveyId: UUID,
-        pageId: UUID
+        pageId: UUID,
+        overrideCreatedAt: OffsetDateTime? = null
     ) {
         api.submitSurveyAnswerV2(
             deviceId = deviceId,
-            devicePageSurveyAnswer = devicePageSurveyAnswer
+            devicePageSurveyAnswer = devicePageSurveyAnswer,
+            overrideCreatedAt = overrideCreatedAt?.toString()
         )
 
         // add it as closable to resource which can delete the answer

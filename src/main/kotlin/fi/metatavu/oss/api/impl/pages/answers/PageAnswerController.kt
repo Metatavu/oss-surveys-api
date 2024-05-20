@@ -19,9 +19,7 @@ import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
 import fi.metatavu.oss.api.model.PageQuestionType.*
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import org.slf4j.Logger
-import java.time.Instant
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -91,7 +89,8 @@ class PageAnswerController {
         device: DeviceEntity,
         page: PageEntity,
         pageQuestion: PageQuestionEntity,
-        answer: DevicePageSurveyAnswer
+        answer: DevicePageSurveyAnswer,
+        createdAt: OffsetDateTime
     ): PageAnswerBaseEntity {
         val answerKey = createAnswerKey(
             device = device,
@@ -107,11 +106,6 @@ class PageAnswerController {
         }
 
         val answerStringOriginal = answer.answer!!      // was verified to not be empty at the api impl level
-        val answerCreatedAt = if (answer.timestamp !== null) {
-            OffsetDateTime.ofInstant(Instant.ofEpochSecond(answer.timestamp), ZoneOffset.UTC)
-        } else {
-            OffsetDateTime.now()
-        }
         return when (pageQuestion.type) {
             SINGLE_SELECT -> {
                 val option = parseOption(answerStringOriginal)
@@ -121,7 +115,7 @@ class PageAnswerController {
                     device = device,
                     page = page,
                     option = option,
-                    createdAt = answerCreatedAt
+                    createdAt = createdAt
                 )
             }
 
@@ -135,7 +129,7 @@ class PageAnswerController {
                     device = device,
                     page = page,
                     options = options,
-                    createdAt = answerCreatedAt
+                    createdAt = createdAt
                 )
             }
 
@@ -144,7 +138,7 @@ class PageAnswerController {
                 device = device,
                 page = page,
                 answerStringOriginal = answerStringOriginal,
-                createdAt = answerCreatedAt
+                createdAt = createdAt
             )
         }
     }
