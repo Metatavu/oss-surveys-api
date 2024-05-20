@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerBaseEntity
@@ -23,9 +22,7 @@ import fi.metatavu.oss.api.model.PageQuestionType
 import fi.metatavu.oss.api.model.PageQuestionType.*
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import org.slf4j.Logger
-import java.time.Instant
 import java.time.OffsetDateTime
-import java.time.ZoneOffset
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -88,7 +85,7 @@ class PageAnswerController {
      *
      *
      */
-    private suspend fun assignDummyyAnswerId(): DevicePageSurveyAnswer {
+    private suspend fun assignDummyAnswerId(): DevicePageSurveyAnswer {
 
     }
 
@@ -107,7 +104,8 @@ class PageAnswerController {
         device: DeviceEntity,
         page: PageEntity,
         pageQuestion: PageQuestionEntity,
-        answer: DevicePageSurveyAnswer
+        answer: DevicePageSurveyAnswer,
+        createdAt: OffsetDateTime
     ): PageAnswerBaseEntity {
         val answerToSubmit = if (answer.answer.isNullOrEmpty()) {
             val options = pageOptionRepository.listByQuestion(pageQuestion)
@@ -120,7 +118,7 @@ class PageAnswerController {
                 question = pageQuestion
             )
             answer.copy(answer =  when (pageQuestion.type) {
-                MULTI_SELECT -> jacksonObjectMapper().writeValueAsString(listOf(dummyAnswer.id.toString()))
+                MULTI_SELECT -> objectMapper.writeValueAsString(listOf(dummyAnswer.id.toString()))
                 else -> dummyAnswer.id.toString()
             })
         } else {
@@ -139,12 +137,7 @@ class PageAnswerController {
             }
         }
 
-        val answerStringOriginal = answerToSubmit.answer!!      // was verified to not be empty at the api impl level
-        val answerCreatedAt = if (answer.timestamp !== null) {
-            OffsetDateTime.ofInstant(Instant.ofEpochSecond(answer.timestamp), ZoneOffset.UTC)
-        } else {
-            OffsetDateTime.now()
-        }
+        val answerStringOriginal = answerToSubmit.answer!!
         return when (pageQuestion.type) {
             SINGLE_SELECT -> {
                 val option = parseOption(answerStringOriginal)
@@ -154,7 +147,7 @@ class PageAnswerController {
                     device = device,
                     page = page,
                     option = option,
-                    createdAt = answerCreatedAt
+                    createdAt = createdAt
                 )
             }
 
@@ -168,7 +161,7 @@ class PageAnswerController {
                     device = device,
                     page = page,
                     options = options,
-                    createdAt = answerCreatedAt
+                    createdAt = createdAt
                 )
             }
 
@@ -177,7 +170,7 @@ class PageAnswerController {
                 device = device,
                 page = page,
                 answerStringOriginal = answerStringOriginal,
-                createdAt = answerCreatedAt
+                createdAt = createdAt
             )
         }
     }
