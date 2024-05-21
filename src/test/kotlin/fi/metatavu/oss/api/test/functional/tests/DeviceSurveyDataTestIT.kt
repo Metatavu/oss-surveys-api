@@ -2,6 +2,7 @@ package fi.metatavu.oss.api.test.functional.tests
 
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
+import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
 import fi.metatavu.oss.api.test.functional.resources.LocalTestProfile
 import fi.metatavu.oss.test.client.models.*
 import io.quarkus.test.junit.QuarkusTest
@@ -1040,6 +1041,166 @@ class DeviceSurveyDataTestIT : AbstractResourceTest() {
         // Assert that the answers createdAt timestamp is set to the time of the submission when no timestamp is provided.
         // Uses LocalDate comparison to avoid second precision problems
         assertOffsetDateTimeEquals(OffsetDateTime.now(), OffsetDateTime.parse(answer2.metadata!!.createdAt))
+    }
+
+    @Test
+    fun testSubmitMultiSelectAnswerWithoutAnswerOptionId() = createTestBuilder().use { testBuilder ->
+        val (deviceId, deviceKey) = testBuilder.manager.devices.setupTestDevice(serialNumber = "1234")
+
+        testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+        val survey = testBuilder.manager.surveys.createDefault()
+        val layout = testBuilder.manager.layouts.createDefault()
+
+        approveSurvey(survey)
+
+        val page = testBuilder.manager.pages.create(
+            surveyId = survey.id!!,
+            page = Page(
+                orderNumber = 0,
+                title = "Question title",
+                question = PageQuestion(
+                    type = PageQuestionType.MULTI_SELECT,
+                    options = arrayOf(PageQuestionOption(orderNumber = 0, questionOptionValue = "option 1"))
+                ),
+                layoutId = layout.id!!,
+                nextButtonVisible = false
+            )
+        )
+
+        // Submit an answer without answer via the V2 API (simulate postponed submission from device with malformed answer data)
+        for (i in 0..9) {
+            createPageAnswer(
+                testBuilder = testBuilder,
+                deviceId = deviceId,
+                page = page,
+                surveyId = survey.id,
+                answer = if (i % 2 == 0) {
+                    jacksonObjectMapper().writeValueAsString(listOf(getOptionValueByOrderNumber(page = page, orderNumber = 0)))
+                } else {
+                    null
+                },
+                deviceAnswerId = i.toLong()
+            )
+        }
+        val answers = testBuilder.manager.surveyAnswers.list(
+            surveyId = survey.id,
+            pageId = page.id!!
+        )
+
+        val pageWithFailsafeOption = testBuilder.manager.pages.find(surveyId = survey.id, pageId = page.id)
+        val failsafeOptions = pageWithFailsafeOption.question?.options?.filter { it.questionOptionValue == PageQuestionController.FAILSAFE_NO_SELECTION_OPTION_VALUE}
+
+        // Assert that there is exactly one failsafe option
+        assertEquals(1, failsafeOptions?.size)
+
+        val failsafeOption = failsafeOptions?.first()
+        val answersWithFailsafeOption = answers.filter { it.answer == jacksonObjectMapper().writeValueAsString(listOf(failsafeOption?.id)) }
+        val answersWithoutFailsafeOption = answers.filter { it.answer != jacksonObjectMapper().writeValueAsString(listOf(failsafeOption?.id)) }
+
+        assertEquals(5, answersWithFailsafeOption.size)
+        assertEquals(5, answersWithoutFailsafeOption.size)
+    }
+
+    @Test
+    fun testSubmitSingleSelectAnswerWithoutAnswerOptionId() = createTestBuilder().use { testBuilder ->
+        val (deviceId, deviceKey) = testBuilder.manager.devices.setupTestDevice(serialNumber = "1234")
+
+        testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+        val survey = testBuilder.manager.surveys.createDefault()
+        val layout = testBuilder.manager.layouts.createDefault()
+
+        approveSurvey(survey)
+
+        val page = testBuilder.manager.pages.create(
+            surveyId = survey.id!!,
+            page = Page(
+                orderNumber = 0,
+                title = "Question title",
+                question = PageQuestion(
+                    type = PageQuestionType.SINGLE_SELECT,
+                    options = arrayOf(PageQuestionOption(orderNumber = 0, questionOptionValue = "option 1"))
+                ),
+                layoutId = layout.id!!,
+                nextButtonVisible = false
+            )
+        )
+
+        // Submit answers without answer via the V2 API (simulate postponed submission from device with malformed answer data)
+        for (i in 0..9) {
+            createPageAnswer(
+                testBuilder = testBuilder,
+                deviceId = deviceId,
+                page = page,
+                surveyId = survey.id,
+                answer = if (i % 2 == 0) {
+                    getOptionValueByOrderNumber(page = page, orderNumber = 0)
+                } else {
+                    null
+                },
+                deviceAnswerId = i.toLong()
+            )
+        }
+        val answers = testBuilder.manager.surveyAnswers.list(
+            surveyId = survey.id,
+            pageId = page.id!!
+        )
+
+        val pageWithFailsafeOption = testBuilder.manager.pages.find(surveyId = survey.id, pageId = page.id)
+        val failsafeOptions = pageWithFailsafeOption.question?.options?.filter { it.questionOptionValue == PageQuestionController.FAILSAFE_NO_SELECTION_OPTION_VALUE}
+
+        // Assert that there's exactly one failsafe option
+        assertEquals(1, failsafeOptions?.size)
+
+        val failsafeOption = failsafeOptions?.first()
+        val answersWithFailsafeOption = answers.filter { it.answer == failsafeOption?.id.toString() }
+        val answersWithoutFailsafeOption = answers.filter { it.answer != failsafeOption?.id.toString() }
+
+        assertEquals(5, answersWithFailsafeOption.size)
+        assertEquals(5, answersWithoutFailsafeOption.size)
+    }
+
+    @Test
+    fun testSubmitFreeTextAnswerWithoutAnswerOptionId() = createTestBuilder().use { testBuilder ->
+        val (deviceId, deviceKey) = testBuilder.manager.devices.setupTestDevice(serialNumber = "1234")
+
+        testBuilder.manager.deviceData.setDeviceKey(deviceKey)
+
+        val survey = testBuilder.manager.surveys.createDefault()
+        val layout = testBuilder.manager.layouts.createDefault()
+
+        approveSurvey(survey)
+
+        val page = testBuilder.manager.pages.create(
+            surveyId = survey.id!!,
+            page = Page(
+                orderNumber = 0,
+                title = "Question title",
+                question = PageQuestion(
+                    type = PageQuestionType.FREETEXT,
+                    options = emptyArray()
+                ),
+                layoutId = layout.id!!,
+                nextButtonVisible = false
+            )
+        )
+
+        // Submit an answer without answer via the V2 API (simulate postponed submission from device with malformed answer data)
+        createPageAnswer(
+            testBuilder = testBuilder,
+            deviceId = deviceId,
+            page = page,
+            surveyId = survey.id,
+            answer = null,
+            deviceAnswerId = 1
+        )
+        val (answer) = testBuilder.manager.surveyAnswers.list(
+            surveyId = survey.id,
+            pageId = page.id!!
+        )
+
+        assertEquals(answer.answer, "")
     }
 
     /**

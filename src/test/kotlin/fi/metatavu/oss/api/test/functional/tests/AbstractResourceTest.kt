@@ -122,7 +122,7 @@ abstract class AbstractResourceTest {
         testBuilder: TestBuilder,
         deviceId: UUID,
         page: Page,
-        answer: String,
+        answer: String?,
         deviceAnswerId: Long? = null,
         surveyId: UUID,
         overrideCreatedAt: OffsetDateTime? = null
