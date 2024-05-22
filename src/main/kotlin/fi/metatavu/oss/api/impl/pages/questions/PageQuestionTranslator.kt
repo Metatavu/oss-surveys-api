@@ -16,7 +16,7 @@ class PageQuestionTranslator : AbstractTranslator<PageQuestionEntity, PageQuesti
     lateinit var pageQuestionOptionRepository: QuestionOptionRepository
 
     override suspend fun translate(entity: PageQuestionEntity): PageQuestion {
-        return translate(entity = entity, supportRichText = false)
+        return translate(entity = entity, supportRichText = true)
     }
 
     /**
