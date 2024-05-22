@@ -95,6 +95,30 @@ class DeviceRepository: AbstractRepository<DeviceEntity, UUID>() {
     }
 
     /**
+     * Updates device version
+     *
+     * @param device device to update
+     * @param version version number
+     * @return updated device
+     */
+    suspend fun updateVersion(device: DeviceEntity, version: Long): DeviceEntity {
+        device.version = version
+        return persistSuspending(device)
+    }
+
+    /**
+     * Updates device unsent answers count
+     *
+     * @param device device to update
+     * @param unsentAnswersCount unsent answers count
+     * @return updated device
+     */
+    suspend fun updateUnsentAnswersCount(device: DeviceEntity, unsentAnswersCount: Long): DeviceEntity {
+        device.unsentAnswersCount = unsentAnswersCount
+        return persistSuspending(device)
+    }
+
+    /**
      * Finds a Device a by serial number
      *
      * @param serialNumber serial number

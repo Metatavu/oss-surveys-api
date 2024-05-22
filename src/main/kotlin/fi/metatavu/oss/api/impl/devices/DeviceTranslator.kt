@@ -27,6 +27,8 @@ class DeviceTranslator: AbstractTranslator<DeviceEntity, Device>() {
             description = entity.description,
             location = entity.location,
             deviceStatus = deviceStatus,
+            versionCode = entity.version,
+            unsentAnswersCount = entity.unsentAnswersCount,
             metadata = translateMetadata(entity)
         )
     }

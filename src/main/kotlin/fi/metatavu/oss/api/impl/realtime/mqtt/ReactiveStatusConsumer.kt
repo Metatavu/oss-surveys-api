@@ -53,7 +53,9 @@ class ReactiveStatusConsumer {
                 logger.info("Received status ($status) message from Device $deviceId")
                 deviceController.updateDeviceStatus(
                     device = foundDevice,
-                    status = status
+                    status = status,
+                    versionCode = deviceStatusMessage.versionCode,
+                    unsentAnswersCount = deviceStatusMessage.unsentAnswersCount
                 )
             }
         } catch (e: Exception) {

@@ -1,12 +1,17 @@
 package fi.metatavu.oss.api.impl.devicesurveys.devicesurveydata
 
+import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import fi.metatavu.oss.api.impl.AbstractApi
 import fi.metatavu.oss.api.impl.devices.DeviceController
 import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyController
 import fi.metatavu.oss.api.impl.pages.PagesController
 import fi.metatavu.oss.api.impl.pages.answers.PageAnswerController
 import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
+import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionRepository
+import fi.metatavu.oss.api.impl.surveys.SurveyController
 import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
+import fi.metatavu.oss.api.model.PageQuestionOption
+import fi.metatavu.oss.api.model.PageQuestionType
 import io.quarkus.hibernate.reactive.panache.common.runtime.ReactiveTransactional
 import io.smallrye.mutiny.Uni
 import io.smallrye.mutiny.coroutines.asUni
@@ -15,6 +20,8 @@ import io.vertx.kotlin.coroutines.dispatcher
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.async
+import org.slf4j.Logger
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.RequestScoped
 import javax.inject.Inject
@@ -27,6 +34,9 @@ import javax.ws.rs.core.Response
 @Suppress("unused")
 @OptIn(ExperimentalCoroutinesApi::class)
 class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractApi() {
+
+    @Inject
+    lateinit var logger: Logger
 
     @Inject
     lateinit var deviceSurveyController: DeviceSurveyController
@@ -45,6 +55,9 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
 
     @Inject
     lateinit var pagesController: PagesController
+
+    @Inject
+    lateinit var surveyController: SurveyController
 
     @Inject
     lateinit var vertx: Vertx
@@ -80,6 +93,7 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
     }.asUni()
 
     @ReactiveTransactional
+    @Deprecated("Use submitSurveyAnswerV2 instead")
     override fun submitSurveyAnswer(deviceId: UUID, deviceSurveyId: UUID, pageId: UUID, devicePageSurveyAnswer: DevicePageSurveyAnswer): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
         if (!isAuthorizedDevice(deviceId)) return@async createUnauthorized(UNAUTHORIZED)
         if (devicePageSurveyAnswer.answer.isNullOrEmpty()) {
@@ -119,12 +133,65 @@ class DeviceSurveyDataApiImpl: fi.metatavu.oss.api.spec.DeviceDataApi, AbstractA
 
         try {
             pageAnswerController.create(
-                deviceSurvey = deviceSurvey,
+                device = deviceSurvey.device,
                 page = page,
                 pageQuestion = question,
-                answer = devicePageSurveyAnswer
+                answer = devicePageSurveyAnswer,
+                createdAt = OffsetDateTime.now()
             )
         } catch (e: Exception) {
+            logger.error("Failed to create page answer", e)
+            return@async createBadRequest("Invalid answer")
+        }
+
+        return@async createAccepted(null)
+    }.asUni()
+
+    @ReactiveTransactional
+    override fun submitSurveyAnswerV2(
+        deviceId: UUID,
+        devicePageSurveyAnswer: DevicePageSurveyAnswer,
+        overrideCreatedAt: OffsetDateTime?
+    ): Uni<Response> = CoroutineScope(vertx.dispatcher()).async {
+        if (!isAuthorizedDevice(deviceId)) return@async createUnauthorized(UNAUTHORIZED)
+        val device = deviceController.findDevice(deviceId) ?: return@async createNotFoundWithMessage(
+            target = DEVICE,
+            id = deviceId
+        )
+
+        val pageId = devicePageSurveyAnswer.pageId ?: return@async createBadRequest("Page ID is required")
+
+        val page = pagesController.findPage(pageId) ?: return@async createNotFoundWithMessage(
+            target = PAGE,
+            id = pageId
+        )
+
+        val survey = surveyController.findSurvey(page.survey.id) ?: return@async createNotFoundWithMessage(
+            target = SURVEY,
+            id = page.survey.id
+        )
+
+        if (devicePageSurveyAnswer.answer.isNullOrEmpty()) {
+            val (deviceSurveys) = deviceSurveyController.listDeviceSurveys(surveyId = survey.id)
+            if (deviceSurveys.isNotEmpty()) {
+                return@async createBadRequest("Answer is required")
+            }
+        }
+
+        val question = pageQuestionController.find(page) ?: return@async createNotFound(
+            "No question found for page $pageId"
+        )
+
+        try {
+            pageAnswerController.create(
+                device = device,
+                page = page,
+                pageQuestion = question,
+                answer = devicePageSurveyAnswer,
+                createdAt = overrideCreatedAt ?: OffsetDateTime.now()
+            )
+        } catch (e: Exception) {
+            logger.error("Failed to create page answer", e)
             return@async createBadRequest("Invalid answer")
         }
 

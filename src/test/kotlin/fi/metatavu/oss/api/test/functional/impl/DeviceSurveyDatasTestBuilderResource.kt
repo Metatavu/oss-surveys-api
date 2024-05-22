@@ -10,6 +10,7 @@ import fi.metatavu.oss.test.client.models.DevicePageSurveyAnswer
 import fi.metatavu.oss.test.client.models.DeviceSurvey
 import fi.metatavu.oss.test.client.models.DeviceSurveyData
 import org.junit.jupiter.api.fail
+import java.time.OffsetDateTime
 import java.util.*
 
 /**
@@ -74,6 +75,42 @@ class DeviceSurveyDatasTestBuilderResource(
             deviceId = deviceId,
             deviceSurveyId = deviceSurveyId
         )
+    }
+
+    /**
+     * Submits the answer from the survey using the V2 API
+     *
+     * @param deviceId device id
+     * @param devicePageSurveyAnswer device page survey answer
+     * @param surveyId survey id (not needed for actual request)
+     * @param pageId page id (not needed for actual request)
+     * @param overrideCreatedAt override created at (optional)
+     */
+    fun submitSurveyAnswer(
+        deviceId: UUID,
+        devicePageSurveyAnswer: DevicePageSurveyAnswer,
+        surveyId: UUID,
+        pageId: UUID,
+        overrideCreatedAt: OffsetDateTime? = null
+    ) {
+        api.submitSurveyAnswerV2(
+            deviceId = deviceId,
+            devicePageSurveyAnswer = devicePageSurveyAnswer,
+            overrideCreatedAt = overrideCreatedAt?.toString()
+        )
+
+        // add it as closable to resource which can delete the answer
+        surveyAnswersResource.list(
+            surveyId = surveyId,
+            pageId = pageId
+        ).forEach {
+            if (submittedClosableAnswersIDs.contains(it.id)) {
+                return@forEach
+            }
+            surveyAnswersResource.addClosable(it)
+            surveyAnswersResource.answerToSurvey[it.id!!] = surveyId
+            submittedClosableAnswersIDs.add(it.id)
+        }
     }
 
     /**

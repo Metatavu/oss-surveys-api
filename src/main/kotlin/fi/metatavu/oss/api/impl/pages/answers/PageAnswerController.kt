@@ -5,21 +5,23 @@ import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.JsonMappingException
 import com.fasterxml.jackson.databind.ObjectMapper
 import fi.metatavu.oss.api.impl.devices.DeviceEntity
-import fi.metatavu.oss.api.impl.devicesurveys.DeviceSurveyEntity
 import fi.metatavu.oss.api.impl.pages.PageEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerBaseEntity
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerMulti
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerSingle
 import fi.metatavu.oss.api.impl.pages.answers.entities.PageAnswerText
 import fi.metatavu.oss.api.impl.pages.answers.repositories.*
+import fi.metatavu.oss.api.impl.pages.questions.PageQuestionController
 import fi.metatavu.oss.api.impl.pages.questions.PageQuestionEntity
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionEntity
 import fi.metatavu.oss.api.impl.pages.questions.QuestionOptionRepository
 import fi.metatavu.oss.api.impl.surveys.SurveyEntity
 import fi.metatavu.oss.api.model.DevicePageSurveyAnswer
+import fi.metatavu.oss.api.model.PageQuestionOption
 import fi.metatavu.oss.api.model.PageQuestionType.*
 import io.smallrye.mutiny.coroutines.awaitSuspending
 import org.slf4j.Logger
+import java.time.OffsetDateTime
 import java.util.*
 import javax.enterprise.context.ApplicationScoped
 import javax.inject.Inject
@@ -54,6 +56,11 @@ class PageAnswerController {
     @Inject
     lateinit var objectMapper: ObjectMapper
 
+    @Inject
+    lateinit var pageQuestionController: PageQuestionController
+
+    @Inject
+    lateinit var questionOptionRepository: QuestionOptionRepository
 
     /**
      * Lists answers for a page
@@ -78,7 +85,7 @@ class PageAnswerController {
     /**
      * Creates a new page answer for the page
      *
-     * @param deviceSurvey device survey
+     * @param device device
      * @param page page
      * @param pageQuestion question that was answered
      * @param answer answer as a string
@@ -87,17 +94,42 @@ class PageAnswerController {
      * @throws JsonMappingException
      */
     suspend fun create(
-        deviceSurvey: DeviceSurveyEntity,
+        device: DeviceEntity,
         page: PageEntity,
         pageQuestion: PageQuestionEntity,
-        answer: DevicePageSurveyAnswer
+        answer: DevicePageSurveyAnswer,
+        createdAt: OffsetDateTime
     ): PageAnswerBaseEntity {
-        val answerStringOriginal = answer.answer!!      // was verified to not be empty at the api impl level
+        val answerToSubmit = if (answer.answer.isNullOrEmpty()) {
+            getFailsafeQuestionOption(pageQuestion, answer)
+        } else {
+            answer
+        }
+        val answerKey = createAnswerKey(
+            device = device,
+            page = page,
+            answer = answerToSubmit
+        )
+
+        if (answerKey != null) {
+            val existingAnswer = pageAnswerRepository.findByAnswerKey(answerKey)
+            if (existingAnswer != null) {
+                return existingAnswer
+            }
+        }
+
+        val answerStringOriginal = answerToSubmit.answer!!
         return when (pageQuestion.type) {
             SINGLE_SELECT -> {
                 val option = parseOption(answerStringOriginal)
                     ?: throw IllegalArgumentException("Invalid option id $answerStringOriginal")
-                createSingleSelectAnswer(deviceSurvey, page, option)
+                createSingleSelectAnswer(
+                    answerKey = answerKey,
+                    device = device,
+                    page = page,
+                    option = option,
+                    createdAt = createdAt
+                )
             }
 
             MULTI_SELECT -> {
@@ -105,10 +137,22 @@ class PageAnswerController {
                 val options = ids.map {
                     parseOption(it.trim()) ?: throw IllegalArgumentException("Invalid option id $it")
                 }
-                createMultiSelectAnswer(deviceSurvey, page, options)
+                createMultiSelectAnswer(
+                    answerKey = answerKey,
+                    device = device,
+                    page = page,
+                    options = options,
+                    createdAt = createdAt
+                )
             }
 
-            FREETEXT -> createFreetextAnswer(deviceSurvey, page, answerStringOriginal)
+            FREETEXT -> createFreetextAnswer(
+                answerKey = answerKey,
+                device = device,
+                page = page,
+                answerStringOriginal = answerStringOriginal,
+                createdAt = createdAt
+            )
         }
     }
 
@@ -147,94 +191,6 @@ class PageAnswerController {
     }
 
     /**
-     * Creates answer for a freetext question
-     *
-     * @param deviceSurvey device survey where the answer was published
-     * @param page page where the answer was published
-     * @param answerStringOriginal answer as a string
-     * @return created answer
-     */
-    private suspend fun createFreetextAnswer(
-        deviceSurvey: DeviceSurveyEntity,
-        page: PageEntity,
-        answerStringOriginal: String
-    ): PageAnswerText {
-        return pageAnswerFreetextRepository.create(
-            id = UUID.randomUUID(),
-            page = page,
-            deviceEntity = deviceSurvey.device,
-            text = answerStringOriginal
-        )
-    }
-
-    /**
-     * Creates answer to multi select question
-     *
-     * @param deviceSurvey device survey where the answer was published
-     * @param page page where the answer was published
-     * @param options which options were selected
-     * @return created answer
-     */
-    private suspend fun createMultiSelectAnswer(
-        deviceSurvey: DeviceSurveyEntity,
-        page: PageEntity,
-        options: List<QuestionOptionEntity>
-    ): PageAnswerMulti {
-        val answer = pageAnswerMultiRepository.create(
-            id = UUID.randomUUID(),
-            page = page,
-            deviceEntity = deviceSurvey.device
-        )
-        options.forEach { answerOption ->
-            pageAnswerMultiToOptionsRepository.create(
-                id = UUID.randomUUID(),
-                pageAnswerMulti = answer,
-                option = answerOption
-            )
-        }
-
-        return answer
-    }
-
-    /**
-     * Creates a single select answer
-     *
-     * @param deviceSurvey where it was published
-     * @param page which page it was answered on
-     * @param option which option was selected
-     * @return created answer
-     */
-    private suspend fun createSingleSelectAnswer(
-        deviceSurvey: DeviceSurveyEntity,
-        page: PageEntity,
-        option: QuestionOptionEntity
-    ): PageAnswerSingle {
-        return pageAnswerSingleRepository.create(
-            id = UUID.randomUUID(),
-            page = page,
-            option = option,
-            deviceEntity = deviceSurvey.device
-        )
-    }
-
-
-    /**
-     * Finds an option by original ID passed in rest answer object
-     *
-     * @param id id
-     * @return option or null if not found
-     */
-    private suspend fun parseOption(id: String): QuestionOptionEntity? {
-        val uuid = try {
-            UUID.fromString(id)
-        } catch (e: IllegalArgumentException) {
-            logger.error("Invalid uuid $id", e)
-            return null
-        }
-        return pageOptionRepository.findById(uuid).awaitSuspending()
-    }
-
-    /**
      * Disconnects answer from device. To be used when devices are being removed in order to not lose
      * the submitted answers
      *
@@ -260,6 +216,170 @@ class PageAnswerController {
         return pageAnswerRepository.listByDeviceAndSurvey(
             device = device,
             survey = survey
+        )
+    }
+
+    /**
+     * Creates answer for a freetext question
+     *
+     * @param answerKey unique key for the answer
+     * @param device device where the answer was published
+     * @param page page where the answer was published
+     * @param answerStringOriginal answer as a string
+     * @param createdAt when the answer was created
+     * @return created answer
+     */
+    private suspend fun createFreetextAnswer(
+        answerKey: String?,
+        device: DeviceEntity,
+        page: PageEntity,
+        answerStringOriginal: String,
+        createdAt: OffsetDateTime
+    ): PageAnswerText {
+        return pageAnswerFreetextRepository.create(
+            id = UUID.randomUUID(),
+            answerKey = answerKey,
+            page = page,
+            deviceEntity = device,
+            text = answerStringOriginal,
+            createdAt = createdAt
+        )
+    }
+
+    /**
+     * Creates answer to multi select question
+     *
+     * @param answerKey unique key for the answer
+     * @param device device where the answer was published
+     * @param page page where the answer was published
+     * @param options which options were selected
+     * @param createdAt when the answer was created
+     * @return created answer
+     */
+    private suspend fun createMultiSelectAnswer(
+        answerKey: String?,
+        device: DeviceEntity,
+        page: PageEntity,
+        options: List<QuestionOptionEntity>,
+        createdAt: OffsetDateTime
+    ): PageAnswerMulti {
+        val answer = pageAnswerMultiRepository.create(
+            id = UUID.randomUUID(),
+            answerKey = answerKey,
+            page = page,
+            deviceEntity = device,
+            createdAt = createdAt
+        )
+        options.forEach { answerOption ->
+            pageAnswerMultiToOptionsRepository.create(
+                id = UUID.randomUUID(),
+                pageAnswerMulti = answer,
+                option = answerOption
+            )
+        }
+
+        return answer
+    }
+
+    /**
+     * Creates a single select answer
+     *
+     * @param answerKey unique key for the answer
+     * @param device where it was published
+     * @param page which page it was answered on
+     * @param option which option was selected
+     * @param createdAt when the answer was created
+     * @return created answer
+     */
+    private suspend fun createSingleSelectAnswer(
+        answerKey: String?,
+        device: DeviceEntity,
+        page: PageEntity,
+        option: QuestionOptionEntity,
+        createdAt: OffsetDateTime
+    ): PageAnswerSingle {
+        return pageAnswerSingleRepository.create(
+            id = UUID.randomUUID(),
+            answerKey = answerKey,
+            page = page,
+            option = option,
+            deviceEntity = device,
+            createdAt = createdAt
+        )
+    }
+
+
+    /**
+     * Finds an option by original ID passed in rest answer object
+     *
+     * @param id id
+     * @return option or null if not found
+     */
+    private suspend fun parseOption(id: String): QuestionOptionEntity? {
+        val uuid = try {
+            UUID.fromString(id)
+        } catch (e: IllegalArgumentException) {
+            logger.error("Invalid uuid $id", e)
+            return null
+        }
+        return pageOptionRepository.findById(uuid).awaitSuspending()
+    }
+
+    /**
+     * Creates a unique answer key for the answer.
+     *
+     * If the answer does not have an id, returns null
+     *
+     * @param device device
+     * @param page page
+     * @param answer answer
+     *
+     * @return answer key or null if the answer does not have an id
+     */
+    private fun createAnswerKey(device: DeviceEntity, page: PageEntity, answer: DevicePageSurveyAnswer): String? {
+        val deviceAnswerId = answer.deviceAnswerId ?: return null
+        val deviceId = device.id
+        val pageId = page.id
+
+        return "$deviceId-$pageId-$deviceAnswerId"
+    }
+
+    /**
+     * Assigns a failsafe answer value to the answer in case it doesn't have one e.g. the answer is malformed
+     *
+     * @param pageQuestion question to get failsafe option for
+     * @param answer answer submitted from the device with malformed data
+     * @return answer with failsafe value
+     */
+    private suspend fun getFailsafeQuestionOption(pageQuestion: PageQuestionEntity, answer: DevicePageSurveyAnswer): DevicePageSurveyAnswer {
+        if (pageQuestion.type == FREETEXT) {
+            return answer.copy(answer = "")
+        }
+        val failsafeAnswer = questionOptionRepository.findFailsafeQuestionOption(pageQuestion.id) ?: createFailsafeQuestionOption(pageQuestion)
+
+        return answer.copy(answer =  when (pageQuestion.type) {
+            MULTI_SELECT -> objectMapper.writeValueAsString(listOf(failsafeAnswer.id.toString()))
+            SINGLE_SELECT -> failsafeAnswer.id.toString()
+            else -> throw IllegalArgumentException("Invalid question type")
+        })
+    }
+
+    /**
+     * Creates a new failsafe failsafe question option for the question
+     *
+     * @param pageQuestion question to create failsafe option for
+     * @return created failsafe option
+     */
+    private suspend fun createFailsafeQuestionOption(pageQuestion: PageQuestionEntity): QuestionOptionEntity {
+        val options = pageOptionRepository.listByQuestion(pageQuestion)
+        val maxOrderNumber = options.maxOfOrNull { it.orderNumber ?: 0 } ?: 0
+
+        return pageQuestionController.addOption(
+            option = PageQuestionOption(
+                questionOptionValue = PageQuestionController.FAILSAFE_NO_SELECTION_OPTION_VALUE,
+                orderNumber = maxOrderNumber + 1,
+            ),
+            question = pageQuestion
         )
     }
 

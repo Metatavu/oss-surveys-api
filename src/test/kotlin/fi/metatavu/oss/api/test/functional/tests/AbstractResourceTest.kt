@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import java.time.OffsetDateTime
 import java.time.temporal.ChronoUnit
+import java.util.*
 
 /**
  * Abstract base class for resource tests
@@ -25,14 +26,28 @@ abstract class AbstractResourceTest {
     /**
      * Asserts offset datetime equals
      *
-     * @param expectedDateTime expected date time
-     * @param actualDateTime actual date time
+     * @param expectedDateTime expected date time as string
+     * @param actualDateTime actual date time as string
      * @param retention retention
      */
     protected fun assertOffsetDateTimeEquals(expectedDateTime: String, actualDateTime: String, retention: ChronoUnit = ChronoUnit.SECONDS) {
         assertEquals(
             OffsetDateTime.parse(expectedDateTime).toInstant().truncatedTo(retention),
             OffsetDateTime.parse(actualDateTime).toInstant().truncatedTo(retention)
+        )
+    }
+
+    /**
+     * Asserts offset datetime equals
+     *
+     * @param expectedDateTime expected date time as offset date time
+     * @param actualDateTime actual date time as offset date time
+     * @param retention retention
+     */
+    protected fun assertOffsetDateTimeEquals(expectedDateTime: OffsetDateTime, actualDateTime: OffsetDateTime, retention: ChronoUnit = ChronoUnit.SECONDS) {
+        assertEquals(
+            expectedDateTime.toInstant().truncatedTo(retention),
+            actualDateTime.toInstant().truncatedTo(retention)
         )
     }
 
@@ -70,12 +85,14 @@ abstract class AbstractResourceTest {
      * @param deviceSurvey device survey
      * @param page page
      * @param answer answer
+     * @param deviceAnswerId device answer id (optional)
      */
     protected fun createPageAnswer(
         testBuilder: TestBuilder,
         deviceSurvey: DeviceSurvey,
         page: Page,
-        answer: String
+        answer: String,
+        deviceAnswerId: Long? = null
     ) {
         testBuilder.manager.deviceData.submitSurveyAnswer(
             deviceId = deviceSurvey.deviceId,
@@ -83,9 +100,44 @@ abstract class AbstractResourceTest {
             pageId = page.id!!,
             devicePageSurveyAnswer = DevicePageSurveyAnswer(
                 pageId = page.id,
-                answer = answer
+                answer = answer,
+                deviceAnswerId = deviceAnswerId
             ),
             surveyId = deviceSurvey.surveyId
+        )
+    }
+
+    /**
+     * Creates an answer for a page using V2 API
+     *
+     * @param testBuilder test builder
+     * @param deviceId device id
+     * @param page page
+     * @param answer answer
+     * @param deviceAnswerId device answer id (optional
+     * @param surveyId survey id
+     * @param overrideCreatedAt override created at (optional)
+     */
+    protected fun createPageAnswer(
+        testBuilder: TestBuilder,
+        deviceId: UUID,
+        page: Page,
+        answer: String?,
+        deviceAnswerId: Long? = null,
+        surveyId: UUID,
+        overrideCreatedAt: OffsetDateTime? = null
+    ) {
+        testBuilder.manager.deviceData.submitSurveyAnswer(
+            deviceId = deviceId,
+            devicePageSurveyAnswer = DevicePageSurveyAnswer(
+                pageId = page.id,
+                answer = answer,
+                deviceAnswerId = deviceAnswerId,
+            ),
+            surveyId = surveyId,
+            pageId = page.id!!,
+            overrideCreatedAt = overrideCreatedAt
+
         )
     }
 

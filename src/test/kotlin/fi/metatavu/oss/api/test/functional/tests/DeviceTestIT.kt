@@ -66,7 +66,9 @@ class DeviceTestIT: AbstractResourceTest() {
             topic = "$deviceId/status",
             message = DeviceStatusMessage(
                 deviceId = deviceId,
-                status = DeviceStatus.ONLINE
+                status = DeviceStatus.ONLINE,
+                versionCode = 12345,
+                unsentAnswersCount = 12
             )
         )
 
@@ -80,5 +82,77 @@ class DeviceTestIT: AbstractResourceTest() {
 
         val foundDeviceAfterStatusChange = testBuilder.manager.devices.list(status = DeviceStatus.ONLINE)
         assertEquals(1, foundDeviceAfterStatusChange.size)
+        assertEquals(deviceId, foundDeviceAfterStatusChange[0].id)
+        assertEquals(DeviceStatus.ONLINE, foundDeviceAfterStatusChange[0].deviceStatus)
+        assertEquals(12345, foundDeviceAfterStatusChange[0].versionCode)
+        assertEquals(12, foundDeviceAfterStatusChange[0].unsentAnswersCount)
+
     }
+
+    @Test
+    fun testDeviceStatusWithoutVersionCode () = createTestBuilder().use { testBuilder ->
+        val mqttClient = TestMqttClient()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
+        val foundDevice = testBuilder.manager.devices.find(deviceId)
+
+        assertEquals(DeviceStatus.OFFLINE, foundDevice.deviceStatus)
+
+        mqttClient.publish(
+            topic = "$deviceId/status",
+            message = DeviceStatusMessage(
+                deviceId = deviceId,
+                status = DeviceStatus.ONLINE,
+                unsentAnswersCount = 2
+            )
+        )
+
+        Awaitility
+            .await()
+            .atMost(Duration.ofMinutes(1))
+            .pollInterval(Duration.ofSeconds(5))
+            .until {
+                testBuilder.manager.devices.find(deviceId).deviceStatus == DeviceStatus.ONLINE
+            }
+
+        val foundDeviceAfterStatusChange = testBuilder.manager.devices.list(status = DeviceStatus.ONLINE)
+        assertEquals(1, foundDeviceAfterStatusChange.size)
+        assertEquals(deviceId, foundDeviceAfterStatusChange[0].id)
+        assertEquals(DeviceStatus.ONLINE, foundDeviceAfterStatusChange[0].deviceStatus)
+        assertEquals(foundDevice.versionCode, foundDeviceAfterStatusChange[0].versionCode)
+        assertEquals(2, foundDeviceAfterStatusChange[0].unsentAnswersCount)
+    }
+
+    @Test
+    fun testDeviceStatusWithoutUnsentAnswersCount () = createTestBuilder().use { testBuilder ->
+        val mqttClient = TestMqttClient()
+        val (deviceId) = testBuilder.manager.devices.setupTestDevice()
+        val foundDevice = testBuilder.manager.devices.find(deviceId)
+
+        assertEquals(DeviceStatus.OFFLINE, foundDevice.deviceStatus)
+
+        mqttClient.publish(
+            topic = "$deviceId/status",
+            message = DeviceStatusMessage(
+                deviceId = deviceId,
+                status = DeviceStatus.ONLINE,
+                versionCode = 12345
+            )
+        )
+
+        Awaitility
+            .await()
+            .atMost(Duration.ofMinutes(1))
+            .pollInterval(Duration.ofSeconds(5))
+            .until {
+                testBuilder.manager.devices.find(deviceId).deviceStatus == DeviceStatus.ONLINE
+            }
+
+        val foundDeviceAfterStatusChange = testBuilder.manager.devices.list(status = DeviceStatus.ONLINE)
+        assertEquals(1, foundDeviceAfterStatusChange.size)
+        assertEquals(deviceId, foundDeviceAfterStatusChange[0].id)
+        assertEquals(DeviceStatus.ONLINE, foundDeviceAfterStatusChange[0].deviceStatus)
+        assertEquals(12345, foundDeviceAfterStatusChange[0].versionCode)
+        assertEquals(0, foundDeviceAfterStatusChange[0].unsentAnswersCount)
+    }
+
 }
