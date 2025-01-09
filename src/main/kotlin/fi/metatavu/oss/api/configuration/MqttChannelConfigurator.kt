@@ -28,7 +28,7 @@ class MqttChannelConfigurator: ConfigSource {
         }
 
         if (result != null) {
-            logger.info("MQTT property $propertyName = $result")
+            logger.debug("MQTT property $propertyName = $result")
         }
 
         return result
