@@ -32,6 +32,7 @@ dependencies {
     implementation("io.quarkus:quarkus-reactive-mysql-client")
     implementation("io.quarkus:quarkus-hibernate-reactive-panache")
     implementation("io.quarkus:quarkus-jdbc-mysql")
+    implementation("io.quarkus:quarkus-smallrye-health")
 
     implementation("io.quarkiverse.amazonservices:quarkus-amazon-s3")
     implementation("software.amazon.awssdk:netty-nio-client")
